@@ -1,0 +1,8 @@
+prefix=/home/kaerei/ROS_Workspace/dm_ht_controller/devel
+
+Name: dm_ht_controller
+Description: Description of dm_ht_controller
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
