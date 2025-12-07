@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/kaerei/ROS_Workspace/dm_ht_controller/install/setup.sh
+    local-name: /home/kaerei/ROS_Workspace/dm_ht_arm/install/setup.sh

@@ -1,0 +1,8 @@
+prefix=/home/kaerei/ROS_Workspace/dm_ht_arm/install
+
+Name: dm_arm_moveit_config
+Description: Description of dm_arm_moveit_config
+Version: 0.3.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

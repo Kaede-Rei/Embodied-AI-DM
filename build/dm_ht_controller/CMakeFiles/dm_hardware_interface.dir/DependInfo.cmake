@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/src/dm_hardware_interface.cpp" "/home/kaerei/ROS_Workspace/dm_ht_controller/build/dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/src/dm_hardware_interface.cpp.o"
+  "/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/src/dm_hardware_interface.cpp" "/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/src/dm_hardware_interface.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -18,7 +18,7 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/include"
+  "/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include"
   "/opt/ros/noetic/include"
   "/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
   )

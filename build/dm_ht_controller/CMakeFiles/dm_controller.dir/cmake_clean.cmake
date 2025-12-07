@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/kaerei/ROS_Workspace/dm_ht_controller/devel/lib/dm_ht_controller/dm_controller"
-  "/home/kaerei/ROS_Workspace/dm_ht_controller/devel/lib/dm_ht_controller/dm_controller.pdb"
+  "/home/kaerei/ROS_Workspace/dm_ht_arm/devel/lib/dm_ht_controller/dm_controller"
+  "/home/kaerei/ROS_Workspace/dm_ht_arm/devel/lib/dm_ht_controller/dm_controller.pdb"
   "CMakeFiles/dm_controller.dir/src/dm_controller.cpp.o"
 )
 

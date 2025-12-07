@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: dm_ht_controller
+    relative_path: urdf/dm_arm.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/TRLC-DK1-Follower.srdf
+  CONFIG:
+    author_name: Kaede Rei
+    author_email: kaerei@foxmail.com
+    generated_timestamp: 1765104993

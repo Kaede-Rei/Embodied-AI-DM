@@ -4,5 +4,5 @@ PROJECT_PKG_CONFIG_INCLUDE_DIRS = "".split(';') if "" != "" else []
 PROJECT_CATKIN_DEPENDS = "".replace(';', ' ')
 PKG_CONFIG_LIBRARIES_WITH_PREFIX = "".split(';') if "" != "" else []
 PROJECT_NAME = "dm_ht_controller"
-PROJECT_SPACE_DIR = "/home/kaerei/ROS_Workspace/dm_ht_controller/devel"
+PROJECT_SPACE_DIR = "/home/kaerei/ROS_Workspace/dm_ht_arm/devel"
 PROJECT_VERSION = "0.0.0"

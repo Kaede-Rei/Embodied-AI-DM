@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/include/dm_ht_controller/SerialPort.h
+/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include/dm_ht_controller/SerialPort.h
 termios.h
 -
 sys/select.h
@@ -32,9 +32,9 @@ chrono
 queue
 -
 
-/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/include/dm_ht_controller/damiao.h
+/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include/dm_ht_controller/damiao.h
 SerialPort.h
-/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/include/dm_ht_controller/SerialPort.h
+/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include/dm_ht_controller/SerialPort.h
 cmath
 -
 utility
@@ -52,7 +52,7 @@ cstdint
 cmath
 -
 
-/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/include/dm_ht_controller/dm_hardware_interface.h
+/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include/dm_ht_controller/dm_hardware_interface.h
 ros/ros.h
 -
 hardware_interface/joint_command_interface.h
@@ -64,7 +64,7 @@ hardware_interface/robot_hw.h
 controller_manager/controller_manager.h
 -
 dm_ht_controller/damiao.h
-/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/include/dm_ht_controller/dm_ht_controller/damiao.h
+/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include/dm_ht_controller/dm_ht_controller/damiao.h
 vector
 -
 memory
@@ -72,13 +72,13 @@ memory
 string
 -
 
-/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/src/dm_controller.cpp
+/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/src/dm_controller.cpp
 ros/ros.h
 -
 controller_manager/controller_manager.h
 -
 dm_ht_controller/dm_hardware_interface.h
-/home/kaerei/ROS_Workspace/dm_ht_controller/src/dm_ht_controller/src/dm_ht_controller/dm_hardware_interface.h
+/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/src/dm_ht_controller/dm_hardware_interface.h
 signal.h
 -
 

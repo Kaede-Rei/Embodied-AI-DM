@@ -1,4 +1,4 @@
-prefix=/home/kaerei/ROS_Workspace/dm_ht_controller/install
+prefix=/home/kaerei/ROS_Workspace/dm_ht_arm/install
 
 Name: dm_ht_controller
 Description: Description of dm_ht_controller
