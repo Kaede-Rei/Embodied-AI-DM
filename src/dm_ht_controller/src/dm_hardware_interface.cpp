@@ -2,7 +2,7 @@
 
 DMHardwareInterface::DMHardwareInterface(ros::NodeHandle& nh)
     : nh_(nh),
-    control_frequency_(1000.0),
+    control_frequency_(500.0),
     use_mit_mode_(true),
     kp_(30.0),
     kd_(1.0),
@@ -27,7 +27,7 @@ bool DMHardwareInterface::init()
     // 读取参数
     nh_.param<std::string>("serial_port", serial_port_, "/dev/ttyACM0");
     nh_.param<int>("baudrate", baudrate_, 921600);
-    nh_.param<double>("control_frequency", control_frequency_, 1000.0);
+    nh_.param<double>("control_frequency", control_frequency_, 500.0);
     nh_.param<bool>("use_mit_mode", use_mit_mode_, true);
     nh_.param<double>("kp", kp_, 30.0);
     nh_.param<double>("kd", kd_, 1.0);
@@ -76,12 +76,13 @@ bool DMHardwareInterface::init()
 
     // 创建电机对象并使能
     for(size_t i = 0; i < num_joints; ++i){
+
         // 创建电机对象
         auto motor_type = static_cast<damiao::DM_Motor_Type>(motor_types_[i]);
         auto motor = std::make_shared<damiao::Motor>(
             motor_type,
             motor_ids_[i],  // Slave ID (电机ID)
-            0x00           // Master ID
+            0x00            // Master ID
         );
 
         motors_.push_back(motor);
@@ -134,6 +135,7 @@ bool DMHardwareInterface::init()
 
     // 注册到hardware_interface
     for(size_t i = 0; i < num_joints; ++i){
+        
         // 注册joint_state_interface
         hardware_interface::JointStateHandle state_handle(
             joint_names_[i],
@@ -176,6 +178,7 @@ void DMHardwareInterface::write()
     double dt = 1.0 / control_frequency_;
 
     for(size_t i = 0; i < motors_.size(); ++i){
+
         // 安全限制：检查位置变化是否过大
         double position_change = joint_position_command_[i] - joint_position_command_prev_[i];
         if(std::abs(position_change) > max_position_change_){
@@ -187,6 +190,7 @@ void DMHardwareInterface::write()
 
         try{
             if(use_mit_mode_){
+
                 // MIT模式：位置+速度+kp+kd控制
                 double target_velocity = position_change / dt;
 
@@ -200,6 +204,7 @@ void DMHardwareInterface::write()
                 );
             }
             else{
+                
                 // 位置速度模式
                 double target_velocity = position_change / dt;
 

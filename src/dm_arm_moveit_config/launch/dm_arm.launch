@@ -7,7 +7,7 @@
   <!-- robot_state_publisher -->
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
 
-  <!-- 启动硬件控制控制器 -->
+  <!-- 启动硬件控制器 -->
   <include file="$(find dm_ht_controller)/launch/dm_controller.launch"/>
 
   <!-- MoveIt 控制器 YAML -->

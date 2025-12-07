@@ -1,7 +1,7 @@
 # 硬件接口配置
 serial_port: "/dev/ttyACM0"
 baudrate: 921600
-control_frequency: 1000.0
+control_frequency: 500.0
 
 # 控制模式
 use_mit_mode: true
