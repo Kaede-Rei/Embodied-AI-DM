@@ -112,9 +112,9 @@ bool DMHardwareInterface::init()
         }
     }
 
-    // 切换到位置速度模式
+    // 除了JOINT1外切换到位置速度模式
     if(!use_mit_mode_){
-        for(size_t i = 0; i < motors_.size(); ++i){
+        for(size_t i = 1; i < motors_.size(); ++i){
             try{
                 bool success = motor_controller_->switchControlMode(
                     *motors_[i], damiao::POS_VEL_MODE);
@@ -266,11 +266,24 @@ void DMHardwareInterface::write()
                 );
             }
             else{
-                motor_controller_->control_pos_vel(
-                    *motors_[i],
-                    joint_position_command_[i],
-                    target_velocity
-                );
+                if(i == 0){
+                    // JOINT1使用MIT模式控制
+                    motor_controller_->control_mit(
+                        *motors_[i],
+                        kp_,
+                        kd_,
+                        joint_position_command_[i],
+                        target_velocity,
+                        0.0f
+                    );
+                }
+                else{
+                    motor_controller_->control_pos_vel(
+                        *motors_[i],
+                        joint_position_command_[i],
+                        target_velocity
+                    );
+                }
             }
             
             // 更新上一次的命令
