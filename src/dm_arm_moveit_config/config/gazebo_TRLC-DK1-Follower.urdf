@@ -77,8 +77,8 @@
         <origin xyz="0 0.02 0.0385" rpy="0 0 0" />
         <parent link="link1-2" />
         <child link="Link1" />
-        <axis xyz="1 0 0" />
-        <limit lower="-3.141592653589793" upper="0" effort="100" velocity="3" />
+        <axis xyz="-1 0 0" />
+        <limit lower="-0.0349065850398" upper="3.141592653589793" effort="100" velocity="3" />
     </joint>
     <link name="Link_2">
         <inertial>
@@ -107,7 +107,7 @@
         <parent link="Link1" />
         <child link="Link_2" />
         <axis xyz="1 0 0" />
-        <limit lower="0" upper="4.71238898038469" effort="100" velocity="3" />
+        <limit lower="-0.0698131700797" upper="4.71238898038469" effort="100" velocity="3" />
     </joint>
     <link name="link4-5">
         <inertial>
@@ -196,65 +196,6 @@
         <axis xyz="0 1 0" />
         <limit lower="-3.141592653589793" upper="3.141592653589793" effort="20" velocity="3" />
     </joint>
-    <link name="finger_left">
-        <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0.0745959905268717" />
-            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001" />
-        </inertial>
-        <visual>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <geometry>
-                <mesh filename="package://dm_ht_controller/urdf/meshes/finger_left.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.25 0.25 0.25 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <geometry>
-                <mesh filename="package://dm_ht_controller/urdf/meshes/finger_left.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <joint name="gripper_left" type="prismatic">
-        <origin xyz="-0.04 0 0" rpy="0 0 0" />
-        <parent link="Link6-7" />
-        <child link="finger_left" />
-        <axis xyz="-1 0 0" />
-        <limit lower="-0.045" upper="0.0" effort="20" velocity="0.2" />
-    </joint>
-    <link name="finger_right">
-        <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0.0745959905268717" />
-            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001" />
-        </inertial>
-        <visual>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <geometry>
-                <mesh filename="package://dm_ht_controller/urdf/meshes/finger_right.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.25 0.25 0.25 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <geometry>
-                <mesh filename="package://dm_ht_controller/urdf/meshes/finger_right.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <joint name="gripper_right" type="prismatic">
-        <origin xyz="0.04 0 0" rpy="0 0 0" />
-        <parent link="Link6-7" />
-        <child link="finger_right" />
-        <axis xyz="1 0 0" />
-        <limit lower="-0.045" upper="0.0" effort="20" velocity="0.2" />
-        <mimic joint="gripper_left" multiplier="1" offset="0" />
-    </joint>
     <transmission name="trans_joint1">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="joint1">
@@ -312,26 +253,6 @@
         </joint>
         <actuator name="joint6_motor">
             <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="trans_gripper_left">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="gripper_left">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="gripper_left_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="trans_gripper_right">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="gripper_right">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="gripper_right_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>

@@ -26,7 +26,7 @@ joint_names:
 motor_ids: [1, 2, 3, 4, 5, 6]
 
 # 电机类型
-motor_types: [0, 0, 0, 0, 0, 0]
+motor_types: [2, 2, 2, 0, 0, 0]
 
 # 关节状态控制器
 joint_state_controller:
@@ -53,11 +53,4 @@ arm_controller:
     joint4: {trajectory: 0.2, goal: 0.05}
     joint5: {trajectory: 0.2, goal: 0.05}
     joint6: {trajectory: 0.2, goal: 0.05}
-  
-  gains:
-    joint1: {p: 100.0, d: 10.0, i: 0.0, i_clamp: 1.0}
-    joint2: {p: 100.0, d: 10.0, i: 0.0, i_clamp: 1.0}
-    joint3: {p: 100.0, d: 10.0, i: 0.0, i_clamp: 1.0}
-    joint4: {p: 100.0, d: 10.0, i: 0.0, i_clamp: 1.0}
-    joint5: {p: 100.0, d: 10.0, i: 0.0, i_clamp: 1.0}
-    joint6: {p: 100.0, d: 10.0, i: 0.0, i_clamp: 1.0}
+    

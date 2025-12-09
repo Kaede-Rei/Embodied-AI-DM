@@ -34,7 +34,7 @@ private:
     int baudrate_;
     std::vector<std::string> joint_names_;
     std::vector<int> motor_ids_;
-    std::vector<int> motor_types_;  // 对应damiao::DM_Motor_Type
+    std::vector<int> motor_types_;
 
     // 关节数据
     std::vector<double> joint_position_;
@@ -52,13 +52,13 @@ private:
 
     // 控制参数
     double control_frequency_;
-    bool use_mit_mode_;  // true: MIT模式, false: 位置速度模式
-    double kp_;  // MIT模式的比例增益
-    double kd_;  // MIT模式的微分增益
+    bool use_mit_mode_;     // true: MIT模式, false: 位置速度模式
+    double kp_;             // MIT模式的比例增益
+    double kd_;             // MIT模式的微分增益
 
     // 安全限制
-    double max_position_change_;  // 单次最大位置变化
-    double max_velocity_;
+    double max_position_change_;    // 单次最大位置变化
+    double max_velocity_;           // 最大速度
 };
 
 #endif
