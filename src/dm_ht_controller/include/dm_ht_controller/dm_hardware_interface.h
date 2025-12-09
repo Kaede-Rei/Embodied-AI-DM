@@ -41,6 +41,7 @@ private:
     std::vector<double> joint_velocity_;
     std::vector<double> joint_effort_;
     std::vector<double> joint_position_command_;
+    std::vector<double> joint_velocity_command_;
 
     // 上一次的命令位置（用于计算速度）
     std::vector<double> joint_position_command_prev_;
@@ -57,6 +58,7 @@ private:
 
     // 安全限制
     double max_position_change_;  // 单次最大位置变化
+    double max_velocity_;
 };
 
 #endif

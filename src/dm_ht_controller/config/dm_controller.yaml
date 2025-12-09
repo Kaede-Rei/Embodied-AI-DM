@@ -4,12 +4,13 @@ baudrate: 921600
 control_frequency: 500.0
 
 # 控制模式
-use_mit_mode: true
+use_mit_mode: false
 kp: 30.0
 kd: 1.0
 
 # 安全参数
 max_position_change: 0.5
+max_velocity: 5.0
 enable_write: true
 
 # 手臂关节配置 - 6个旋转关节
