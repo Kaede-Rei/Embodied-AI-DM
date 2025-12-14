@@ -11,6 +11,16 @@
 #include <memory>
 #include <string>
 
+/**
+ * @brief 达妙机械臂硬件接口类，实现ros_control的RobotHW接口
+ * @details 支持达妙电机的MIT模式和位置速度模式控制(MIT模式对其他轴有bug)，方法有：
+ *          - 构造函数：初始化成员变量
+ *          - 析构函数：归零并失能电机
+ *          - init(): 初始化硬件接口，读取参数，创建电机对象，注册ros_control接口
+ *          - read(): 从电机读取当前状态，更新关节位置、速度和力矩
+ *          - write(): 根据控制模式发送命令到电机
+ *          - returnZero(): 将所有关节位置命令设为零位置
+ */
 class DMHardwareInterface : public hardware_interface::RobotHW{
 public:
     DMHardwareInterface(ros::NodeHandle& nh);
@@ -19,6 +29,7 @@ public:
     bool init();
     void read();
     void write();
+    void returnZero();
 
 private:
     ros::NodeHandle nh_;

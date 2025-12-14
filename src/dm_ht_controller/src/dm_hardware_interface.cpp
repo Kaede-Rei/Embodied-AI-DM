@@ -1,5 +1,9 @@
 #include "dm_ht_controller/dm_hardware_interface.h"
 
+/**
+ * @brief 构造函数，初始化成员变量
+ * @param nh ROS节点句柄
+ */
 DMHardwareInterface::DMHardwareInterface(ros::NodeHandle& nh)
     : nh_(nh),
     control_frequency_(500.0),
@@ -10,19 +14,28 @@ DMHardwareInterface::DMHardwareInterface(ros::NodeHandle& nh)
     max_velocity_(3.0)
 { }
 
+/**
+ * @brief 析构函数，归零并失能所有电机
+ */
 DMHardwareInterface::~DMHardwareInterface()
 {
+    // 归零
+    returnZero();
+
     // 失能所有电机
     for(auto& motor : motors_){
         try{
             motor_controller_->disable(*motor);
         }
         catch(const std::exception& e){
-            ROS_ERROR("Error disabling motor: %s", e.what());
+            ROS_ERROR("失能电机时出错: %s", e.what());
         }
     }
 }
 
+/**
+ * @brief 初始化硬件接口，读取参数，创建电机对象并使能电机
+ */
 bool DMHardwareInterface::init()
 {
     // 读取参数
@@ -36,23 +49,23 @@ bool DMHardwareInterface::init()
     nh_.param<double>("max_velocity", max_velocity_, 3.0);
 
     if(!nh_.getParam("joint_names", joint_names_)){
-        ROS_ERROR("Failed to get joint_names parameter");
+        ROS_ERROR("获取 joint_names 参数失败");
         return false;
     }
 
     if(!nh_.getParam("motor_ids", motor_ids_)){
-        ROS_ERROR("Failed to get motor_ids parameter");
+        ROS_ERROR("获取 motor_ids 参数失败");
         return false;
     }
 
     if(!nh_.getParam("motor_types", motor_types_)){
-        ROS_ERROR("Failed to get motor_types parameter");
+        ROS_ERROR("获取 motor_types 参数失败");
         return false;
     }
 
     if(joint_names_.size() != motor_ids_.size() ||
         joint_names_.size() != motor_types_.size()){
-        ROS_ERROR("Size mismatch: joint_names, motor_ids, and motor_types must have the same length");
+        ROS_ERROR("尺寸不匹配: joint_names, motor_ids 和 motor_types 必须具有相同的长度");
         return false;
     }
 
@@ -70,10 +83,10 @@ bool DMHardwareInterface::init()
     try{
         auto serial = std::make_shared<SerialPort>(serial_port_, baudrate_);
         motor_controller_ = std::make_shared<damiao::Motor_Control>(serial);
-        ROS_INFO("Serial port %s opened successfully", serial_port_.c_str());
+        ROS_INFO("串口 %s 打开成功", serial_port_.c_str());
     }
     catch(const std::exception& e){
-        ROS_ERROR("Failed to open serial port: %s", e.what());
+        ROS_ERROR("打开串口失败: %s", e.what());
         return false;
     }
 
@@ -89,7 +102,7 @@ bool DMHardwareInterface::init()
         motors_.push_back(motor);
         motor_controller_->addMotor(motor.get());
 
-        ROS_INFO("Added motor: joint=%s, id=%d, type=%d",
+        ROS_INFO("添加电机: 关节=%s, ID=%d, 类型=%d",
             joint_names_[i].c_str(), motor_ids_[i], motor_types_[i]);
     }
 
@@ -97,11 +110,11 @@ bool DMHardwareInterface::init()
     for(size_t i = 0; i < motors_.size(); ++i){
         try{
             motor_controller_->enable(*motors_[i]);
-            ROS_INFO("Enabled motor %s (id=%d)",
+            ROS_INFO("已使能电机 %s (ID=%d)",
                 joint_names_[i].c_str(), motor_ids_[i]);
         }
         catch(const std::exception& e){
-            ROS_ERROR("Failed to enable motor %s: %s",
+            ROS_ERROR("使能电机 %s 失败: %s",
                 joint_names_[i].c_str(), e.what());
             return false;
         }
@@ -115,17 +128,17 @@ bool DMHardwareInterface::init()
                     *motors_[i], damiao::POS_VEL_MODE);
 
                 if(success){
-                    ROS_INFO("Motor %s switched to POS_VEL mode",
+                    ROS_INFO("电机 %s 已切换到位置速度模式",
                         joint_names_[i].c_str());
                 }
                 else{
-                    ROS_WARN("Motor %s may not have switched mode correctly",
+                    ROS_WARN("电机 %s 可能未正确切换模式",
                         joint_names_[i].c_str());
                 }
                 usleep(200 * 1000);
             }
             catch(const std::exception& e){
-                ROS_ERROR("Failed to switch control mode for %s: %s",
+                ROS_ERROR("切换电机 %s 控制模式失败: %s",
                     joint_names_[i].c_str(), e.what());
             }
         }
@@ -151,7 +164,7 @@ bool DMHardwareInterface::init()
         joint_position_command_prev_[i] = joint_position_[i];
         joint_velocity_command_[i] = 0.0;
 
-        ROS_INFO("Joint %s initial position: %.3f rad",
+        ROS_INFO("关节 %s 初始位置: %.3f rad",
             joint_names_[i].c_str(), joint_position_[i]);
     }
 
@@ -178,13 +191,16 @@ bool DMHardwareInterface::init()
     registerInterface(&joint_state_interface_);
     registerInterface(&position_joint_interface_);
 
-    ROS_INFO("DM Hardware Interface initialized with %zu joints", num_joints);
-    ROS_INFO("Control mode: %s, Frequency: %.1f Hz",
-        use_mit_mode_ ? "MIT" : "POS_VEL", control_frequency_);
+    ROS_INFO("DM 硬件接口初始化完成，共 %zu 个关节", num_joints);
+    ROS_INFO("控制模式: %s, 频率: %.1f Hz",
+        use_mit_mode_ ? "MIT" : "位置速度", control_frequency_);
 
     return true;
 }
 
+/**
+ * @brief 从电机读取状态数据，更新关节位置、速度和力矩
+ */
 void DMHardwareInterface::read()
 {
     // 从电机读取状态
@@ -196,18 +212,21 @@ void DMHardwareInterface::read()
 
             // 检测异常值
             if(std::isnan(joint_position_[i]) || std::isinf(joint_position_[i])){
-                ROS_WARN_THROTTLE(1.0, "Invalid position reading for joint %s",
+                ROS_WARN_THROTTLE(1.0, "关节 %s 读取到无效位置值",
                     joint_names_[i].c_str());
                 joint_position_[i] = joint_position_command_prev_[i];
             }
         }
         catch(const std::exception& e){
-            ROS_ERROR_THROTTLE(1.0, "Error reading motor %s: %s",
+            ROS_ERROR_THROTTLE(1.0, "读取电机 %s 错误: %s",
                 joint_names_[i].c_str(), e.what());
         }
     }
 }
 
+/**
+ * @brief 向电机发送控制命令，根据模式计算目标速度并应用安全限制
+ */
 void DMHardwareInterface::write()
 {
     double dt = 1.0 / control_frequency_;
@@ -221,7 +240,7 @@ void DMHardwareInterface::write()
             // 安全限制：限制单次位置变化
             if(std::abs(position_change) > max_position_change_){
                 ROS_WARN_THROTTLE(1.0,
-                    "Joint %s: Position change too large (%.3f rad), limiting to %.3f rad",
+                    "关节 %s: 位置变化过大 (%.3f rad), 限制为 %.3f rad",
                     joint_names_[i].c_str(), position_change, max_position_change_);
                 position_change = std::copysign(max_position_change_, position_change);
                 joint_position_command_[i] = joint_position_command_prev_[i] + position_change;
@@ -288,8 +307,80 @@ void DMHardwareInterface::write()
             joint_position_command_prev_[i] = joint_position_command_[i];
         }
         catch(const std::exception& e){
-            ROS_ERROR_THROTTLE(1.0, "Error controlling motor %s: %s",
+            ROS_ERROR_THROTTLE(1.0, "控制电机 %s 错误: %s",
                 joint_names_[i].c_str(), e.what());
         }
     }
+}
+
+/**
+ * @brief 将所有关节位置命令设为零位置，平滑过渡以确保安全
+ */
+void DMHardwareInterface::returnZero()
+{
+    ROS_INFO("正在返回零位姿态以准备关闭...");
+
+    // Zero姿态
+    std::vector<double> target_pos = {-0.006, -0.035, -0.072, -0.001, 0.052, 0.000};
+
+    if(joint_position_.size() != target_pos.size()){
+        ROS_WARN("关节数量不匹配，跳过归零操作。");
+        return;
+    }
+
+    // 计算最大偏差
+    read();
+    double max_diff = 0.0;
+    for(size_t i = 0; i < joint_position_.size(); ++i){
+        double diff = std::abs(joint_position_[i] - target_pos[i]);
+        if(diff > max_diff) max_diff = diff;
+    }
+
+    // 规划时间
+    double safe_vel = 0.5;
+    double duration = max_diff / safe_vel;
+
+    // 限制偏差较大时的最小时间，保证平滑且不过慢
+    if(duration < 2.0) duration = 2.0;
+    if(max_diff < 0.05) duration = 0.5;
+
+    ROS_INFO("最大关节偏差: %.3f rad. 将在 %.1f 秒内返回零位。", max_diff, duration);
+
+    int steps = static_cast<int>(duration * control_frequency_);
+    std::vector<double> start_pos = joint_position_;
+
+    for(int step = 0; step <= steps; ++step){
+        // 读取当前状态以更新反馈
+        read();
+
+        double t = static_cast<double>(step) / steps;
+        // 使用平滑插值 (Smoothstep): 3t^2 - 2t^3
+        double alpha = t * t * (3.0 - 2.0 * t);
+
+        for(size_t i = 0; i < joint_position_.size(); ++i){
+            joint_position_command_[i] = start_pos[i] + (target_pos[i] - start_pos[i]) * alpha;
+        }
+
+        // 发送控制指令
+        write();
+
+        usleep(static_cast<useconds_t>(1000000.0 / control_frequency_));
+    }
+
+    // 保持阶段：延长时间并监控误差
+    ROS_INFO("保持位置以稳定...");
+    int hold_steps = static_cast<int>(2.5 * control_frequency_);
+    for(int i = 0; i < hold_steps; ++i){
+        read();
+
+        // 持续发送目标位置
+        for(size_t j = 0; j < joint_position_.size(); ++j){
+            joint_position_command_[j] = target_pos[j];
+        }
+        write();
+
+        usleep(static_cast<useconds_t>(1000000.0 / control_frequency_));
+    }
+
+    ROS_INFO("已返回零位姿态。");
 }
