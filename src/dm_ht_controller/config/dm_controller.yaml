@@ -1,7 +1,7 @@
 # 硬件接口配置
 serial_port: "/dev/ttyACM0"
 baudrate: 921600
-control_frequency: 320.0
+control_frequency: 500.0
 
 # 控制模式
 use_mit_mode: false
@@ -45,12 +45,12 @@ arm_controller:
     - joint6
   
   constraints:
-    goal_time: 0.8
-    stopped_velocity_tolerance: 0.05
-    joint1: {trajectory: 0.2, goal: 0.05}
-    joint2: {trajectory: 0.3, goal: 0.05}
-    joint3: {trajectory: 0.2, goal: 0.05}
-    joint4: {trajectory: 0.2, goal: 0.05}
-    joint5: {trajectory: 0.2, goal: 0.05}
-    joint6: {trajectory: 0.2, goal: 0.05}
+    goal_time: 0.0
+    stopped_velocity_tolerance: 0.0
+    joint1: {trajectory: 0.0, goal: 0.0}
+    joint2: {trajectory: 0.0, goal: 0.0}
+    joint3: {trajectory: 0.0, goal: 0.0}
+    joint4: {trajectory: 0.0, goal: 0.0}
+    joint5: {trajectory: 0.0, goal: 0.0}
+    joint6: {trajectory: 0.0, goal: 0.0}
     

@@ -394,6 +394,9 @@ _gtest_INCLUDES:FILEPATH=/usr/include/gtest/gtest.h
 //Path to a file.
 _gtest_SOURCES:FILEPATH=/usr/src/gtest/src/gtest.cc
 
+//The directory containing a CMake configuration file for actionlib.
+actionlib_DIR:PATH=/opt/ros/noetic/share/actionlib/cmake
+
 //The directory containing a CMake configuration file for actionlib_msgs.
 actionlib_msgs_DIR:PATH=/opt/ros/noetic/share/actionlib_msgs/cmake
 
@@ -419,10 +422,37 @@ controller_manager_msgs_DIR:PATH=/opt/ros/noetic/share/controller_manager_msgs/c
 cpp_common_DIR:PATH=/opt/ros/noetic/share/cpp_common/cmake
 
 //Value Computed by CMake
+dm_arm_controller_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_arm_controller
+
+//The directory containing a CMake configuration file for dm_arm_controller.
+dm_arm_controller_DIR:PATH=/home/kaerei/ROS_Workspace/dm_ht_arm/devel/share/dm_arm_controller/cmake
+
+//Dependencies for the target
+dm_arm_controller_LIB_DEPENDS:STATIC=general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_common_planning_interface_objects.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_planning_scene_interface.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_move_group_interface.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_py_bindings_tools.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_warehouse.so;general;/opt/ros/noetic/lib/libwarehouse_ros.so;general;/opt/ros/noetic/lib/libtf.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_pick_place_planner.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_move_group_capabilities_base.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_rdf_loader.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_kinematics_plugin_loader.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_robot_model_loader.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_constraint_sampler_manager_loader.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_planning_pipeline.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_trajectory_execution_manager.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_plan_execution.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_planning_scene_monitor.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_collision_plugin_loader.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_cpp.so;general;/opt/ros/noetic/lib/libdynamic_reconfigure_config_init_mutex.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_ros_occupancy_map_monitor.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_exceptions.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_background_processing.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_kinematics_base.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_robot_model.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_transforms.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_robot_state.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_robot_trajectory.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_planning_interface.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_collision_detection.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_collision_detection_fcl.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_collision_detection_bullet.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_kinematic_constraints.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_planning_scene.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_constraint_samplers.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_planning_request_adapter.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_profiler.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_python_tools.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_trajectory_processing.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_distance_field.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_collision_distance_field.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_kinematics_metrics.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_dynamics_solver.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_utils.so;general;/home/kaerei/软件/piper_ros/devel/lib/libmoveit_test_utils.so;general;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0;general;/opt/ros/noetic/lib/x86_64-linux-gnu/libfcl.so.0.6.1;general;/usr/lib/x86_64-linux-gnu/libccd.so;general;/usr/lib/x86_64-linux-gnu/libm.so;general;/opt/ros/noetic/lib/liboctomap.so.1.9.8;general;/opt/ros/noetic/lib/x86_64-linux-gnu/libruckig.so;general;/usr/lib/x86_64-linux-gnu/libBulletSoftBody.so;general;/usr/lib/x86_64-linux-gnu/libBulletDynamics.so;general;/usr/lib/x86_64-linux-gnu/libBulletCollision.so;general;/usr/lib/x86_64-linux-gnu/libLinearMath.so;general;/opt/ros/noetic/lib/libkdl_parser.so;general;/opt/ros/noetic/lib/liburdf.so;general;/usr/lib/x86_64-linux-gnu/liburdfdom_sensor.so;general;/usr/lib/x86_64-linux-gnu/liburdfdom_model_state.so;general;/usr/lib/x86_64-linux-gnu/liburdfdom_model.so;general;/usr/lib/x86_64-linux-gnu/liburdfdom_world.so;general;/usr/lib/x86_64-linux-gnu/libtinyxml.so;general;/opt/ros/noetic/lib/librosconsole_bridge.so;general;/opt/ros/noetic/lib/libsrdfdom.so;general;/opt/ros/noetic/lib/libgeometric_shapes.so;general;/opt/ros/noetic/lib/liboctomap.so;general;/opt/ros/noetic/lib/liboctomath.so;general;/opt/ros/noetic/lib/librandom_numbers.so;general;/opt/ros/noetic/lib/libclass_loader.so;general;/usr/lib/x86_64-linux-gnu/libPocoFoundation.so;general;/usr/lib/x86_64-linux-gnu/libdl.so;general;/opt/ros/noetic/lib/libroslib.so;general;/opt/ros/noetic/lib/librospack.so;general;/usr/lib/x86_64-linux-gnu/libpython3.8.so;general;/usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libtinyxml2.so;general;/usr/lib/liborocos-kdl.so;general;/usr/lib/liborocos-kdl.so;general;/opt/ros/noetic/lib/libtf2_ros.so;general;/opt/ros/noetic/lib/libactionlib.so;general;/opt/ros/noetic/lib/libmessage_filters.so;general;/opt/ros/noetic/lib/libtf2.so;general;serial_driver;general;/opt/ros/noetic/lib/libroscpp.so;general;/usr/lib/x86_64-linux-gnu/libpthread.so;general;/usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0;general;/opt/ros/noetic/lib/librosconsole.so;general;/opt/ros/noetic/lib/librosconsole_log4cxx.so;general;/opt/ros/noetic/lib/librosconsole_backend_interface.so;general;/usr/lib/x86_64-linux-gnu/liblog4cxx.so;general;/usr/lib/x86_64-linux-gnu/libboost_regex.so.1.71.0;general;/opt/ros/noetic/lib/libxmlrpcpp.so;general;/opt/ros/noetic/lib/libserial.so;general;/opt/ros/noetic/lib/libroscpp_serialization.so;general;/opt/ros/noetic/lib/librostime.so;general;/usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.71.0;general;/opt/ros/noetic/lib/libcpp_common.so;general;/usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libboost_thread.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.0.4;
+
+//Value Computed by CMake
+dm_arm_controller_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_arm_controller
+
+//Value Computed by CMake
 dm_arm_moveit_config_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_arm_moveit_config
 
 //Value Computed by CMake
 dm_arm_moveit_config_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_arm_moveit_config
+
+//Value Computed by CMake
+dm_arm_msgs_srvs_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_arm_msgs_srvs
+
+//The directory containing a CMake configuration file for dm_arm_msgs_srvs.
+dm_arm_msgs_srvs_DIR:PATH=/home/kaerei/ROS_Workspace/dm_ht_arm/devel/share/dm_arm_msgs_srvs/cmake
+
+//Value Computed by CMake
+dm_arm_msgs_srvs_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_arm_msgs_srvs
+
+//Value Computed by CMake
+dm_arm_service_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_arm_service
+
+//Value Computed by CMake
+dm_arm_service_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_arm_service
 
 //Dependencies for the target
 dm_hardware_interface_LIB_DEPENDS:STATIC=general;/opt/ros/noetic/lib/libcontroller_manager.so;general;/opt/ros/noetic/lib/libclass_loader.so;general;/usr/lib/x86_64-linux-gnu/libPocoFoundation.so;general;/usr/lib/x86_64-linux-gnu/libdl.so;general;/opt/ros/noetic/lib/libroslib.so;general;/opt/ros/noetic/lib/librospack.so;general;/usr/lib/x86_64-linux-gnu/libpython3.8.so;general;/usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libtinyxml2.so;general;/opt/ros/noetic/lib/libroscpp.so;general;/usr/lib/x86_64-linux-gnu/libpthread.so;general;/usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0;general;/opt/ros/noetic/lib/librosconsole.so;general;/opt/ros/noetic/lib/librosconsole_log4cxx.so;general;/opt/ros/noetic/lib/librosconsole_backend_interface.so;general;/usr/lib/x86_64-linux-gnu/liblog4cxx.so;general;/usr/lib/x86_64-linux-gnu/libboost_regex.so.1.71.0;general;/opt/ros/noetic/lib/libxmlrpcpp.so;general;/opt/ros/noetic/lib/libroscpp_serialization.so;general;/opt/ros/noetic/lib/librostime.so;general;/usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.71.0;general;/opt/ros/noetic/lib/libcpp_common.so;general;/usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libboost_thread.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.0.4;
@@ -432,6 +462,12 @@ dm_ht_controller_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm
 
 //Value Computed by CMake
 dm_ht_controller_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller
+
+//The directory containing a CMake configuration file for dynamic_reconfigure.
+dynamic_reconfigure_DIR:PATH=/opt/ros/noetic/share/dynamic_reconfigure/cmake
+
+//The directory containing a CMake configuration file for eigen_stl_containers.
+eigen_stl_containers_DIR:PATH=/opt/ros/noetic/share/eigen_stl_containers/cmake
 
 //The directory containing a CMake configuration file for gencpp.
 gencpp_DIR:PATH=/opt/ros/noetic/share/gencpp/cmake
@@ -450,6 +486,9 @@ gennodejs_DIR:PATH=/opt/ros/noetic/share/gennodejs/cmake
 
 //The directory containing a CMake configuration file for genpy.
 genpy_DIR:PATH=/opt/ros/noetic/share/genpy/cmake
+
+//The directory containing a CMake configuration file for geometric_shapes.
+geometric_shapes_DIR:PATH=/opt/ros/noetic/share/geometric_shapes/cmake
 
 //The directory containing a CMake configuration file for geometry_msgs.
 geometry_msgs_DIR:PATH=/opt/ros/noetic/share/geometry_msgs/cmake
@@ -503,17 +542,62 @@ gtest_main_LIB_DEPENDS:STATIC=general;gtest;
 //The directory containing a CMake configuration file for hardware_interface.
 hardware_interface_DIR:PATH=/opt/ros/noetic/share/hardware_interface/cmake
 
+//The directory containing a CMake configuration file for kdl_parser.
+kdl_parser_DIR:PATH=/opt/ros/noetic/share/kdl_parser/cmake
+
 //Path to a library.
-lib:FILEPATH=/opt/ros/noetic/lib/librospack.so
+lib:FILEPATH=/opt/ros/noetic/lib/libserial.so
+
+//The directory containing a CMake configuration file for message_filters.
+message_filters_DIR:PATH=/opt/ros/noetic/share/message_filters/cmake
+
+//The directory containing a CMake configuration file for message_generation.
+message_generation_DIR:PATH=/opt/ros/noetic/share/message_generation/cmake
 
 //The directory containing a CMake configuration file for message_runtime.
 message_runtime_DIR:PATH=/opt/ros/noetic/share/message_runtime/cmake
 
+//The directory containing a CMake configuration file for moveit_core.
+moveit_core_DIR:PATH=/home/kaerei/软件/piper_ros/devel/share/moveit_core/cmake
+
+//The directory containing a CMake configuration file for moveit_msgs.
+moveit_msgs_DIR:PATH=/opt/ros/noetic/share/moveit_msgs/cmake
+
+//The directory containing a CMake configuration file for moveit_ros_manipulation.
+moveit_ros_manipulation_DIR:PATH=/home/kaerei/软件/piper_ros/devel/share/moveit_ros_manipulation/cmake
+
+//The directory containing a CMake configuration file for moveit_ros_move_group.
+moveit_ros_move_group_DIR:PATH=/home/kaerei/软件/piper_ros/devel/share/moveit_ros_move_group/cmake
+
+//The directory containing a CMake configuration file for moveit_ros_occupancy_map_monitor.
+moveit_ros_occupancy_map_monitor_DIR:PATH=/home/kaerei/软件/piper_ros/devel/share/moveit_ros_occupancy_map_monitor/cmake
+
+//The directory containing a CMake configuration file for moveit_ros_planning.
+moveit_ros_planning_DIR:PATH=/home/kaerei/软件/piper_ros/devel/share/moveit_ros_planning/cmake
+
+//The directory containing a CMake configuration file for moveit_ros_planning_interface.
+moveit_ros_planning_interface_DIR:PATH=/home/kaerei/软件/piper_ros/devel/share/moveit_ros_planning_interface/cmake
+
+//The directory containing a CMake configuration file for moveit_ros_warehouse.
+moveit_ros_warehouse_DIR:PATH=/home/kaerei/软件/piper_ros/devel/share/moveit_ros_warehouse/cmake
+
+//The directory containing a CMake configuration file for object_recognition_msgs.
+object_recognition_msgs_DIR:PATH=/opt/ros/noetic/share/object_recognition_msgs/cmake
+
+//The directory containing a CMake configuration file for octomap_msgs.
+octomap_msgs_DIR:PATH=/opt/ros/noetic/share/octomap_msgs/cmake
+
 //The directory containing a CMake configuration file for pluginlib.
 pluginlib_DIR:PATH=/opt/ros/noetic/share/pluginlib/cmake
 
+//The directory containing a CMake configuration file for random_numbers.
+random_numbers_DIR:PATH=/opt/ros/noetic/share/random_numbers/cmake
+
 //The directory containing a CMake configuration file for rosconsole.
 rosconsole_DIR:PATH=/opt/ros/noetic/share/rosconsole/cmake
+
+//The directory containing a CMake configuration file for rosconsole_bridge.
+rosconsole_bridge_DIR:PATH=/opt/ros/noetic/share/rosconsole_bridge/cmake
 
 //The directory containing a CMake configuration file for roscpp.
 roscpp_DIR:PATH=/opt/ros/noetic/share/roscpp/cmake
@@ -524,6 +608,9 @@ roscpp_serialization_DIR:PATH=/opt/ros/noetic/share/roscpp_serialization/cmake
 //The directory containing a CMake configuration file for roscpp_traits.
 roscpp_traits_DIR:PATH=/opt/ros/noetic/share/roscpp_traits/cmake
 
+//The directory containing a CMake configuration file for rosgraph.
+rosgraph_DIR:PATH=/opt/ros/noetic/share/rosgraph/cmake
+
 //The directory containing a CMake configuration file for rosgraph_msgs.
 rosgraph_msgs_DIR:PATH=/opt/ros/noetic/share/rosgraph_msgs/cmake
 
@@ -533,17 +620,74 @@ roslib_DIR:PATH=/opt/ros/noetic/share/roslib/cmake
 //The directory containing a CMake configuration file for rospack.
 rospack_DIR:PATH=/opt/ros/noetic/share/rospack/cmake
 
+//The directory containing a CMake configuration file for rospy.
+rospy_DIR:PATH=/opt/ros/noetic/share/rospy/cmake
+
 //The directory containing a CMake configuration file for rostime.
 rostime_DIR:PATH=/opt/ros/noetic/share/rostime/cmake
 
 //The directory containing a CMake configuration file for sensor_msgs.
 sensor_msgs_DIR:PATH=/opt/ros/noetic/share/sensor_msgs/cmake
 
+//The directory containing a CMake configuration file for serial.
+serial_DIR:PATH=/opt/ros/noetic/share/serial/cmake
+
+//Value Computed by CMake
+serial_driver_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/build/serial_driver
+
+//The directory containing a CMake configuration file for serial_driver.
+serial_driver_DIR:PATH=/home/kaerei/ROS_Workspace/dm_ht_arm/devel/share/serial_driver/cmake
+
+//Dependencies for the target
+serial_driver_LIB_DEPENDS:STATIC=general;/opt/ros/noetic/lib/libroscpp.so;general;/usr/lib/x86_64-linux-gnu/libpthread.so;general;/usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0;general;/opt/ros/noetic/lib/librosconsole.so;general;/opt/ros/noetic/lib/librosconsole_log4cxx.so;general;/opt/ros/noetic/lib/librosconsole_backend_interface.so;general;/usr/lib/x86_64-linux-gnu/liblog4cxx.so;general;/usr/lib/x86_64-linux-gnu/libboost_regex.so.1.71.0;general;/opt/ros/noetic/lib/libxmlrpcpp.so;general;/opt/ros/noetic/lib/libserial.so;general;/opt/ros/noetic/lib/libroscpp_serialization.so;general;/opt/ros/noetic/lib/librostime.so;general;/usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.71.0;general;/opt/ros/noetic/lib/libcpp_common.so;general;/usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libboost_thread.so.1.71.0;general;/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.0.4;
+
+//Value Computed by CMake
+serial_driver_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/dm_ht_arm/src/serial_driver
+
+//The directory containing a CMake configuration file for shape_msgs.
+shape_msgs_DIR:PATH=/opt/ros/noetic/share/shape_msgs/cmake
+
+//The directory containing a CMake configuration file for srdfdom.
+srdfdom_DIR:PATH=/opt/ros/noetic/share/srdfdom/cmake
+
 //The directory containing a CMake configuration file for std_msgs.
 std_msgs_DIR:PATH=/opt/ros/noetic/share/std_msgs/cmake
 
+//The directory containing a CMake configuration file for std_srvs.
+std_srvs_DIR:PATH=/opt/ros/noetic/share/std_srvs/cmake
+
+//The directory containing a CMake configuration file for tf2.
+tf2_DIR:PATH=/opt/ros/noetic/share/tf2/cmake
+
+//The directory containing a CMake configuration file for tf2_eigen.
+tf2_eigen_DIR:PATH=/opt/ros/noetic/share/tf2_eigen/cmake
+
+//The directory containing a CMake configuration file for tf2_geometry_msgs.
+tf2_geometry_msgs_DIR:PATH=/opt/ros/noetic/share/tf2_geometry_msgs/cmake
+
+//The directory containing a CMake configuration file for tf2_msgs.
+tf2_msgs_DIR:PATH=/opt/ros/noetic/share/tf2_msgs/cmake
+
+//The directory containing a CMake configuration file for tf2_py.
+tf2_py_DIR:PATH=/opt/ros/noetic/share/tf2_py/cmake
+
+//The directory containing a CMake configuration file for tf2_ros.
+tf2_ros_DIR:PATH=/opt/ros/noetic/share/tf2_ros/cmake
+
+//The directory containing a CMake configuration file for tf.
+tf_DIR:PATH=/opt/ros/noetic/share/tf/cmake
+
 //The directory containing a CMake configuration file for trajectory_msgs.
 trajectory_msgs_DIR:PATH=/opt/ros/noetic/share/trajectory_msgs/cmake
+
+//The directory containing a CMake configuration file for urdf.
+urdf_DIR:PATH=/opt/ros/noetic/share/urdf/cmake
+
+//The directory containing a CMake configuration file for visualization_msgs.
+visualization_msgs_DIR:PATH=/opt/ros/noetic/share/visualization_msgs/cmake
+
+//The directory containing a CMake configuration file for warehouse_ros.
+warehouse_ros_DIR:PATH=/opt/ros/noetic/share/warehouse_ros/cmake
 
 //The directory containing a CMake configuration file for xmlrpcpp.
 xmlrpcpp_DIR:PATH=/opt/ros/noetic/share/xmlrpcpp/cmake
@@ -696,7 +840,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=10
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

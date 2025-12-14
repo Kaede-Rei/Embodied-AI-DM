@@ -196,6 +196,33 @@
         <axis xyz="0 1 0" />
         <limit lower="-3.141592653589793" upper="3.141592653589793" effort="20" velocity="3" />
     </joint>
+    <joint name="joint_tcp" type="fixed">
+        <parent link="Link6-7" />
+        <child link="link_tcp" />
+        <origin xyz="0.0 0.0 0.05" rpy="-1.5708 0 0" />
+    </joint>
+    <link name="link_tcp">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <sphere radius="0.001" />
+            </geometry>
+            <material name="">
+                <color rgba="0 1 0 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <sphere radius="0.001" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
     <transmission name="trans_joint1">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="joint1">

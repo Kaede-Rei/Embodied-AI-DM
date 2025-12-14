@@ -6,4 +6,8 @@
 # testing this directory and lists subdirectories to be tested as well.
 subdirs("gtest")
 subdirs("dm_arm_moveit_config")
+subdirs("serial_driver")
+subdirs("dm_arm_msgs_srvs")
 subdirs("dm_ht_controller")
+subdirs("dm_arm_controller")
+subdirs("dm_arm_service")

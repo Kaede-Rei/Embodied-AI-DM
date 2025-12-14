@@ -1,0 +1,8 @@
+prefix=/home/kaerei/ROS_Workspace/dm_ht_arm/install
+
+Name: dm_arm_msgs_srvs
+Description: Description of dm_arm_msgs_srvs
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs roscpp std_msgs std_srvs

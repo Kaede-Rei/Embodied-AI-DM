@@ -68,28 +68,16 @@ install/strip/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
 
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
 
-.PHONY : edit_cache/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
+.PHONY : rebuild_cache/fast
 
 # Special rule for the target test
 test:
@@ -124,16 +112,28 @@ list_install_components/fast: list_install_components
 
 .PHONY : list_install_components/fast
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
 
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
 
-.PHONY : rebuild_cache/fast
+.PHONY : edit_cache/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -168,319 +168,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule
+dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-sensor_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule
+trajectory_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule
 
-.PHONY : sensor_msgs_generate_messages_lisp
+.PHONY : trajectory_msgs_generate_messages_lisp
 
 # fast build rule for target.
-sensor_msgs_generate_messages_lisp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/build
-.PHONY : sensor_msgs_generate_messages_lisp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-sensor_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule
-
-.PHONY : sensor_msgs_generate_messages_cpp
-
-# fast build rule for target.
-sensor_msgs_generate_messages_cpp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/build
-.PHONY : sensor_msgs_generate_messages_cpp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-sensor_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule
-
-.PHONY : sensor_msgs_generate_messages_nodejs
-
-# fast build rule for target.
-sensor_msgs_generate_messages_nodejs/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/build
-.PHONY : sensor_msgs_generate_messages_nodejs/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule
-
-# Convenience name for target.
-controller_manager_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule
-
-.PHONY : controller_manager_msgs_generate_messages_py
-
-# fast build rule for target.
-controller_manager_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/build
-.PHONY : controller_manager_msgs_generate_messages_py/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-controller_manager_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule
-
-.PHONY : controller_manager_msgs_generate_messages_cpp
-
-# fast build rule for target.
-controller_manager_msgs_generate_messages_cpp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/build
-.PHONY : controller_manager_msgs_generate_messages_cpp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
-
-# Convenience name for target.
-rosgraph_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
-
-.PHONY : rosgraph_msgs_generate_messages_py
-
-# fast build rule for target.
-rosgraph_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/build
-.PHONY : rosgraph_msgs_generate_messages_py/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-controller_manager_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule
-
-.PHONY : controller_manager_msgs_generate_messages_nodejs
-
-# fast build rule for target.
-controller_manager_msgs_generate_messages_nodejs/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/build
-.PHONY : controller_manager_msgs_generate_messages_nodejs/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-rosgraph_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/rule
-
-.PHONY : rosgraph_msgs_generate_messages_cpp
-
-# fast build rule for target.
-rosgraph_msgs_generate_messages_cpp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_cpp.dir/build
-.PHONY : rosgraph_msgs_generate_messages_cpp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-controller_manager_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule
-
-.PHONY : controller_manager_msgs_generate_messages_lisp
-
-# fast build rule for target.
-controller_manager_msgs_generate_messages_lisp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/build
-.PHONY : controller_manager_msgs_generate_messages_lisp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/roscpp_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/roscpp_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/roscpp_generate_messages_py.dir/rule
-
-# Convenience name for target.
-roscpp_generate_messages_py: dm_ht_controller/CMakeFiles/roscpp_generate_messages_py.dir/rule
-
-.PHONY : roscpp_generate_messages_py
-
-# fast build rule for target.
-roscpp_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/roscpp_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/roscpp_generate_messages_py.dir/build
-.PHONY : roscpp_generate_messages_py/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/std_msgs_generate_messages_eus.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
-
-# Convenience name for target.
-std_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
-
-.PHONY : std_msgs_generate_messages_eus
-
-# fast build rule for target.
-std_msgs_generate_messages_eus/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/std_msgs_generate_messages_eus.dir/build
-.PHONY : std_msgs_generate_messages_eus/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
-
-.PHONY : geometry_msgs_generate_messages_lisp
-
-# fast build rule for target.
-geometry_msgs_generate_messages_lisp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build
-.PHONY : geometry_msgs_generate_messages_lisp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-roscpp_generate_messages_nodejs: dm_ht_controller/CMakeFiles/roscpp_generate_messages_nodejs.dir/rule
-
-.PHONY : roscpp_generate_messages_nodejs
-
-# fast build rule for target.
-roscpp_generate_messages_nodejs/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/roscpp_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/roscpp_generate_messages_nodejs.dir/build
-.PHONY : roscpp_generate_messages_nodejs/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-std_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
-
-.PHONY : std_msgs_generate_messages_lisp
-
-# fast build rule for target.
-std_msgs_generate_messages_lisp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
-.PHONY : std_msgs_generate_messages_lisp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-actionlib_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule
-
-.PHONY : actionlib_msgs_generate_messages_cpp
-
-# fast build rule for target.
-actionlib_msgs_generate_messages_cpp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/build
-.PHONY : actionlib_msgs_generate_messages_cpp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-rosgraph_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/rule
-
-.PHONY : rosgraph_msgs_generate_messages_nodejs
-
-# fast build rule for target.
-rosgraph_msgs_generate_messages_nodejs/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_nodejs.dir/build
-.PHONY : rosgraph_msgs_generate_messages_nodejs/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule
-
-# Convenience name for target.
-actionlib_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule
-
-.PHONY : actionlib_msgs_generate_messages_py
-
-# fast build rule for target.
-actionlib_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/build
-.PHONY : actionlib_msgs_generate_messages_py/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule
-
-# Convenience name for target.
-dm_hardware_interface: dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule
-
-.PHONY : dm_hardware_interface
-
-# fast build rule for target.
-dm_hardware_interface/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/build.make dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/build
-.PHONY : dm_hardware_interface/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule
-
-# Convenience name for target.
-control_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule
-
-.PHONY : control_msgs_generate_messages_eus
-
-# fast build rule for target.
-control_msgs_generate_messages_eus/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/build
-.PHONY : control_msgs_generate_messages_eus/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-trajectory_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule
-
-.PHONY : trajectory_msgs_generate_messages_nodejs
-
-# fast build rule for target.
-trajectory_msgs_generate_messages_nodejs/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/build
-.PHONY : trajectory_msgs_generate_messages_nodejs/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule
-
-# Convenience name for target.
-trajectory_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule
-
-.PHONY : trajectory_msgs_generate_messages_eus
-
-# fast build rule for target.
-trajectory_msgs_generate_messages_eus/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/build
-.PHONY : trajectory_msgs_generate_messages_eus/fast
+trajectory_msgs_generate_messages_lisp/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/build
+.PHONY : trajectory_msgs_generate_messages_lisp/fast
 
 # Convenience name for target.
 dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_lisp.dir/rule:
@@ -498,34 +198,19 @@ actionlib_msgs_generate_messages_lisp/fast:
 .PHONY : actionlib_msgs_generate_messages_lisp/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule
+dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
-trajectory_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/rule
+actionlib_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/rule
 
-.PHONY : trajectory_msgs_generate_messages_lisp
+.PHONY : actionlib_msgs_generate_messages_py
 
 # fast build rule for target.
-trajectory_msgs_generate_messages_lisp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_lisp.dir/build
-.PHONY : trajectory_msgs_generate_messages_lisp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-rosgraph_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/rule
-
-.PHONY : rosgraph_msgs_generate_messages_lisp
-
-# fast build rule for target.
-rosgraph_msgs_generate_messages_lisp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_lisp.dir/build
-.PHONY : rosgraph_msgs_generate_messages_lisp/fast
+actionlib_msgs_generate_messages_py/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_py.dir/build
+.PHONY : actionlib_msgs_generate_messages_py/fast
 
 # Convenience name for target.
 dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_eus.dir/rule:
@@ -543,6 +228,66 @@ actionlib_msgs_generate_messages_eus/fast:
 .PHONY : actionlib_msgs_generate_messages_eus/fast
 
 # Convenience name for target.
+dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule
+
+# Convenience name for target.
+sensor_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule
+
+.PHONY : sensor_msgs_generate_messages_py
+
+# fast build rule for target.
+sensor_msgs_generate_messages_py/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/build
+.PHONY : sensor_msgs_generate_messages_py/fast
+
+# Convenience name for target.
+dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule
+
+# Convenience name for target.
+actionlib_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/rule
+
+.PHONY : actionlib_msgs_generate_messages_cpp
+
+# fast build rule for target.
+actionlib_msgs_generate_messages_cpp/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_cpp.dir/build
+.PHONY : actionlib_msgs_generate_messages_cpp/fast
+
+# Convenience name for target.
+dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule
+
+# Convenience name for target.
+control_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule
+
+.PHONY : control_msgs_generate_messages_py
+
+# fast build rule for target.
+control_msgs_generate_messages_py/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/build
+.PHONY : control_msgs_generate_messages_py/fast
+
+# Convenience name for target.
+dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule
+
+# Convenience name for target.
+controller_manager_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/rule
+
+.PHONY : controller_manager_msgs_generate_messages_nodejs
+
+# fast build rule for target.
+controller_manager_msgs_generate_messages_nodejs/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_nodejs.dir/build
+.PHONY : controller_manager_msgs_generate_messages_nodejs/fast
+
+# Convenience name for target.
 dm_ht_controller/CMakeFiles/dm_controller.dir/rule:
 	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/dm_controller.dir/rule
 .PHONY : dm_ht_controller/CMakeFiles/dm_controller.dir/rule
@@ -556,66 +301,6 @@ dm_controller: dm_ht_controller/CMakeFiles/dm_controller.dir/rule
 dm_controller/fast:
 	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/dm_controller.dir/build.make dm_ht_controller/CMakeFiles/dm_controller.dir/build
 .PHONY : dm_controller/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
-
-.PHONY : geometry_msgs_generate_messages_nodejs
-
-# fast build rule for target.
-geometry_msgs_generate_messages_nodejs/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build
-.PHONY : geometry_msgs_generate_messages_nodejs/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule
-
-# Convenience name for target.
-controller_manager_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule
-
-.PHONY : controller_manager_msgs_generate_messages_eus
-
-# fast build rule for target.
-controller_manager_msgs_generate_messages_eus/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/build
-.PHONY : controller_manager_msgs_generate_messages_eus/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/roscpp_generate_messages_lisp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-roscpp_generate_messages_lisp: dm_ht_controller/CMakeFiles/roscpp_generate_messages_lisp.dir/rule
-
-.PHONY : roscpp_generate_messages_lisp
-
-# fast build rule for target.
-roscpp_generate_messages_lisp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/roscpp_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/roscpp_generate_messages_lisp.dir/build
-.PHONY : roscpp_generate_messages_lisp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-std_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
-
-.PHONY : std_msgs_generate_messages_cpp
-
-# fast build rule for target.
-std_msgs_generate_messages_cpp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
-.PHONY : std_msgs_generate_messages_cpp/fast
 
 # Convenience name for target.
 dm_ht_controller/CMakeFiles/actionlib_msgs_generate_messages_nodejs.dir/rule:
@@ -648,36 +333,6 @@ trajectory_msgs_generate_messages_cpp/fast:
 .PHONY : trajectory_msgs_generate_messages_cpp/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
-
-.PHONY : geometry_msgs_generate_messages_cpp
-
-# fast build rule for target.
-geometry_msgs_generate_messages_cpp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build
-.PHONY : geometry_msgs_generate_messages_cpp/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule
-
-# Convenience name for target.
-control_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/rule
-
-.PHONY : control_msgs_generate_messages_py
-
-# fast build rule for target.
-control_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/control_msgs_generate_messages_py.dir/build
-.PHONY : control_msgs_generate_messages_py/fast
-
-# Convenience name for target.
 dm_ht_controller/CMakeFiles/control_msgs_generate_messages_nodejs.dir/rule:
 	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/control_msgs_generate_messages_nodejs.dir/rule
 .PHONY : dm_ht_controller/CMakeFiles/control_msgs_generate_messages_nodejs.dir/rule
@@ -693,34 +348,19 @@ control_msgs_generate_messages_nodejs/fast:
 .PHONY : control_msgs_generate_messages_nodejs/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/std_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/std_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/std_msgs_generate_messages_py.dir/rule
+dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
-std_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/std_msgs_generate_messages_py.dir/rule
+sensor_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/rule
 
-.PHONY : std_msgs_generate_messages_py
+.PHONY : sensor_msgs_generate_messages_cpp
 
 # fast build rule for target.
-std_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/std_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/std_msgs_generate_messages_py.dir/build
-.PHONY : std_msgs_generate_messages_py/fast
-
-# Convenience name for target.
-dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule
-
-# Convenience name for target.
-rosgraph_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/rule
-
-.PHONY : rosgraph_msgs_generate_messages_eus
-
-# fast build rule for target.
-rosgraph_msgs_generate_messages_eus/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/rosgraph_msgs_generate_messages_eus.dir/build
-.PHONY : rosgraph_msgs_generate_messages_eus/fast
+sensor_msgs_generate_messages_cpp/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_cpp.dir/build
+.PHONY : sensor_msgs_generate_messages_cpp/fast
 
 # Convenience name for target.
 dm_ht_controller/CMakeFiles/control_msgs_generate_messages_lisp.dir/rule:
@@ -753,64 +393,64 @@ control_msgs_generate_messages_cpp/fast:
 .PHONY : control_msgs_generate_messages_cpp/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
+dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
-std_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
+trajectory_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule
 
-.PHONY : std_msgs_generate_messages_nodejs
+.PHONY : trajectory_msgs_generate_messages_py
 
 # fast build rule for target.
-std_msgs_generate_messages_nodejs/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build
-.PHONY : std_msgs_generate_messages_nodejs/fast
+trajectory_msgs_generate_messages_py/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/build
+.PHONY : trajectory_msgs_generate_messages_py/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
-geometry_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
+controller_manager_msgs_generate_messages_cpp: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/rule
 
-.PHONY : geometry_msgs_generate_messages_eus
+.PHONY : controller_manager_msgs_generate_messages_cpp
 
 # fast build rule for target.
-geometry_msgs_generate_messages_eus/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build
-.PHONY : geometry_msgs_generate_messages_eus/fast
+controller_manager_msgs_generate_messages_cpp/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_cpp.dir/build
+.PHONY : controller_manager_msgs_generate_messages_cpp/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule
+dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule
 
 # Convenience name for target.
-sensor_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/rule
+controller_manager_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/rule
 
-.PHONY : sensor_msgs_generate_messages_py
+.PHONY : controller_manager_msgs_generate_messages_eus
 
 # fast build rule for target.
-sensor_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_py.dir/build
-.PHONY : sensor_msgs_generate_messages_py/fast
+controller_manager_msgs_generate_messages_eus/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_eus.dir/build
+.PHONY : controller_manager_msgs_generate_messages_eus/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
+dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-geometry_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
+controller_manager_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/rule
 
-.PHONY : geometry_msgs_generate_messages_py
+.PHONY : controller_manager_msgs_generate_messages_lisp
 
 # fast build rule for target.
-geometry_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/geometry_msgs_generate_messages_py.dir/build
-.PHONY : geometry_msgs_generate_messages_py/fast
+controller_manager_msgs_generate_messages_lisp/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_lisp.dir/build
+.PHONY : controller_manager_msgs_generate_messages_lisp/fast
 
 # Convenience name for target.
 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_eus.dir/rule:
@@ -828,49 +468,109 @@ sensor_msgs_generate_messages_eus/fast:
 .PHONY : sensor_msgs_generate_messages_eus/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/roscpp_generate_messages_cpp.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
+dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
-roscpp_generate_messages_cpp: dm_ht_controller/CMakeFiles/roscpp_generate_messages_cpp.dir/rule
+sensor_msgs_generate_messages_lisp: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/rule
 
-.PHONY : roscpp_generate_messages_cpp
+.PHONY : sensor_msgs_generate_messages_lisp
 
 # fast build rule for target.
-roscpp_generate_messages_cpp/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/roscpp_generate_messages_cpp.dir/build.make dm_ht_controller/CMakeFiles/roscpp_generate_messages_cpp.dir/build
-.PHONY : roscpp_generate_messages_cpp/fast
+sensor_msgs_generate_messages_lisp/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_lisp.dir/build
+.PHONY : sensor_msgs_generate_messages_lisp/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule
+dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
-trajectory_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/rule
+controller_manager_msgs_generate_messages_py: dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/rule
 
-.PHONY : trajectory_msgs_generate_messages_py
+.PHONY : controller_manager_msgs_generate_messages_py
 
 # fast build rule for target.
-trajectory_msgs_generate_messages_py/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_py.dir/build
-.PHONY : trajectory_msgs_generate_messages_py/fast
+controller_manager_msgs_generate_messages_py/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/build.make dm_ht_controller/CMakeFiles/controller_manager_msgs_generate_messages_py.dir/build
+.PHONY : controller_manager_msgs_generate_messages_py/fast
 
 # Convenience name for target.
-dm_ht_controller/CMakeFiles/roscpp_generate_messages_eus.dir/rule:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/roscpp_generate_messages_eus.dir/rule
-.PHONY : dm_ht_controller/CMakeFiles/roscpp_generate_messages_eus.dir/rule
+dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule
 
 # Convenience name for target.
-roscpp_generate_messages_eus: dm_ht_controller/CMakeFiles/roscpp_generate_messages_eus.dir/rule
+sensor_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/rule
 
-.PHONY : roscpp_generate_messages_eus
+.PHONY : sensor_msgs_generate_messages_nodejs
 
 # fast build rule for target.
-roscpp_generate_messages_eus/fast:
-	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/roscpp_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/roscpp_generate_messages_eus.dir/build
-.PHONY : roscpp_generate_messages_eus/fast
+sensor_msgs_generate_messages_nodejs/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/sensor_msgs_generate_messages_nodejs.dir/build
+.PHONY : sensor_msgs_generate_messages_nodejs/fast
+
+# Convenience name for target.
+dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule
+
+# Convenience name for target.
+trajectory_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/rule
+
+.PHONY : trajectory_msgs_generate_messages_eus
+
+# fast build rule for target.
+trajectory_msgs_generate_messages_eus/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_eus.dir/build
+.PHONY : trajectory_msgs_generate_messages_eus/fast
+
+# Convenience name for target.
+dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule
+
+# Convenience name for target.
+control_msgs_generate_messages_eus: dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/rule
+
+.PHONY : control_msgs_generate_messages_eus
+
+# fast build rule for target.
+control_msgs_generate_messages_eus/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/build.make dm_ht_controller/CMakeFiles/control_msgs_generate_messages_eus.dir/build
+.PHONY : control_msgs_generate_messages_eus/fast
+
+# Convenience name for target.
+dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule
+
+# Convenience name for target.
+trajectory_msgs_generate_messages_nodejs: dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/rule
+
+.PHONY : trajectory_msgs_generate_messages_nodejs
+
+# fast build rule for target.
+trajectory_msgs_generate_messages_nodejs/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/build.make dm_ht_controller/CMakeFiles/trajectory_msgs_generate_messages_nodejs.dir/build
+.PHONY : trajectory_msgs_generate_messages_nodejs/fast
+
+# Convenience name for target.
+dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f CMakeFiles/Makefile2 dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule
+.PHONY : dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule
+
+# Convenience name for target.
+dm_hardware_interface: dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/rule
+
+.PHONY : dm_hardware_interface
+
+# fast build rule for target.
+dm_hardware_interface/fast:
+	cd /home/kaerei/ROS_Workspace/dm_ht_arm/build && $(MAKE) -f dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/build.make dm_ht_controller/CMakeFiles/dm_hardware_interface.dir/build
+.PHONY : dm_hardware_interface/fast
 
 src/dm_controller.o: src/dm_controller.cpp.o
 
@@ -933,59 +633,39 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
-	@echo "... edit_cache"
-	@echo "... sensor_msgs_generate_messages_lisp"
-	@echo "... sensor_msgs_generate_messages_cpp"
-	@echo "... sensor_msgs_generate_messages_nodejs"
-	@echo "... controller_manager_msgs_generate_messages_py"
-	@echo "... install"
-	@echo "... controller_manager_msgs_generate_messages_cpp"
-	@echo "... rosgraph_msgs_generate_messages_py"
+	@echo "... rebuild_cache"
+	@echo "... trajectory_msgs_generate_messages_lisp"
+	@echo "... actionlib_msgs_generate_messages_lisp"
+	@echo "... actionlib_msgs_generate_messages_py"
+	@echo "... actionlib_msgs_generate_messages_eus"
+	@echo "... sensor_msgs_generate_messages_py"
+	@echo "... actionlib_msgs_generate_messages_cpp"
+	@echo "... control_msgs_generate_messages_py"
 	@echo "... test"
 	@echo "... controller_manager_msgs_generate_messages_nodejs"
-	@echo "... rosgraph_msgs_generate_messages_cpp"
-	@echo "... controller_manager_msgs_generate_messages_lisp"
-	@echo "... roscpp_generate_messages_py"
-	@echo "... std_msgs_generate_messages_eus"
-	@echo "... geometry_msgs_generate_messages_lisp"
-	@echo "... roscpp_generate_messages_nodejs"
-	@echo "... std_msgs_generate_messages_lisp"
-	@echo "... actionlib_msgs_generate_messages_cpp"
-	@echo "... rosgraph_msgs_generate_messages_nodejs"
-	@echo "... actionlib_msgs_generate_messages_py"
-	@echo "... dm_hardware_interface"
-	@echo "... control_msgs_generate_messages_eus"
-	@echo "... trajectory_msgs_generate_messages_nodejs"
-	@echo "... trajectory_msgs_generate_messages_eus"
-	@echo "... actionlib_msgs_generate_messages_lisp"
-	@echo "... trajectory_msgs_generate_messages_lisp"
-	@echo "... rosgraph_msgs_generate_messages_lisp"
-	@echo "... actionlib_msgs_generate_messages_eus"
 	@echo "... dm_controller"
-	@echo "... geometry_msgs_generate_messages_nodejs"
-	@echo "... controller_manager_msgs_generate_messages_eus"
-	@echo "... roscpp_generate_messages_lisp"
-	@echo "... std_msgs_generate_messages_cpp"
 	@echo "... actionlib_msgs_generate_messages_nodejs"
 	@echo "... trajectory_msgs_generate_messages_cpp"
-	@echo "... geometry_msgs_generate_messages_cpp"
-	@echo "... control_msgs_generate_messages_py"
 	@echo "... control_msgs_generate_messages_nodejs"
-	@echo "... std_msgs_generate_messages_py"
+	@echo "... sensor_msgs_generate_messages_cpp"
 	@echo "... install/local"
-	@echo "... rosgraph_msgs_generate_messages_eus"
 	@echo "... control_msgs_generate_messages_lisp"
 	@echo "... control_msgs_generate_messages_cpp"
-	@echo "... std_msgs_generate_messages_nodejs"
-	@echo "... geometry_msgs_generate_messages_eus"
-	@echo "... sensor_msgs_generate_messages_py"
-	@echo "... geometry_msgs_generate_messages_py"
-	@echo "... sensor_msgs_generate_messages_eus"
-	@echo "... roscpp_generate_messages_cpp"
 	@echo "... list_install_components"
 	@echo "... trajectory_msgs_generate_messages_py"
-	@echo "... rebuild_cache"
-	@echo "... roscpp_generate_messages_eus"
+	@echo "... edit_cache"
+	@echo "... install"
+	@echo "... controller_manager_msgs_generate_messages_cpp"
+	@echo "... controller_manager_msgs_generate_messages_eus"
+	@echo "... controller_manager_msgs_generate_messages_lisp"
+	@echo "... sensor_msgs_generate_messages_eus"
+	@echo "... sensor_msgs_generate_messages_lisp"
+	@echo "... controller_manager_msgs_generate_messages_py"
+	@echo "... sensor_msgs_generate_messages_nodejs"
+	@echo "... trajectory_msgs_generate_messages_eus"
+	@echo "... control_msgs_generate_messages_eus"
+	@echo "... trajectory_msgs_generate_messages_nodejs"
+	@echo "... dm_hardware_interface"
 	@echo "... src/dm_controller.o"
 	@echo "... src/dm_controller.i"
 	@echo "... src/dm_controller.s"

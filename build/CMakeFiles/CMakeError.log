@@ -1,21 +1,21 @@
 Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
 Change Dir: /home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_a4a9b/fast && /usr/bin/make -f CMakeFiles/cmTC_a4a9b.dir/build.make CMakeFiles/cmTC_a4a9b.dir/build
+Run Build Command(s):/usr/bin/make cmTC_35719/fast && /usr/bin/make -f CMakeFiles/cmTC_35719.dir/build.make CMakeFiles/cmTC_35719.dir/build
 make[1]: 进入目录“/home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_a4a9b.dir/src.c.o
-/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_a4a9b.dir/src.c.o   -c /home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_a4a9b
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a4a9b.dir/link.txt --verbose=1
-/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD    -rdynamic CMakeFiles/cmTC_a4a9b.dir/src.c.o  -o cmTC_a4a9b 
-/usr/bin/ld: CMakeFiles/cmTC_a4a9b.dir/src.c.o: in function `main':
+Building C object CMakeFiles/cmTC_35719.dir/src.c.o
+/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_35719.dir/src.c.o   -c /home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_35719
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_35719.dir/link.txt --verbose=1
+/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD    -rdynamic CMakeFiles/cmTC_35719.dir/src.c.o  -o cmTC_35719 
+/usr/bin/ld: CMakeFiles/cmTC_35719.dir/src.c.o: in function `main':
 src.c:(.text+0x46): undefined reference to `pthread_create'
 /usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
 /usr/bin/ld: src.c:(.text+0x63): undefined reference to `pthread_join'
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_a4a9b.dir/build.make:87：cmTC_a4a9b] 错误 1
+make[1]: *** [CMakeFiles/cmTC_35719.dir/build.make:87：cmTC_35719] 错误 1
 make[1]: 离开目录“/home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp”
-make: *** [Makefile:121：cmTC_a4a9b/fast] 错误 2
+make: *** [Makefile:121：cmTC_35719/fast] 错误 2
 
 
 Source file was:
@@ -41,18 +41,18 @@ int main(void)
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_09eba/fast && /usr/bin/make -f CMakeFiles/cmTC_09eba.dir/build.make CMakeFiles/cmTC_09eba.dir/build
+Run Build Command(s):/usr/bin/make cmTC_837c3/fast && /usr/bin/make -f CMakeFiles/cmTC_837c3.dir/build.make CMakeFiles/cmTC_837c3.dir/build
 make[1]: 进入目录“/home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_09eba.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_09eba.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
-Linking C executable cmTC_09eba
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_09eba.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_09eba.dir/CheckFunctionExists.c.o  -o cmTC_09eba  -lpthreads 
+Building C object CMakeFiles/cmTC_837c3.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_837c3.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_837c3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_837c3.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_837c3.dir/CheckFunctionExists.c.o  -o cmTC_837c3  -lpthreads 
 /usr/bin/ld: 找不到 -lpthreads
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_09eba.dir/build.make:87：cmTC_09eba] 错误 1
+make[1]: *** [CMakeFiles/cmTC_837c3.dir/build.make:87：cmTC_837c3] 错误 1
 make[1]: 离开目录“/home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles/CMakeTmp”
-make: *** [Makefile:121：cmTC_09eba/fast] 错误 2
+make: *** [Makefile:121：cmTC_837c3/fast] 错误 2
 
 
 

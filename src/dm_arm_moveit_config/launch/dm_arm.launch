@@ -19,4 +19,7 @@
   <!-- 启动 RViz 并使用 MoveIt 的配置 -->
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find dm_arm_moveit_config)/launch/moveit.rviz"/>
 
+  <!-- 启动 DM Arm 控制服务器 -->
+  <node pkg="dm_arm_service" type="dm_arm_server" name="dm_arm_server" output="screen"/>
+
 </launch>

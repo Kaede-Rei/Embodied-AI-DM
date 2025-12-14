@@ -1,0 +1,8 @@
+prefix=/home/kaerei/ROS_Workspace/dm_ht_arm/install
+
+Name: dm_arm_service
+Description: Description of dm_arm_service
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
