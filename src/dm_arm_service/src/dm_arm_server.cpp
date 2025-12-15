@@ -4,9 +4,6 @@
 
 // ! ========================= 宏 定 义 ========================= ! //
 
-#define STM32_SERIAL_PORT "/dev/ttyUSB0"
-#define CAN_NAME "/dev/ttyUSB1"
-
 namespace dm_arm
 {
 
@@ -24,10 +21,13 @@ namespace dm_arm
      * @brief 构造函数
      * @param nh ROS节点句柄
      * @param plan_group 机械臂规划组名称
+     * @param stm32_port STM32串口端口
+     * @param stm32_baud STM32串口波特率
      */
-    Server::Server(ros::NodeHandle& nh, const std::string& plan_group)
+    Server::Server(ros::NodeHandle& nh, const std::string& plan_group,
+                   const std::string& stm32_port, int stm32_baud)
         : _eef_controller_(nh, plan_group), _task_planner_(_eef_controller_),
-        _stm32_serialer_(nh, STM32_SERIAL_PORT, 115200), _can_serialer_(nh, CAN_NAME)
+        _stm32_serialer_(nh, stm32_port, stm32_baud)
     {
         _srv_eef_cmd_ = nh.advertiseService("/dm_arm_server/eef_cmd", &Server::eefPoseCmdCallback, this);
         _srv_task_planner_ = nh.advertiseService("/dm_arm_server/task_planner", &Server::taskGroupPlannerCallback, this);
@@ -743,7 +743,6 @@ int main(int argc, char** argv)
     setlocale(LC_ALL, "");
     ros::init(argc, argv, "dm_arm_server");
     ros::NodeHandle nh;
-    ros::NodeHandle pnh("~");
 
     ROS_INFO("====================================");
     ROS_INFO("   DM Arm 服务器启动中...");
@@ -754,18 +753,24 @@ int main(int argc, char** argv)
     double timeout_hardware, timeout_moveit;
     bool use_fake_execution;
 
-    pnh.param<int>("server/num_threads", num_threads, 12);
-    pnh.param<double>("server/timeout_hardware", timeout_hardware, 20.0);
-    pnh.param<double>("server/timeout_moveit", timeout_moveit, 20.0);
-    pnh.param<bool>("server/use_fake_execution", use_fake_execution, false);
+    nh.param<int>("server/num_threads", num_threads, 12);
+    nh.param<double>("server/timeout_hardware", timeout_hardware, 20.0);
+    nh.param<double>("server/timeout_moveit", timeout_moveit, 20.0);
+    nh.param<bool>("server/use_fake_execution", use_fake_execution, false);
 
     // 获取 MoveIt 配置
     std::string planning_group;
-    pnh.param<std::string>("moveit/planning_group", planning_group, "arm");
+    nh.param<std::string>("moveit/planning_group", planning_group, "arm");
 
     // 获取日志级别
     std::string log_level;
-    pnh.param<std::string>("logging/level", log_level, "info");
+    nh.param<std::string>("logging/level", log_level, "info");
+
+    // 获取 STM32 串口配置
+    std::string stm32_port;
+    int stm32_baud;
+    nh.param<std::string>("stm32_serial/port", stm32_port, "/dev/ttyACM1");
+    nh.param<int>("stm32_serial/baudrate", stm32_baud, 115200);
 
     // 设置日志级别
     if(log_level == "debug"){
@@ -824,8 +829,8 @@ int main(int argc, char** argv)
 
         // 读取并应用 MoveIt 配置
         double velocity_scaling, acceleration_scaling;
-        pnh.param<double>("end_effector/velocity_scaling", velocity_scaling, 0.3);
-        pnh.param<double>("end_effector/acceleration_scaling", acceleration_scaling, 0.3);
+        nh.param<double>("end_effector/velocity_scaling", velocity_scaling, 0.3);
+        nh.param<double>("end_effector/acceleration_scaling", acceleration_scaling, 0.3);
 
         arm.setMaxVelocityScalingFactor(velocity_scaling);
         arm.setMaxAccelerationScalingFactor(acceleration_scaling);
@@ -846,7 +851,7 @@ int main(int argc, char** argv)
     // 初始化服务器
 
     try{
-        dm_arm::Server srv(nh, planning_group);
+        dm_arm::Server srv(nh, planning_group, stm32_port, stm32_baud);
 
         ROS_INFO("====================================");
         ROS_INFO("   DM Arm 服务器已启动");

@@ -6,5 +6,5 @@ CXX_FLAGS = -fPIC
 
 CXX_DEFINES = -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\"dm_ht_controller\" -Ddm_hardware_interface_EXPORTS
 
-CXX_INCLUDES = -I/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp 
+CXX_INCLUDES = -I/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_ht_controller/include -I/home/kaerei/ROS_Workspace/dm_ht_arm/devel/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp 
 

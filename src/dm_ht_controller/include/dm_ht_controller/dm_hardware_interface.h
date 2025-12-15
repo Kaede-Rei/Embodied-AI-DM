@@ -7,6 +7,7 @@
 #include <hardware_interface/robot_hw.h>
 #include <controller_manager/controller_manager.h>
 #include "dm_ht_controller/damiao.h"
+#include "dm_arm_msgs_srvs/dm_arm_cmd.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -30,12 +31,20 @@ public:
     void read();
     void write();
     void returnZero();
+    bool sendCanCmdCallback(dm_arm_msgs_srvs::dm_arm_cmd::Request& req,
+                            dm_arm_msgs_srvs::dm_arm_cmd::Response& res);
 
 private:
     ros::NodeHandle nh_;
 
     // 达妙电机控制器
     std::shared_ptr<damiao::Motor_Control> motor_controller_;
+    
+    // 串口对象指针
+    std::shared_ptr<SerialPort> serial_; 
+    
+    // 服务服务器
+    ros::ServiceServer can_cmd_server_;
 
     // 电机对象列表
     std::vector<std::shared_ptr<damiao::Motor>> motors_;
@@ -70,6 +79,7 @@ private:
     // 安全限制
     double max_position_change_;    // 单次最大位置变化
     double max_velocity_;           // 最大速度
+    bool enable_write_;             // 是否启用写入
 };
 
 #endif

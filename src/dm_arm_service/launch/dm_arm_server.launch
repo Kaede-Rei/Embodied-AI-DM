@@ -12,13 +12,16 @@
     <!-- ==================== 机器人描述 ==================== -->
     <param name="robot_description" 
            textfile="$(find dm_ht_controller)/urdf/dm_arm.urdf"/>
+
+    <!-- ==================== 状态发布器 ==================== -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" 
+          type="robot_state_publisher" output="screen"/>
     
     <!-- ==================== 硬件接口（仅在真实模式下启动） ==================== -->
     <group unless="$(arg use_fake_execution)">
         <node name="dm_controller" pkg="dm_ht_controller" 
               type="dm_controller" output="screen" 
               required="true">
-            <rosparam file="$(find dm_ht_controller)/config/dm_controller.yaml" command="load"/>
         </node>
         
         <node name="controller_spawner" pkg="controller_manager" type="spawner" 
@@ -36,10 +39,6 @@
             </rosparam>
         </node>
     </group>
-
-    <!-- ==================== 状态发布器 ==================== -->
-    <node name="robot_state_publisher" pkg="robot_state_publisher" 
-          type="robot_state_publisher" output="screen"/>
     
     <!-- ==================== MoveIt ==================== -->
     <include file="$(find dm_arm_moveit_config)/launch/move_group.launch">

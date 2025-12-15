@@ -9,8 +9,8 @@ server:
   timeout_moveit: 20.0              # 等待 MoveIt 超时时间（秒）
 
 # ==================== 硬件接口配置 ==================== #
-hardware:
-  serial_port: "/dev/ttyACM0"       # 串口设备
+dm_arm_hardware:
+  serial_port: "/dev/ttyACM0"       # 机械臂串口设备
   baudrate: 921600                  # 波特率
   control_frequency: 500.0          # 控制频率（Hz）
   
@@ -23,6 +23,10 @@ hardware:
   max_position_change: 0.5          # 单次最大位置变化（rad）
   max_velocity: 5.0                 # 最大速度（rad/s）
   enable_write: true                # 是否启用写入
+
+stm32_serial:
+  port: "/dev/ttyACM1"              # STM32 串口设备
+  baudrate: 115200                  # 波特率
 
 # ==================== 关节配置 ==================== #
 joints:
@@ -97,30 +101,29 @@ moveit:
     max_corner: {x: 0.8, y: 0.8, z: 1.0}
 
 # ==================== 控制器配置 ==================== #
-controllers:
-  joint_state_controller:
-    type: joint_state_controller/JointStateController
-    publish_rate: 50
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+arm_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+    - joint1
+    - joint2
+    - joint3
+    - joint4
+    - joint5
+    - joint6
   
-  arm_controller:
-    type: position_controllers/JointTrajectoryController
-    joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
-      - joint5
-      - joint6
-    
-    constraints:
-      goal_time: 0.8
-      stopped_velocity_tolerance: 0.05
-      joint1: {trajectory: 0.2, goal: 0.05}
-      joint2: {trajectory: 0.3, goal: 0.05}
-      joint3: {trajectory: 0.2, goal: 0.05}
-      joint4: {trajectory: 0.2, goal: 0.05}
-      joint5: {trajectory: 0.2, goal: 0.05}
-      joint6: {trajectory: 0.2, goal: 0.05}
+  constraints:
+    goal_time: 0.0
+    stopped_velocity_tolerance: 0.0
+    joint1: {trajectory: 0.0, goal: 0.0}
+    joint2: {trajectory: 0.0, goal: 0.0}
+    joint3: {trajectory: 0.0, goal: 0.0}
+    joint4: {trajectory: 0.0, goal: 0.0}
+    joint5: {trajectory: 0.0, goal: 0.0}
+    joint6: {trajectory: 0.0, goal: 0.0}
 
 # ==================== 安全配置 ==================== #
 safety:

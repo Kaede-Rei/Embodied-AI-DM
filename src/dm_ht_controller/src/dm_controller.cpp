@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
     // 获取控制频率
     double control_frequency;
-    nh.param<double>("control_frequency", control_frequency, 500.0);
+    nh.param<double>("dm_arm_hardware/control_frequency", control_frequency, 500.0);
     ros::Rate rate(control_frequency);
 
     ROS_INFO("开始控制循环，频率: %.1f Hz", control_frequency);

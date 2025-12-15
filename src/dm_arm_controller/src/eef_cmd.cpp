@@ -42,11 +42,53 @@ namespace dm_arm
         ROS_INFO_STREAM("末端执行器坐标系为：" << _eef_frame_);
 
         // 允许重新规划、设置目标位姿容忍度、设置最大速度和加速度比例
-        _arm_.allowReplanning(true);
-        _arm_.setGoalPositionTolerance(0.05);
-        _arm_.setGoalOrientationTolerance(0.05);
-        _arm_.setMaxVelocityScalingFactor(1.0);
-        _arm_.setMaxAccelerationScalingFactor(1.0);
+        bool allow_replanning;
+        double goal_pos_tol, goal_ori_tol;
+        double vel_scale, acc_scale;
+
+        _nh_.param<bool>("moveit/allow_replanning", allow_replanning, true);
+        _nh_.param<double>("end_effector/goal_position_tolerance", goal_pos_tol, 0.05);
+        _nh_.param<double>("end_effector/goal_orientation_tolerance", goal_ori_tol, 0.05);
+        _nh_.param<double>("end_effector/velocity_scaling", vel_scale, 1.0);
+        _nh_.param<double>("end_effector/acceleration_scaling", acc_scale, 1.0);
+
+        _arm_.allowReplanning(allow_replanning);
+        _arm_.setGoalPositionTolerance(goal_pos_tol);
+        _arm_.setGoalOrientationTolerance(goal_ori_tol);
+        _arm_.setMaxVelocityScalingFactor(vel_scale);
+        _arm_.setMaxAccelerationScalingFactor(acc_scale);
+
+        // 读取更多 MoveIt 参数
+        std::string planner_id;
+        double planning_time;
+        int num_planning_attempts;
+        double execution_timeout;
+
+        _nh_.param<std::string>("moveit/planner_id", planner_id, "RRTConnect");
+        _nh_.param<double>("moveit/planning_time", planning_time, 5.0);
+        _nh_.param<int>("moveit/num_planning_attempts", num_planning_attempts, 10);
+        _nh_.param<double>("moveit/execution_timeout", execution_timeout, 15.0);
+
+        _arm_.setPlannerId(planner_id);
+        _arm_.setPlanningTime(planning_time);
+        _arm_.setNumPlanningAttempts(num_planning_attempts);
+
+        // 读取工作空间参数
+        double ws_min_x, ws_min_y, ws_min_z;
+        double ws_max_x, ws_max_y, ws_max_z;
+        _nh_.param<double>("moveit/workspace/min_corner/x", ws_min_x, -0.8);
+        _nh_.param<double>("moveit/workspace/min_corner/y", ws_min_y, -0.8);
+        _nh_.param<double>("moveit/workspace/min_corner/z", ws_min_z, 0.0);
+        _nh_.param<double>("moveit/workspace/max_corner/x", ws_max_x, 0.8);
+        _nh_.param<double>("moveit/workspace/max_corner/y", ws_max_y, 0.8);
+        _nh_.param<double>("moveit/workspace/max_corner/z", ws_max_z, 1.0);
+
+        _arm_.setWorkspace(ws_min_x, ws_min_y, ws_min_z, ws_max_x, ws_max_y, ws_max_z);
+
+        // 读取末端执行器参数
+        _nh_.param<double>("end_effector/max_reach", _max_reach_, 0.6);
+        _nh_.param<double>("end_effector/min_reach", _min_reach_, 0.1);
+        _nh_.param<int>("end_effector/search/max_iterations", _max_iterations_, 100);
 
         // 初始化场景监控器与规划场景指针
         _scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
@@ -173,13 +215,17 @@ namespace dm_arm
             {1, -1}, {-1, 1}
         };
 
-        const size_t max_expand = static_cast<size_t>((2 * step_count + 1) * (2 * step_count + 1) * 10);
+        // 使用配置的最大迭代次数作为扩展限制，如果配置为0则使用自动计算的限制
+        size_t max_expand = _max_iterations_;
+        if(max_expand == 0) {
+             max_expand = static_cast<size_t>((2 * step_count + 1) * (2 * step_count + 1) * 10);
+        }
         size_t expand_count = 0;
 
         // A*搜索过程
         while(!open_set.empty()){
             if(++expand_count > max_expand){
-                ROS_ERROR("A*搜索超出最大扩展节点数，终止搜索。");
+                ROS_ERROR("A*搜索超出最大扩展节点数 (%zu)，终止搜索。", max_expand);
                 break;
             }
 
@@ -273,8 +319,10 @@ namespace dm_arm
             }
 
             ROS_INFO("搜索可达目标位姿中...");
-            double step = SEARCH_STEP;      // 步长(度)
-            double radius = SEARCH_RADIUS;  // 半径(度)
+            double step;
+            double radius;
+            _nh_.param<double>("end_effector/search/step", step, 5.0);
+            _nh_.param<double>("end_effector/search/radius", radius, 45.0);
 
             geometry_msgs::Pose pose_candidate = target_pose.pose;
             if(!searchReachablePose(pose_candidate, step, radius)) return false;
@@ -409,7 +457,17 @@ namespace dm_arm
      */
     TaskGroupPlanner::TaskGroupPlanner(EefPoseCmd& eef_cmd)
         : _eef_cmd_(eef_cmd)
-    { }
+    {
+        ros::NodeHandle nh;
+        nh.param<bool>("task_planner/enable_optimization", _enable_optimization_, true);
+        nh.param<std::string>("task_planner/optimization_method", _optimization_method_, "greedy");
+        nh.param<double>("task_planner/pick_height_offset", _pick_height_offset_, 0.1);
+        nh.param<double>("task_planner/place_height_offset", _place_height_offset_, 0.1);
+        nh.param<double>("task_planner/approach_distance", _approach_distance_, 0.05);
+        nh.param<double>("task_planner/retreat_distance", _retreat_distance_, 0.05);
+        nh.param<double>("task_planner/default_wait_time", _default_wait_time_, 0.5);
+        nh.param<double>("task_planner/gripper_action_time", _gripper_action_time_, 1.0);
+    }
 
     /**
      * @brief 添加任务目标到任务列表
@@ -508,7 +566,10 @@ namespace dm_arm
                 if(!success) ROS_WARN("任务 [%zu] 旋转动作失败。", task_index);
             }
 
-            if(task.wait_time > 0.0) ros::Duration(task.wait_time).sleep();
+            // 等待时间：优先使用任务指定的等待时间，否则使用默认等待时间
+            double wait = (task.wait_time > 0.0) ? task.wait_time : _default_wait_time_;
+            if(wait > 0.0) ros::Duration(wait).sleep();
+            
             ++task_index;
         }
 

@@ -11,7 +11,8 @@ DMHardwareInterface::DMHardwareInterface(ros::NodeHandle& nh)
     kp_(30.0),
     kd_(1.0),
     max_position_change_(0.5),
-    max_velocity_(3.0)
+    max_velocity_(3.0),
+    enable_write_(true)
 { }
 
 /**
@@ -39,27 +40,28 @@ DMHardwareInterface::~DMHardwareInterface()
 bool DMHardwareInterface::init()
 {
     // 读取参数
-    nh_.param<std::string>("serial_port", serial_port_, "/dev/ttyACM0");
-    nh_.param<int>("baudrate", baudrate_, 921600);
-    nh_.param<double>("control_frequency", control_frequency_, 500.0);
-    nh_.param<bool>("use_mit_mode", use_mit_mode_, false);
-    nh_.param<double>("kp", kp_, 30.0);
-    nh_.param<double>("kd", kd_, 1.0);
-    nh_.param<double>("max_position_change", max_position_change_, 0.5);
-    nh_.param<double>("max_velocity", max_velocity_, 3.0);
+    nh_.param<std::string>("dm_arm_hardware/serial_port", serial_port_, "/dev/ttyACM0");
+    nh_.param<int>("dm_arm_hardware/baudrate", baudrate_, 921600);
+    nh_.param<double>("dm_arm_hardware/control_frequency", control_frequency_, 500.0);
+    nh_.param<bool>("dm_arm_hardware/use_mit_mode", use_mit_mode_, false);
+    nh_.param<double>("dm_arm_hardware/kp", kp_, 30.0);
+    nh_.param<double>("dm_arm_hardware/kd", kd_, 1.0);
+    nh_.param<double>("dm_arm_hardware/max_position_change", max_position_change_, 0.5);
+    nh_.param<double>("dm_arm_hardware/max_velocity", max_velocity_, 3.0);
+    nh_.param<bool>("dm_arm_hardware/enable_write", enable_write_, true);
 
-    if(!nh_.getParam("joint_names", joint_names_)){
-        ROS_ERROR("获取 joint_names 参数失败");
+    if(!nh_.getParam("joints/names", joint_names_)){
+        ROS_ERROR("获取 joints/names 参数失败");
         return false;
     }
 
-    if(!nh_.getParam("motor_ids", motor_ids_)){
-        ROS_ERROR("获取 motor_ids 参数失败");
+    if(!nh_.getParam("joints/motor_ids", motor_ids_)){
+        ROS_ERROR("获取 joints/motor_ids 参数失败");
         return false;
     }
 
-    if(!nh_.getParam("motor_types", motor_types_)){
-        ROS_ERROR("获取 motor_types 参数失败");
+    if(!nh_.getParam("joints/motor_types", motor_types_)){
+        ROS_ERROR("获取 joints/motor_types 参数失败");
         return false;
     }
 
@@ -81,14 +83,18 @@ bool DMHardwareInterface::init()
 
     // 创建串口对象
     try{
-        auto serial = std::make_shared<SerialPort>(serial_port_, baudrate_);
-        motor_controller_ = std::make_shared<damiao::Motor_Control>(serial);
+        // 将 serial 保存到成员变量 serial_ 中
+        serial_ = std::make_shared<SerialPort>(serial_port_, baudrate_);
+        motor_controller_ = std::make_shared<damiao::Motor_Control>(serial_);
         ROS_INFO("串口 %s 打开成功", serial_port_.c_str());
     }
     catch(const std::exception& e){
         ROS_ERROR("打开串口失败: %s", e.what());
         return false;
     }
+
+    // 注册 CAN 指令发送服务
+    can_cmd_server_ = nh_.advertiseService("/dm_arm_hardware/send_can_cmd", &DMHardwareInterface::sendCanCmdCallback, this);
 
     // 创建电机对象
     for(size_t i = 0; i < num_joints; ++i){
@@ -191,7 +197,7 @@ bool DMHardwareInterface::init()
     registerInterface(&joint_state_interface_);
     registerInterface(&position_joint_interface_);
 
-    ROS_INFO("DM 硬件接口初始化完成，共 %zu 个关节", num_joints);
+    ROS_INFO("DM 硬件接口初始化完成，共 %d 个关节", num_joints);
     ROS_INFO("控制模式: %s, 频率: %.1f Hz",
         use_mit_mode_ ? "MIT" : "位置速度", control_frequency_);
 
@@ -229,6 +235,8 @@ void DMHardwareInterface::read()
  */
 void DMHardwareInterface::write()
 {
+    if(!enable_write_) return;
+
     double dt = 1.0 / control_frequency_;
 
     for(size_t i = 0; i < motors_.size(); ++i){
@@ -383,4 +391,56 @@ void DMHardwareInterface::returnZero()
     }
 
     ROS_INFO("已返回零位姿态。");
+}
+
+/**
+ * @brief 处理发送CAN指令的服务回调
+ * @param req 服务请求
+ * @param res 服务响应
+ * @return 是否成功处理请求
+ */
+ // TODO: 需要按情况完善
+bool DMHardwareInterface::sendCanCmdCallback(dm_arm_msgs_srvs::dm_arm_cmd::Request& req,
+    dm_arm_msgs_srvs::dm_arm_cmd::Response& res)
+{
+    if(req.command == "send_can"){
+        try{
+            // 解析参数: param1=CAN_ID(Hex string), param2=Data(Hex string)
+            uint32_t can_id = std::stoul(req.param1, nullptr, 16);
+
+            // 十六进制字符串转字节数组逻辑
+            std::vector<uint8_t> data;
+            for(size_t i = 0; i < req.param2.length(); i += 2){
+                std::string byteString = req.param2.substr(i, 2);
+                uint8_t byte = (uint8_t)strtol(byteString.c_str(), NULL, 16);
+                data.push_back(byte);
+            }
+
+            // 构造达妙协议的 CAN 发送帧
+            damiao::can_send_frame frame;
+            frame.canId = can_id;
+            frame.len = data.size();
+            std::copy(data.begin(), data.end(), frame.data);
+
+            // 发送
+            if(serial_){
+                serial_->send((uint8_t*)&frame, sizeof(frame));
+                res.success = true;
+                res.message = "CAN指令已发送";
+            }
+            else{
+                res.success = false;
+                res.message = "串口未初始化";
+            }
+        }
+        catch(const std::exception& e){
+            res.success = false;
+            res.message = std::string("解析错误: ") + e.what();
+        }
+    }
+    else{
+        res.success = false;
+        res.message = "未知命令";
+    }
+    return true;
 }

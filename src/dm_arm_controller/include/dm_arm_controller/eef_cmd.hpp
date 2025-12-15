@@ -142,6 +142,11 @@ namespace dm_arm
         const robot_state::JointModelGroup* _jmg_ = nullptr;
         /// @brief 当前机械臂状态指针
         moveit::core::RobotStatePtr _current_state_ = nullptr;
+
+        // 参数
+        double _max_reach_;
+        double _min_reach_;
+        int _max_iterations_;
     };
 
     /**
@@ -164,6 +169,16 @@ namespace dm_arm
         EefPoseCmd& _eef_cmd_;
         /// @brief 任务目标列表
         std::vector<TaskTarget_t> _task_list_;
+
+        // 参数
+        bool _enable_optimization_;
+        std::string _optimization_method_;
+        double _pick_height_offset_;
+        double _place_height_offset_;
+        double _approach_distance_;
+        double _retreat_distance_;
+        double _default_wait_time_;
+        double _gripper_action_time_;
     };
 
     /**

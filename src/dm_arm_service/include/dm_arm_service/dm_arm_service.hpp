@@ -18,7 +18,8 @@ namespace dm_arm
 
     class Server{
     public:
-        Server(ros::NodeHandle& nh, const std::string& plan_group);
+        Server(ros::NodeHandle& nh, const std::string& plan_group, 
+               const std::string& stm32_port, int stm32_baud);
         bool eefPoseCmdCallback(dm_arm_msgs_srvs::dm_arm_cmd::Request& req,
             dm_arm_msgs_srvs::dm_arm_cmd::Response& res);
         bool taskGroupPlannerCallback(dm_arm_msgs_srvs::dm_arm_cmd::Request& req,
@@ -30,7 +31,6 @@ namespace dm_arm
         dm_arm::EefPoseCmd _eef_controller_;
         dm_arm::TaskGroupPlanner _task_planner_;
         STM32Serial _stm32_serialer_;
-        CANSerial _can_serialer_;
     };
 
     class Client{
