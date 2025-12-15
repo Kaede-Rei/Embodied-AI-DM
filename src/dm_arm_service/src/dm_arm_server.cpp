@@ -26,12 +26,12 @@ namespace dm_arm
      * @param plan_group 机械臂规划组名称
      */
     Server::Server(ros::NodeHandle& nh, const std::string& plan_group)
-        : _eef_controller_(nh, plan_group), _task_planner_(_eef_controller_), 
+        : _eef_controller_(nh, plan_group), _task_planner_(_eef_controller_),
         _stm32_serialer_(nh, STM32_SERIAL_PORT, 115200), _can_serialer_(nh, CAN_NAME)
     {
         _srv_eef_cmd_ = nh.advertiseService("/dm_arm_server/eef_cmd", &Server::eefPoseCmdCallback, this);
         _srv_task_planner_ = nh.advertiseService("/dm_arm_server/task_planner", &Server::taskGroupPlannerCallback, this);
-        
+
         _eef_controller_.resetToZero();
     }
 
@@ -196,7 +196,7 @@ namespace dm_arm
             target.param1 = req.param3.empty() ? 0.0 : std::stod(req.param3);
 
             _task_planner_.add(target);
-            
+
             res.success = true;
             res.message = "添加任务成功";
         }
@@ -276,7 +276,7 @@ namespace dm_arm
 
         req.command = "zero";
 
-        return sendCmd(_client_eef_cmd_ ,req, res);
+        return sendCmd(_client_eef_cmd_, req, res);
     }
 
     /**
@@ -641,7 +641,7 @@ namespace dm_arm
         message = res.message;
 
         return success && res.success;
-    }    
+    }
 
     /**
      * @brief 清除所有任务
@@ -745,50 +745,128 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     ros::NodeHandle pnh("~");
 
+    ROS_INFO("====================================");
+    ROS_INFO("   DM Arm 服务器启动中...");
+    ROS_INFO("====================================");
+
+    // 获取服务器配置
     int num_threads;
-    pnh.param<int>("num_threads", num_threads, 12);
-    
-    ROS_INFO("====================================");
-    ROS_INFO("dm_arm机械臂服务器启动中...");
-    ROS_INFO("使用线程数: %d", num_threads);
-    ROS_INFO("====================================");
-    
-    ROS_INFO("等待机器人状态发布...");
-    try {
-        ros::topic::waitForMessage<sensor_msgs::JointState>(
-            "/joint_states", 
-            ros::Duration(10.0)
-        );
-        ROS_INFO("机器人状态已就绪");
-    }
-    catch(const std::exception& e) {
-        ROS_WARN("等待机器人状态超时: %s", e.what());
-        ROS_WARN("将使用 fake execution 模式");
+    double timeout_hardware, timeout_moveit;
+    bool use_fake_execution;
+
+    pnh.param<int>("server/num_threads", num_threads, 12);
+    pnh.param<double>("server/timeout_hardware", timeout_hardware, 20.0);
+    pnh.param<double>("server/timeout_moveit", timeout_moveit, 20.0);
+    pnh.param<bool>("server/use_fake_execution", use_fake_execution, false);
+
+    // 获取 MoveIt 配置
+    std::string planning_group;
+    pnh.param<std::string>("moveit/planning_group", planning_group, "arm");
+
+    // 获取日志级别
+    std::string log_level;
+    pnh.param<std::string>("logging/level", log_level, "info");
+
+    // 设置日志级别
+    if(log_level == "debug"){
+        if(ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
+            ros::console::levels::Debug)){
+            ros::console::notifyLoggerLevelsChanged();
+        }
     }
 
+    ROS_INFO("配置加载完成:");
+    ROS_INFO("  * 线程数: %d", num_threads);
+    ROS_INFO("  * 规划组: %s", planning_group.c_str());
+    ROS_INFO("  * 日志级别: %s", log_level.c_str());
+
+    // 等待硬件接口就绪
+    if(!use_fake_execution){
+        ROS_INFO("等待硬件接口就绪...");
+        auto msg = ros::topic::waitForMessage<sensor_msgs::JointState>(
+            "/joint_states", nh, ros::Duration(timeout_hardware)
+        );
+
+        if(!msg){
+            ROS_WARN("等待机器人状态超时: 未收到 /joint_states 消息");
+            ROS_WARN("将使用 fake execution 模式");
+            use_fake_execution = true;
+        }
+        else{
+            ROS_INFO("硬件接口已就绪");
+        }
+    }
+    else{
+        ROS_INFO("使用 fake execution 模式");
+    }
+
+    // 等待 MoveIt 就绪
+    ROS_INFO("等待 MoveIt 就绪...");
+    bool service_exists = ros::service::waitForService(
+        "/move_group/trajectory_execution/set_parameters",
+        ros::Duration(timeout_moveit)
+    );
+
+    if(!service_exists){
+        ROS_ERROR("等待 MoveIt 服务超时！");
+        ROS_ERROR("请确保已启动 move_group");
+        return 1;
+    }
+    ROS_INFO("MoveIt 已就绪");
+
+    // 连接 MoveIt 规划组
+    try{
+        moveit::planning_interface::MoveGroupInterface arm(planning_group);
+        ROS_INFO("成功连接到 MoveIt 规划组：%s", arm.getName().c_str());
+
+        ROS_INFO("  * 末端执行器: %s", arm.getEndEffectorLink().c_str());
+        ROS_INFO("  * 规划参考坐标系: %s", arm.getPlanningFrame().c_str());
+
+        // 读取并应用 MoveIt 配置
+        double velocity_scaling, acceleration_scaling;
+        pnh.param<double>("end_effector/velocity_scaling", velocity_scaling, 0.3);
+        pnh.param<double>("end_effector/acceleration_scaling", acceleration_scaling, 0.3);
+
+        arm.setMaxVelocityScalingFactor(velocity_scaling);
+        arm.setMaxAccelerationScalingFactor(acceleration_scaling);
+
+        ROS_INFO("  * 速度缩放: %.2f", velocity_scaling);
+        ROS_INFO("  * 加速度缩放: %.2f", acceleration_scaling);
+    }
+    catch(const std::exception& e){
+        ROS_ERROR("无法连接到 MoveIt 规划组 '%s': %s",
+            planning_group.c_str(), e.what());
+        return 1;
+    }
+
+    // 启动多线程
     ros::AsyncSpinner spinner(num_threads);
     spinner.start();
-    
+
     // 初始化服务器
-    try {
-        dm_arm::Server srv(nh, "arm");
-        
+
+    try{
+        dm_arm::Server srv(nh, planning_group);
+
         ROS_INFO("====================================");
-        ROS_INFO("dm_arm机械臂服务器已启动");
-        ROS_INFO("可用的服务有：");
-        ROS_INFO("  1. /dm_arm_server/eef_cmd");
-        ROS_INFO("     └─ 末端位姿控制服务");
-        ROS_INFO("  2. /dm_arm_server/task_planner");
-        ROS_INFO("     └─ 任务组规划服务");
+        ROS_INFO("   DM Arm 服务器已启动");
         ROS_INFO("====================================");
-        
+        ROS_INFO("可用的服务：");
+        ROS_INFO("  * /dm_arm_server/eef_cmd");
+        ROS_INFO("    └─ 末端位姿控制服务");
+        ROS_INFO("  * /dm_arm_server/task_planner");
+        ROS_INFO("    └─ 任务组规划服务");
+        ROS_INFO("====================================");
+        ROS_INFO("系统就绪，等待客户端请求...");
+        ROS_INFO("====================================");
+
         ros::waitForShutdown();
     }
-    catch(const std::exception& e) {
+    catch(const std::exception& e){
         ROS_ERROR("服务器初始化失败: %s", e.what());
         return 1;
     }
-    
-    ROS_INFO("dm_arm机械臂服务器已关闭");
+
+    ROS_INFO("DM Arm 服务器已关闭");
     return 0;
 }

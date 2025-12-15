@@ -1,7 +1,8 @@
 #include <ros/ros.h>
 #include <controller_manager/controller_manager.h>
-#include "dm_ht_controller/dm_hardware_interface.h"
 #include <signal.h>
+
+#include "dm_ht_controller/dm_hardware_interface.h"
 
 // 全局退出标志
 bool g_quit = false;

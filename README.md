@@ -110,10 +110,10 @@ arm_controller:
     - joint6
 ```
 
-## 6. 一键启动命令
+## 6. 一键启动命令及测试脚本
 
 ```bash
-roslaunch dm_arm dm_arm.launch
+roslaunch dm_arm_moveit_config dm_arm.launch
 ```
 
 该 launch 文件会依次完成以下操作：
@@ -124,15 +124,22 @@ roslaunch dm_arm dm_arm.launch
 4. 加载 `joint_state_controller` 和 `joint_trajectory_controller`
 5. 启动 MoveIt `move_group` 节点
 6. 启动 RViz 并加载预配置的 MotionPlanning 插件
+6. 启动 DM Arm 机械臂控制服务器
 
 启动成功后最终在终端会显示：
 
 ```
-[INFO] DM Hardware Interface initialized with 6 joints
-[INFO] Control mode: MIT
-[INFO] Starting control loop at 500.0 Hz
-You can start planning now!
+[INFO] [1765726641.299476906]: ====================================
+[INFO] [1765726641.299544581]: dm_arm机械臂服务器已启动
+[INFO] [1765726641.299574264]: 可用的服务有：
+[INFO] [1765726641.299601571]:   1. /dm_arm_server/eef_cmd
+[INFO] [1765726641.299626504]:      └─ 末端位姿控制服务
+[INFO] [1765726641.299653812]:   2. /dm_arm_server/task_planner
+[INFO] [1765726641.299678745]:      └─ 任务组规划服务
+[INFO] [1765726641.299702491]: ====================================
 ```
+
+测试脚本：`source ./test_service.sh`
 
 ## 7. 在 RViz 中使用 MoveIt
 

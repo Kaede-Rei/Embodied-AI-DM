@@ -3,9 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
                 "/opt/ros/noetic/include/**",
-                "${workspaceFolder}/src/dm_ht_controller/include"
+                "/usr/include/eigen3",
+                "${workspaceFolder}/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
