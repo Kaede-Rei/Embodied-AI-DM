@@ -403,7 +403,7 @@ void DMHardwareInterface::returnZero()
 bool DMHardwareInterface::sendCanCmdCallback(dm_arm_msgs_srvs::dm_arm_cmd::Request& req,
     dm_arm_msgs_srvs::dm_arm_cmd::Response& res)
 {
-    if(req.command == "send_can"){
+    if(req.command == "can_send"){
         try{
             // 解析参数: param1=CAN_ID(Hex string), param2=Data(Hex string)
             uint32_t can_id = std::stoul(req.param1, nullptr, 16);

@@ -31,6 +31,7 @@ namespace dm_arm
         dm_arm::EefPoseCmd _eef_controller_;
         dm_arm::TaskGroupPlanner _task_planner_;
         STM32Serial _stm32_serialer_;
+        ros::ServiceClient _gripper_client_;
     };
 
     class Client{

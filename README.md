@@ -12,16 +12,16 @@
 
 ## 1. 系统概述
 
-本机械臂采用 6 个达妙系列无刷电机通过 USB-CAN 适配器与电脑/工控机通信。 底层使用自定义`dm_ht_controller` 硬件接口实现 `hardware_interface::RobotHW`，上层通过 MoveIt 的 `move_group` 节点完成运动规划与轨迹执行。
+本机械臂采用 6 个达妙系列无刷电机通过 USB-CAN 适配器与电脑/工控机通信。底层使用自定义 `dm_ht_controller` 硬件接口实现 `hardware_interface::RobotHW`，上层通过 MoveIt `move_group` 规划与 `ros_control` 轨迹执行；业务服务节点由 `dm_arm_service` 提供。
 
-所有启动流程已集成到一个文件，使用命令`roslaunch dm_ht_moveit_config dm_arm.launch`即可完成：
+所有启动流程集成到一个文件，使用命令`roslaunch dm_arm_service dm_arm_server.launch`即可完成：
 
-- 硬件接口初始化
-
-- 电机使能
-- ros_control 控制器加载
-- MoveIt 配置加载
+- 统一加载参数服务器内参数
+- 加载URDF、启动状态发布器并使能电机（启动硬件接口）
+- MoveIt 配置加载并启动服务器
 - RViz 可视化与 MotionPlanning 插件启动
+
+该launch可选`use_rviz`(是否使用rviz)和`use_fake_execution`(是否假执行)，后者为true则仅仿真
 
 ## 2. 硬件连接要求
 
@@ -43,12 +43,20 @@ sudo apt install ros-noetic-moveit ros-noetic-controller-manager \
 ## 4. 源码获取与编译
 
 ```bash
-# 创建工作空间
-mkdir -p ~/dm_arm_ws/src
-cd ~/dm_arm_ws/src
+# 克隆源码，结构：
+dm_arm_ws
+├── src
+│   ├── dm_arm_moveit_config        # MoveIt 配置包
+│   ├── dm_arm_service              # 机械臂服务节点
+│   └── dm_ht_controller            # 硬件接口节点
+├── README.md                       # 使用文档
+├── 达妙机械臂服务器客户端接口文档.md    # 客户端接口说明
+└── test_service.sh                 # 测试脚本
 
-# 编译
-cd ~/dm_arm_ws
+# 创建工作空间并编译
+cd src
+catkin_init_workspace
+cd /..
 catkin_make
 source devel/setup.bash
 ```
@@ -57,7 +65,7 @@ source devel/setup.bash
 
 启动前请确认以下参数文件已正确修改：
 
-**文件路径**：`dm_ht_controller/config/dm_controller.yaml`
+**文件路径**：`dm_arm_service/config/dm_arm_config.yaml`
 
 ```yaml
 # 硬件接口配置
@@ -113,7 +121,7 @@ arm_controller:
 ## 6. 一键启动命令及测试脚本
 
 ```bash
-roslaunch dm_arm_moveit_config dm_arm.launch
+roslaunch dm_arm_service dm_arm_server.launch
 ```
 
 该 launch 文件会依次完成以下操作：
@@ -124,19 +132,22 @@ roslaunch dm_arm_moveit_config dm_arm.launch
 4. 加载 `joint_state_controller` 和 `joint_trajectory_controller`
 5. 启动 MoveIt `move_group` 节点
 6. 启动 RViz 并加载预配置的 MotionPlanning 插件
-6. 启动 DM Arm 机械臂控制服务器
+7. 启动 DM Arm 机械臂控制服务器
 
 启动成功后最终在终端会显示：
 
 ```
-[INFO] [1765726641.299476906]: ====================================
-[INFO] [1765726641.299544581]: dm_arm机械臂服务器已启动
-[INFO] [1765726641.299574264]: 可用的服务有：
-[INFO] [1765726641.299601571]:   1. /dm_arm_server/eef_cmd
-[INFO] [1765726641.299626504]:      └─ 末端位姿控制服务
-[INFO] [1765726641.299653812]:   2. /dm_arm_server/task_planner
-[INFO] [1765726641.299678745]:      └─ 任务组规划服务
-[INFO] [1765726641.299702491]: ====================================
+[INFO] [1765811909.715087159]: ====================================
+[INFO] [1765811909.715137026]:    DM Arm 服务器已启动
+[INFO] [1765811909.715158397]: ====================================
+[INFO] [1765811909.715180956]: 可用的服务：
+[INFO] [1765811909.715199953]:   * /dm_arm_server/eef_cmd
+[INFO] [1765811909.715220137]:     └─ 末端位姿控制服务
+[INFO] [1765811909.715239134]:   * /dm_arm_server/task_planner
+[INFO] [1765811909.715258131]:     └─ 任务组规划服务
+[INFO] [1765811909.715278315]: ====================================
+[INFO] [1765811909.715298499]: 系统就绪，等待客户端请求...
+[INFO] [1765811909.715318683]: ====================================
 ```
 
 测试脚本：`source ./test_service.sh`

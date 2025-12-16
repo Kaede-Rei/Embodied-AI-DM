@@ -31,6 +31,7 @@ namespace dm_arm
     {
         _srv_eef_cmd_ = nh.advertiseService("/dm_arm_server/eef_cmd", &Server::eefPoseCmdCallback, this);
         _srv_task_planner_ = nh.advertiseService("/dm_arm_server/task_planner", &Server::taskGroupPlannerCallback, this);
+        _gripper_client_ = nh.serviceClient<dm_arm_msgs_srvs::dm_arm_cmd>("/dm_arm_hardware/send_can_cmd");
 
         _eef_controller_.resetToZero();
     }
@@ -146,6 +147,52 @@ namespace dm_arm
 
             res.message = "获取各关节角度成功";
             res.success = true;
+        }
+
+        /// @brief 控制夹爪开闭
+        else if(req.command == "gripper_open" || req.command == "gripper_close"){
+            dm_arm_msgs_srvs::dm_arm_cmd srv;
+            srv.request.command = "can_send";
+            if(req.command == "gripper_open"){
+                srv.request.param1 = "0x07";
+                // 23 30 30 30 50 30 35 30 30 54 31 30 30 30 21
+                srv.request.param2 = "2330303050353030";
+                if(_gripper_client_.call(srv)){
+                    srv.request.param2 = "5431303030";
+                    if(_gripper_client_.call(srv)){
+                        res.success = true;
+                        res.message = "夹爪张开成功";
+                    }
+                    else{
+                        res.success = false;
+                        res.message = "夹爪张开失败";
+                    }
+                }
+                else{
+                    res.success = false;
+                    res.message = "夹爪张开失败";
+                }
+            }
+            else if(req.command == "gripper_close"){
+                srv.request.param1 = "0x07";
+                // 23 30 30 30 50 32 35 30 30 54 31 30 30 30 21
+                srv.request.param2 = "2330303050323530";
+                if(_gripper_client_.call(srv)){
+                    srv.request.param2 = "5431303030";
+                    if(_gripper_client_.call(srv)){
+                        res.success = true;
+                        res.message = "夹爪闭合成功";
+                    }
+                    else{
+                        res.success = false;
+                        res.message = "夹爪闭合失败";
+                    }
+                }
+                else{
+                    res.success = false;
+                    res.message = "夹爪闭合失败";
+                }
+            }
         }
 
         /// @brief 未知命令
