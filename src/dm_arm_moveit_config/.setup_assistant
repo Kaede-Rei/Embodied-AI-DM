@@ -1,11 +1,11 @@
 moveit_setup_assistant_config:
   URDF:
-    package: dm_ht_controller
-    relative_path: urdf/dm_arm.urdf
+    package: dm_arm_description
+    relative_path: urdf/DM-Arm-Description.urdf
     xacro_args: ""
   SRDF:
-    relative_path: config/TRLC-DK1-Follower.srdf
+    relative_path: config/DM-Arm-Description.srdf
   CONFIG:
     author_name: Kaede Rei
     author_email: kaerei@foxmail.com
-    generated_timestamp: 1765788685
+    generated_timestamp: 1765893128

@@ -54,6 +54,7 @@ CMAKE_BINARY_DIR = /home/kaerei/ROS_Workspace/dm_ht_arm/build
 
 # The main recursive "all" target.
 all: gtest/all
+all: dm_arm_description/all
 all: dm_arm_moveit_config/all
 all: serial_driver/all
 all: dm_arm_msgs_srvs/all
@@ -65,6 +66,7 @@ all: dm_arm_service/all
 
 # The main recursive "preinstall" target.
 preinstall: gtest/preinstall
+preinstall: dm_arm_description/preinstall
 preinstall: dm_arm_moveit_config/preinstall
 preinstall: serial_driver/preinstall
 preinstall: dm_arm_msgs_srvs/preinstall
@@ -81,6 +83,7 @@ clean: CMakeFiles/clean_test_results.dir/clean
 clean: CMakeFiles/tests.dir/clean
 clean: CMakeFiles/download_extra_data.dir/clean
 clean: gtest/clean
+clean: dm_arm_description/clean
 clean: dm_arm_moveit_config/clean
 clean: serial_driver/clean
 clean: dm_arm_msgs_srvs/clean
@@ -157,6 +160,24 @@ dm_arm_controller/clean: dm_arm_controller/CMakeFiles/octomap_msgs_generate_mess
 .PHONY : dm_arm_controller/clean
 
 #=============================================================================
+# Directory level rules for directory dm_arm_description
+
+# Recursive "all" directory target.
+dm_arm_description/all:
+
+.PHONY : dm_arm_description/all
+
+# Recursive "preinstall" directory target.
+dm_arm_description/preinstall:
+
+.PHONY : dm_arm_description/preinstall
+
+# Recursive "clean" directory target.
+dm_arm_description/clean: dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/clean
+
+.PHONY : dm_arm_description/clean
+
+#=============================================================================
 # Directory level rules for directory dm_arm_moveit_config
 
 # Recursive "all" directory target.
@@ -170,7 +191,7 @@ dm_arm_moveit_config/preinstall:
 .PHONY : dm_arm_moveit_config/preinstall
 
 # Recursive "clean" directory target.
-dm_arm_moveit_config/clean: dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/clean
+dm_arm_moveit_config/clean:
 
 .PHONY : dm_arm_moveit_config/clean
 
@@ -611,31 +632,31 @@ gtest/googletest/CMakeFiles/gtest.dir/clean:
 .PHONY : gtest/googletest/CMakeFiles/gtest.dir/clean
 
 #=============================================================================
-# Target rules for target dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir
+# Target rules for target dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir
 
 # All Build rule for target.
-dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/all:
-	$(MAKE) -f dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/build.make dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/depend
-	$(MAKE) -f dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/build.make dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/build
+dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/all:
+	$(MAKE) -f dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/build.make dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/depend
+	$(MAKE) -f dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/build.make dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles --progress-num= "Built target _catkin_empty_exported_target"
-.PHONY : dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/all
+.PHONY : dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/all
 
 # Build rule for subdir invocation for target.
-dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/rule: cmake_check_build_system
+dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/kaerei/ROS_Workspace/dm_ht_arm/build/CMakeFiles 0
-.PHONY : dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/rule
+.PHONY : dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/rule
 
 # Convenience name for target.
-_catkin_empty_exported_target: dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/rule
+_catkin_empty_exported_target: dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/rule
 
 .PHONY : _catkin_empty_exported_target
 
 # clean rule for target.
-dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/clean:
-	$(MAKE) -f dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/build.make dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/clean
-.PHONY : dm_arm_moveit_config/CMakeFiles/_catkin_empty_exported_target.dir/clean
+dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/clean:
+	$(MAKE) -f dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/build.make dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/clean
+.PHONY : dm_arm_description/CMakeFiles/_catkin_empty_exported_target.dir/clean
 
 #=============================================================================
 # Target rules for target serial_driver/CMakeFiles/serial_driver.dir

@@ -3,7 +3,7 @@
   <name>dm_arm_moveit_config</name>
   <version>0.3.0</version>
   <description>
-     An automatically generated package with all the configuration and launch files for using the TRLC-DK1-Follower with the MoveIt Motion Planning Framework
+     An automatically generated package with all the configuration and launch files for using the DM-Arm-Description with the MoveIt Motion Planning Framework
   </description>
   <author email="kaerei@foxmail.com">Kaede Rei</author>
   <maintainer email="kaerei@foxmail.com">Kaede Rei</maintainer>
@@ -35,7 +35,7 @@
   <!-- <run_depend>gazebo_ros_control</run_depend> -->
   <!-- This package is referenced in the warehouse launch files, but does not build out of the box at the moment. Commented the dependency until this works. -->
   <!-- <run_depend>warehouse_ros_mongo</run_depend> -->
-  <run_depend>dm_ht_controller</run_depend>
+  <run_depend>dm_arm_description</run_depend>
 
 
 </package>

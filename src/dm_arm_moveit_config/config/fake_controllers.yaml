@@ -8,6 +8,10 @@ controller_list:
       - joint4
       - joint5
       - joint6
+  - name: fake_end_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - gripper_left
 initial:  # Define initial robot poses per group
   - group: arm
     pose: zero

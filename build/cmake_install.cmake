@@ -146,6 +146,7 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/kaerei/ROS_Workspace/dm_ht_arm/build/gtest/cmake_install.cmake")
+  include("/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_arm_description/cmake_install.cmake")
   include("/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_arm_moveit_config/cmake_install.cmake")
   include("/home/kaerei/ROS_Workspace/dm_ht_arm/build/serial_driver/cmake_install.cmake")
   include("/home/kaerei/ROS_Workspace/dm_ht_arm/build/dm_arm_msgs_srvs/cmake_install.cmake")

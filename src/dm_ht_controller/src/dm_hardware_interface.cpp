@@ -1,5 +1,9 @@
 #include "dm_ht_controller/dm_hardware_interface.h"
 
+// TODO: 直线导轨转换比（m / rev）
+constexpr double LEAD = 0.05;
+constexpr double TWO_PI = 2.0 * M_PI;
+
 /**
  * @brief 构造函数，初始化成员变量
  * @param nh ROS节点句柄
@@ -213,6 +217,7 @@ void DMHardwareInterface::read()
     for(size_t i = 0; i < motors_.size(); ++i){
         try{
             joint_position_[i] = motors_[i]->Get_Position();
+            if(joint_names_[i] == "gripper_left") joint_position_[i] = joint_position_[i] / TWO_PI * LEAD;
             joint_velocity_[i] = motors_[i]->Get_Velocity();
             joint_effort_[i] = motors_[i]->Get_tau();
 
@@ -241,78 +246,78 @@ void DMHardwareInterface::write()
 
     for(size_t i = 0; i < motors_.size(); ++i){
         try{
-            // 计算位置误差和变化量
-            double position_error = joint_position_command_[i] - joint_position_[i];
-            double position_change = joint_position_command_[i] - joint_position_command_prev_[i];
+            // 判断是否为直线导轨关节
+            const bool is_gripper = (joint_names_[i] == "gripper_left");
+            const double scale_to_motor = is_gripper ? (TWO_PI / LEAD) : 1.0;
 
-            // 安全限制：限制单次位置变化
-            if(std::abs(position_change) > max_position_change_){
+            // 转换为电机单位（rad）
+            double cmd_motor = joint_position_command_[i] * scale_to_motor;
+            double prev_motor = joint_position_command_prev_[i] * scale_to_motor;
+            double meas_motor = joint_position_[i] * scale_to_motor;
+
+            // 计算误差与变化量（电机单位）
+            double position_error_motor = cmd_motor - meas_motor;
+            double position_change_motor = cmd_motor - prev_motor;
+
+            // 安全限制：限制单次位置变化（电机单位：rad）
+            if(std::abs(position_change_motor) > max_position_change_){
                 ROS_WARN_THROTTLE(1.0,
                     "关节 %s: 位置变化过大 (%.3f rad), 限制为 %.3f rad",
-                    joint_names_[i].c_str(), position_change, max_position_change_);
-                position_change = std::copysign(max_position_change_, position_change);
-                joint_position_command_[i] = joint_position_command_prev_[i] + position_change;
+                    joint_names_[i].c_str(), position_change_motor, max_position_change_);
+                position_change_motor = std::copysign(max_position_change_, position_change_motor);
+                cmd_motor = prev_motor + position_change_motor;
             }
 
-            // 计算目标速度 - 关键改进点
-            double target_velocity;
-
+            // 目标速度（电机单位）：MIT与位置速度模式
+            double target_velocity_motor;
             if(use_mit_mode_){
-
-                // MIT模式：使用位置变化计算速度
-                target_velocity = position_change / dt;
+                target_velocity_motor = position_change_motor / dt;
             }
             else{
-
-                // 位置速度模式：使用比例控制 + 速度前馈
                 const double kp_tracking = 10.0;
-                target_velocity = kp_tracking * position_error;
+                target_velocity_motor = kp_tracking * position_error_motor;
 
-                // 添加基于位置变化的前馈
-                if(std::abs(position_change) > 0.0001){
-                    target_velocity += position_change / dt;
+                if(std::abs(position_change_motor) > 1e-4){
+                    target_velocity_motor += position_change_motor / dt;
                 }
             }
 
-            // 限制目标速度
-            target_velocity = std::max(-max_velocity_,
-                std::min(max_velocity_, target_velocity));
+            // 限速（电机单位）
+            target_velocity_motor = std::max(-max_velocity_, std::min(max_velocity_, target_velocity_motor));
 
-            // 发送控制命令
+            // 下发命令（电机单位）
             if(use_mit_mode_){
                 motor_controller_->control_mit(
                     *motors_[i],
                     kp_,
                     kd_,
-                    joint_position_command_[i],
-                    target_velocity,
+                    cmd_motor,
+                    target_velocity_motor,
                     0.0f
                 );
             }
             else{
                 if(i == 0){
-
-                    // JOINT1使用MIT模式控制
                     motor_controller_->control_mit(
                         *motors_[i],
                         kp_,
                         kd_,
-                        joint_position_command_[i],
-                        target_velocity,
+                        cmd_motor,
+                        target_velocity_motor,
                         0.0f
                     );
                 }
                 else{
                     motor_controller_->control_pos_vel(
                         *motors_[i],
-                        joint_position_command_[i],
-                        target_velocity
+                        cmd_motor,
+                        target_velocity_motor
                     );
                 }
             }
 
-            // 更新上一次的命令
-            joint_position_command_prev_[i] = joint_position_command_[i];
+            // 更新上一周期命令
+            joint_position_command_prev_[i] = cmd_motor / scale_to_motor;
         }
         catch(const std::exception& e){
             ROS_ERROR_THROTTLE(1.0, "控制电机 %s 错误: %s",
@@ -329,7 +334,7 @@ void DMHardwareInterface::returnZero()
     ROS_INFO("正在返回零位姿态以准备关闭...");
 
     // Zero姿态
-    std::vector<double> target_pos = {-0.006, -0.035, -0.072, -0.001, 0.052, 0.000};
+    std::vector<double> target_pos = {-0.006, -0.035, -0.072, -0.001, 0.052, 0.000, 0.000};
 
     if(joint_position_.size() != target_pos.size()){
         ROS_WARN("关节数量不匹配，跳过归零操作。");

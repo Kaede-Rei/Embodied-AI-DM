@@ -10,8 +10,10 @@
     <rosparam file="$(arg config_file)" command="load"/>
     
     <!-- ==================== 机器人描述 ==================== -->
-    <param name="robot_description" 
-           textfile="$(find dm_ht_controller)/urdf/dm_arm.urdf"/>
+    <!-- <param name="robot_description" 
+           textfile="$(find dm_ht_controller)/urdf/dm_arm.urdf"/> -->
+    <param name="robot_description"
+            textfile="$(find dm_arm_description)/urdf/DM-Arm-Description.urdf"/>
 
     <!-- ==================== 状态发布器 ==================== -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" 
@@ -26,7 +28,7 @@
         
         <node name="controller_spawner" pkg="controller_manager" type="spawner" 
               output="screen" respawn="false"
-              args="joint_state_controller arm_controller"/>
+              args="joint_state_controller arm_controller end_controller"/>
     </group>
     
     <!-- ==================== 假执行模式（仅在假执行模式下启动） ==================== -->
