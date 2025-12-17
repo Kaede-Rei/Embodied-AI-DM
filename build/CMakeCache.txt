@@ -461,6 +461,12 @@ pr2_description_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/roslearn/multi_arm_
 //Value Computed by CMake
 pr2_description_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_description
 
+//Value Computed by CMake
+pr2_moveit_config_BINARY_DIR:STATIC=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_moveit_config
+
+//Value Computed by CMake
+pr2_moveit_config_SOURCE_DIR:STATIC=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_moveit_config
+
 
 ########################
 # INTERNAL cache entries
@@ -609,7 +615,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=7
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=8
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

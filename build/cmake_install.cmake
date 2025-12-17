@@ -149,6 +149,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/fanuc_description/cmake_install.cmake")
   include("/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/panda_description/cmake_install.cmake")
   include("/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_description/cmake_install.cmake")
+  include("/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_moveit_config/cmake_install.cmake")
 
 endif()
 

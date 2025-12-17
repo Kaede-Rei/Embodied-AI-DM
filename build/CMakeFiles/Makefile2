@@ -57,6 +57,7 @@ all: gtest/all
 all: fanuc_description/all
 all: panda_description/all
 all: pr2_description/all
+all: pr2_moveit_config/all
 
 .PHONY : all
 
@@ -65,6 +66,7 @@ preinstall: gtest/preinstall
 preinstall: fanuc_description/preinstall
 preinstall: panda_description/preinstall
 preinstall: pr2_description/preinstall
+preinstall: pr2_moveit_config/preinstall
 
 .PHONY : preinstall
 
@@ -78,6 +80,7 @@ clean: gtest/clean
 clean: fanuc_description/clean
 clean: panda_description/clean
 clean: pr2_description/clean
+clean: pr2_moveit_config/clean
 
 .PHONY : clean
 
@@ -191,6 +194,24 @@ pr2_description/preinstall:
 pr2_description/clean:
 
 .PHONY : pr2_description/clean
+
+#=============================================================================
+# Directory level rules for directory pr2_moveit_config
+
+# Recursive "all" directory target.
+pr2_moveit_config/all:
+
+.PHONY : pr2_moveit_config/all
+
+# Recursive "preinstall" directory target.
+pr2_moveit_config/preinstall:
+
+.PHONY : pr2_moveit_config/preinstall
+
+# Recursive "clean" directory target.
+pr2_moveit_config/clean:
+
+.PHONY : pr2_moveit_config/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/doxygen.dir
