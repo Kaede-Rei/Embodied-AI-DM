@@ -1,0 +1,2 @@
+fanuc_description:panda_description:pr2_description
+-DCATKIN_DEVEL_PREFIX=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/devel -DCMAKE_INSTALL_PREFIX=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install -G Unix Makefiles
