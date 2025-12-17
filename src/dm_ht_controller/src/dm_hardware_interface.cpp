@@ -1,7 +1,7 @@
 #include "dm_ht_controller/dm_hardware_interface.h"
 
-// TODO: 直线导轨转换比（m / rev）
-constexpr double LEAD = 0.05;
+// LEAD = 直线导轨转换比 (m / rav)
+constexpr double LEAD = 0.053;
 constexpr double TWO_PI = 2.0 * M_PI;
 
 /**
