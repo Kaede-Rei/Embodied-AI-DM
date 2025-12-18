@@ -31,61 +31,16 @@ namespace pr2_arm
     ArmController::ArmController(const ros::NodeHandle& nh, const std::string& plan_group_name)
         : _nh_(nh), _arm_(plan_group_name), _tf_listener_(_tf_buffer_)
     {
-        // 获取规划参考坐标系
+        // 获取规划参考坐标系与末端坐标系
         _plan_frame_ = _arm_.getPlanningFrame();
-        ROS_INFO_STREAM("规划坐标系为：" << _plan_frame_);
-
-        // 获取末端坐标系名称
         _eef_frame_ = _arm_.getEndEffectorLink();
+        ROS_INFO_STREAM("规划坐标系为：" << _plan_frame_);
         ROS_INFO_STREAM("末端执行器坐标系为：" << _eef_frame_);
 
-        // 允许重新规划、设置目标位姿容忍度、设置最大速度和加速度比例
-        bool allow_replanning;
-        double goal_pos_tol, goal_ori_tol;
-        double vel_scale, acc_scale;
-
-        _nh_.param<bool>("moveit/allow_replanning", allow_replanning, true);
-        _nh_.param<double>("end_effector/goal_position_tolerance", goal_pos_tol, 0.05);
-        _nh_.param<double>("end_effector/goal_orientation_tolerance", goal_ori_tol, 0.05);
-        _nh_.param<double>("end_effector/velocity_scaling", vel_scale, 1.0);
-        _nh_.param<double>("end_effector/acceleration_scaling", acc_scale, 1.0);
-
-        _arm_.allowReplanning(allow_replanning);
-        _arm_.setGoalPositionTolerance(goal_pos_tol);
-        _arm_.setGoalOrientationTolerance(goal_ori_tol);
-        _arm_.setMaxVelocityScalingFactor(vel_scale);
-        _arm_.setMaxAccelerationScalingFactor(acc_scale);
-
-        // 规划器ID、规划时间、规划尝试次数、执行超时时间
-        std::string planner_id;
-        double planning_time;
-        int num_planning_attempts;
-        double execution_timeout;
-
-        _nh_.param<std::string>("moveit/planner_id", planner_id, "RRTConnect");
-        _nh_.param<double>("moveit/planning_time", planning_time, 5.0);
-        _nh_.param<int>("moveit/num_planning_attempts", num_planning_attempts, 10);
-        _nh_.param<double>("moveit/execution_timeout", execution_timeout, 15.0);
-
-        _arm_.setPlannerId(planner_id);
-        _arm_.setPlanningTime(planning_time);
-        _arm_.setNumPlanningAttempts(num_planning_attempts);
-
-        // 读取末端执行器参数
-        _nh_.param<double>("end_effector/max_reach", _max_reach_, 0.6);
-        _nh_.param<double>("end_effector/min_reach", _min_reach_, 0.1);
+        // 读取搜索最大迭代次数
         _nh_.param<int>("end_effector/search/max_iterations", _max_iterations_, 100);
 
-        // 初始化场景监控器与规划场景指针
-        _scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
-        _scene_monitor_->startSceneMonitor();
-        _scene_monitor_->startWorldGeometryMonitor();
-        _scene_monitor_->startStateMonitor();
-
-        ros::Duration(1.0).sleep();
-        _planning_scene_ = _scene_monitor_->getPlanningScene();
-
-        // 获取机械臂关节模型组指针
+        // 获取关节模型组指针
         _jmg_ = _arm_.getCurrentState()->getJointModelGroup(plan_group_name);
     }
 
@@ -135,7 +90,7 @@ namespace pr2_arm
     }
 
     /**
-     * @brief 搜索机械臂可达的目标位姿
+     * @brief 基坐标系下搜索机械臂可达的目标位姿
      * @param target_pose 目标位姿
      * @param step 搜索步长(单位: 度)
      * @param radius 搜索半径(单位: 度)
@@ -292,167 +247,6 @@ namespace pr2_arm
         // 未找到可达位姿
         ROS_ERROR("未搜索到可达位姿。");
         return false;
-    }
-
-    /**
-     * @brief 移动到机械臂末端执行器目标位姿，参考坐标系为底座
-     * @param target_pose 目标位姿
-     * @param allow_tweak 是否允许微调(默认允许)
-     * @param allow_feedforward 是否启用前馈计算(默认启用)
-     * @return 是否到达成功
-     * @note 前馈计算只在允许微调时可以启用
-     */
-    bool ArmController::setTgtPoseBase(geometry_msgs::PoseStamped& target_pose, bool allow_tweak, bool allow_feedforward)
-    {
-        target_pose.header.frame_id = _plan_frame_;
-        target_pose.header.stamp = ros::Time::now();
-
-        // 把开始状态设置为当前状态
-        _arm_.setStartStateToCurrentState();
-        _current_state_ = _arm_.getCurrentState();
-
-        // 检查是否允许微调
-        if(allow_tweak){
-            // 检查是否启用前馈计算
-            if(allow_feedforward){
-                target_pose.pose.orientation.w = 1.0;
-                target_pose.pose.orientation.x = 0.0;
-                target_pose.pose.orientation.y = 0.0;
-                target_pose.pose.orientation.z = 0.0;
-            }
-
-            ROS_INFO("搜索可达目标位姿中...");
-            double step;
-            double radius;
-            _nh_.param<double>("end_effector/search/step", step, 5.0);
-            _nh_.param<double>("end_effector/search/radius", radius, 45.0);
-
-            geometry_msgs::Pose pose_candidate = target_pose.pose;
-            if(!searchReachablePose(pose_candidate, step, radius)) return false;
-
-            target_pose.pose = pose_candidate;
-        }
-        else{
-            ROS_INFO("移动到目标位姿中...");
-            if(!isIkValid(target_pose.pose)){
-                ROS_ERROR("目标位姿不可达，移动失败。");
-                return false;
-            }
-        }
-
-        // 规划并执行运动
-        moveit::planning_interface::MoveGroupInterface::Plan plan;
-        _arm_.setPoseTarget(target_pose);
-
-        bool success = (_arm_.plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-        if(!success){
-            ROS_ERROR("规划到目标位姿失败，移动失败。");
-            return false;
-        }
-
-        success = (_arm_.execute(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-        if(!success){
-            ROS_ERROR("执行到目标位姿失败，移动失败。");
-            return false;
-        }
-
-        ROS_INFO("成功移动到目标位姿。");
-        return true;
-    }
-
-    /**
-     * @brief 移动到机械臂末端执行器目标位姿，参考坐标系为末端
-     * @param target_pose 目标位姿
-     * @param allow_tweak 是否允许微调(默认允许)
-     * @param allow_feedforward 是否启用前馈计算(默认启用)
-     * @return 是否到达成功
-     * @note 前馈计算只在允许微调时可以启用
-     * @note 用于前伸与后缩时，设d为伸缩距离，则目标位姿(x,y,z,roll,pitch,yaw) = (0,0,d,0,0,0)
-     * @note 位置变换随简单的加分，但姿态变换是四元数插值，不可直接修改yaw值来实现旋转
-     */
-    bool ArmController::setTgtPoseEef(geometry_msgs::PoseStamped& target_pose, bool allow_tweak, bool allow_feedforward)
-    {
-        // 把目标位姿从eef坐标系转换到base坐标系
-        geometry_msgs::PoseStamped target_pose_base;
-        eefTfToBase(target_pose, target_pose_base);
-
-        // 调用基坐标系下的移动函数
-        return setTgtPoseBase(target_pose_base, allow_tweak, allow_feedforward);
-    }
-
-    /**
-     * @brief 机械臂末端执行器沿当前姿态方向伸缩
-     * @param dist 伸缩距离，正值为前伸，负值为后缩
-     * @return 是否伸缩成功
-     */
-    bool ArmController::eefStretch(double dist)
-    {
-        geometry_msgs::PoseStamped target_pose_eef;
-        target_pose_eef.pose.position.x = 0.0;
-        target_pose_eef.pose.position.y = 0.0;
-        target_pose_eef.pose.position.z = dist;
-        target_pose_eef.pose.orientation.w = 1.0;
-        target_pose_eef.pose.orientation.x = 0.0;
-        target_pose_eef.pose.orientation.y = 0.0;
-        target_pose_eef.pose.orientation.z = 0.0;
-
-        return setTgtPoseEef(target_pose_eef, true, false);
-    }
-
-    /**
-     * @brief 机械臂末端执行器绕当前姿态Z轴旋转
-     * @param angle 旋转角度，单位为度，正值为逆时针旋转，负值为顺时针旋转
-     * @return 是否旋转成功
-     */
-    bool ArmController::eefRotate(double angle)
-    {
-        angle = angle * M_PI / 180.0; // 转换为弧度
-
-        geometry_msgs::Pose current = getCurrentEefPose();
-
-        tf2::Quaternion q_current;
-        tf2::fromMsg(current.orientation, q_current);
-
-        tf2::Quaternion q_delta;
-        q_delta.setRPY(0, 0, angle);
-
-        tf2::Quaternion q_new = q_current * q_delta;
-
-        geometry_msgs::PoseStamped target;
-        target.header.frame_id = _plan_frame_;
-        target.pose = current;
-        target.pose.orientation = tf2::toMsg(q_new);
-
-        return setTgtPoseBase(target, true, false);
-    }
-
-    /**
-     * @brief 重置机械臂到初始位置
-     */
-    void ArmController::resetToZero(void)
-    {
-        ROS_INFO("重置机械臂到初始位置...");
-        if(_arm_.getName() == "left_arm") _arm_.setNamedTarget("l_zero");
-        else if(_arm_.getName() == "right_arm") _arm_.setNamedTarget("r_zero");
-        _arm_.move();
-    }
-
-    /**
-     * @brief 获取当前机械臂末端执行器位姿
-     * @return 末端执行器位姿
-     */
-    geometry_msgs::Pose ArmController::getCurrentEefPose(void)
-    {
-        return _arm_.getCurrentPose().pose;
-    }
-
-    /**
-     * @brief 获取当前机械臂关节位置
-     * @return 关节位置数组
-     */
-    std::vector<double> ArmController::getCurrentJointPose(void)
-    {
-        return _arm_.getCurrentJointValues();
     }
 
     // ! ========================= 私 有 类 / 函 数 实 现 ========================= ! //

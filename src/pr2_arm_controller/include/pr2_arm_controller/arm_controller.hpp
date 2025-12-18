@@ -1,9 +1,11 @@
 #ifndef _ARM_CONTROLLER_H_
 #define _ARM_CONTROLLER_H_
 
+#include <string>
+#include <ros/ros.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-
 #include <tf2_ros/transform_listener.h>
 
 namespace pr2_arm
@@ -57,47 +59,25 @@ namespace pr2_arm
 
         void eefTfToBase(geometry_msgs::PoseStamped& target_pose_eef, geometry_msgs::PoseStamped& target_pose_base);
         void baseTfToeef(geometry_msgs::PoseStamped& target_pose_base, geometry_msgs::PoseStamped& target_pose_eef);
+        
         bool isIkValid(const geometry_msgs::Pose& target_pose);
-
         bool searchReachablePose(geometry_msgs::Pose& target_pose, double step, double radius);
-        bool setTgtPoseBase(geometry_msgs::PoseStamped& target_pose, bool allow_tweak = true, bool allow_feedforward = true);
-        bool setTgtPoseEef(geometry_msgs::PoseStamped& target_pose, bool allow_tweak = true, bool allow_feedforward = true);
-        bool eefStretch(double dist);
-        bool eefRotate(double angle);
-        void resetToZero(void);
-
-        geometry_msgs::Pose getCurrentEefPose(void);
-        std::vector<double> getCurrentJointPose(void);
 
     private:
         /// @brief ROS节点句柄
         ros::NodeHandle _nh_;
         /// @brief 机械臂规划接口
         moveit::planning_interface::MoveGroupInterface _arm_;
-        /// @brief 规划结果
-        moveit::planning_interface::MoveGroupInterface::Plan _plan_;
-        /// @brief 规划场景监视器指针
-        planning_scene_monitor::PlanningSceneMonitorPtr _scene_monitor_;
-        /// @brief 规划场景指针
-        planning_scene::PlanningScenePtr _planning_scene_;
         /// @brief 规划参考坐标系(基坐标系)名称
         std::string _plan_frame_;
         /// @brief 末端坐标系名称
         std::string _eef_frame_;
-        /// @brief 规划结束执行标志
-        bool _is_success_;
         /// @brief TF缓存
         tf2_ros::Buffer _tf_buffer_;
         /// @brief TF监听器
         tf2_ros::TransformListener _tf_listener_;
         /// @brief 机械臂关节模型组指针
         const robot_state::JointModelGroup* _jmg_ = nullptr;
-        /// @brief 当前机械臂状态指针
-        moveit::core::RobotStatePtr _current_state_ = nullptr;
-        /// @brief 最大可达距离
-        double _max_reach_;
-        /// @brief 最小可达距离
-        double _min_reach_;
         /// @brief 最大迭代次数
         int _max_iterations_;
     };
