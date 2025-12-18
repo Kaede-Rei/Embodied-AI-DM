@@ -1,2 +1,2 @@
-fanuc_description:panda_description:pr2_description:pr2_moveit_config
+pr2_arm_controller:pr2_arm_msgs_srvs:pr2_description:pr2_moveit_config
 -DCATKIN_DEVEL_PREFIX=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/devel -DCMAKE_INSTALL_PREFIX=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install -G Unix Makefiles

@@ -1,0 +1,8 @@
+prefix=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/devel
+
+Name: pr2_arm_controller
+Description: Description of pr2_arm_controller
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

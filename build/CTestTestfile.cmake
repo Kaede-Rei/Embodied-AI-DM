@@ -5,7 +5,7 @@
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
 subdirs("gtest")
-subdirs("fanuc_description")
-subdirs("panda_description")
 subdirs("pr2_description")
 subdirs("pr2_moveit_config")
+subdirs("pr2_arm_msgs_srvs")
+subdirs("pr2_arm_controller")

@@ -30,6 +30,8 @@
         <joint name="r_forearm_roll_joint"/>
         <joint name="r_wrist_flex_joint"/>
         <joint name="r_wrist_roll_joint"/>
+        <group name="left_arm"/>
+        <group name="right_arm"/>
     </group>
     <group name="left_gripper">
         <joint name="l_gripper_joint"/>
