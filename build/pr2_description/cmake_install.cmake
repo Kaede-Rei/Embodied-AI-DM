@@ -1,8 +1,8 @@
-# Install script for directory: /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_description
+# Install script for directory: /home/kaerei/ROS_Workspace/multi_arm/src/pr2_description
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/kaerei/ROS_Workspace/multi_arm/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,17 +38,17 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_description/catkin_generated/installspace/pr2_description.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/kaerei/ROS_Workspace/multi_arm/build/pr2_description/catkin_generated/installspace/pr2_description.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pr2_description/cmake" TYPE FILE FILES
-    "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_description/catkin_generated/installspace/pr2_descriptionConfig.cmake"
-    "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_description/catkin_generated/installspace/pr2_descriptionConfig-version.cmake"
+    "/home/kaerei/ROS_Workspace/multi_arm/build/pr2_description/catkin_generated/installspace/pr2_descriptionConfig.cmake"
+    "/home/kaerei/ROS_Workspace/multi_arm/build/pr2_description/catkin_generated/installspace/pr2_descriptionConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pr2_description" TYPE FILE FILES "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_description/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pr2_description" TYPE FILE FILES "/home/kaerei/ROS_Workspace/multi_arm/src/pr2_description/package.xml")
 endif()
 

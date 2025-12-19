@@ -1,8 +1,8 @@
-# Install script for directory: /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_msgs_srvs
+# Install script for directory: /home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_msgs_srvs
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/kaerei/ROS_Workspace/multi_arm/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,17 +38,17 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_arm_msgs_srvs/catkin_generated/installspace/pr2_arm_msgs_srvs.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/kaerei/ROS_Workspace/multi_arm/build/pr2_arm_msgs_srvs/catkin_generated/installspace/pr2_arm_msgs_srvs.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pr2_arm_msgs_srvs/cmake" TYPE FILE FILES
-    "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_arm_msgs_srvs/catkin_generated/installspace/pr2_arm_msgs_srvsConfig.cmake"
-    "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/build/pr2_arm_msgs_srvs/catkin_generated/installspace/pr2_arm_msgs_srvsConfig-version.cmake"
+    "/home/kaerei/ROS_Workspace/multi_arm/build/pr2_arm_msgs_srvs/catkin_generated/installspace/pr2_arm_msgs_srvsConfig.cmake"
+    "/home/kaerei/ROS_Workspace/multi_arm/build/pr2_arm_msgs_srvs/catkin_generated/installspace/pr2_arm_msgs_srvsConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pr2_arm_msgs_srvs" TYPE FILE FILES "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_msgs_srvs/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pr2_arm_msgs_srvs" TYPE FILE FILES "/home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_msgs_srvs/package.xml")
 endif()
 

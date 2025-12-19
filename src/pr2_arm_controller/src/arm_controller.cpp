@@ -38,7 +38,7 @@ namespace pr2_arm
         ROS_INFO_STREAM("末端执行器坐标系为：" << _eef_frame_);
 
         // 读取搜索最大迭代次数
-        _nh_.param<int>("end_effector/search/max_iterations", _max_iterations_, 100);
+        _nh_.param<int>("end_effector/search/max_iterations", _max_iterations_, 0);
 
         // 获取关节模型组指针
         _jmg_ = _arm_.getCurrentState()->getJointModelGroup(plan_group_name);

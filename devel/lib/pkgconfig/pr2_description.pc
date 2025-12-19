@@ -1,4 +1,4 @@
-prefix=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/devel
+prefix=/home/kaerei/ROS_Workspace/multi_arm/devel
 
 Name: pr2_description
 Description: Description of pr2_description

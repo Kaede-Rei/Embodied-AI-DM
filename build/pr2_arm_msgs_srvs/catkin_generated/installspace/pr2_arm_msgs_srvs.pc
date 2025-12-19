@@ -1,4 +1,4 @@
-prefix=/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install
+prefix=/home/kaerei/ROS_Workspace/multi_arm/install
 
 Name: pr2_arm_msgs_srvs
 Description: Description of pr2_arm_msgs_srvs

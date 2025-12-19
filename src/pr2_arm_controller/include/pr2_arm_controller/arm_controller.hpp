@@ -78,7 +78,7 @@ namespace pr2_arm
         tf2_ros::TransformListener _tf_listener_;
         /// @brief 机械臂关节模型组指针
         const robot_state::JointModelGroup* _jmg_ = nullptr;
-        /// @brief 最大迭代次数
+        /// @brief 最大迭代次数：默认为0时无限制
         int _max_iterations_;
     };
 

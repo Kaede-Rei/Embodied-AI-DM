@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install/setup.sh
+    local-name: /home/kaerei/ROS_Workspace/multi_arm/install/setup.sh

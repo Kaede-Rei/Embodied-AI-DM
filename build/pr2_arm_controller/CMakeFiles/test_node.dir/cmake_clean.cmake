@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/devel/lib/pr2_arm_controller/test_node"
-  "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/devel/lib/pr2_arm_controller/test_node.pdb"
+  "/home/kaerei/ROS_Workspace/multi_arm/devel/lib/pr2_arm_controller/test_node"
+  "/home/kaerei/ROS_Workspace/multi_arm/devel/lib/pr2_arm_controller/test_node.pdb"
   "CMakeFiles/test_node.dir/src/test.cpp.o"
 )
 

@@ -66,7 +66,8 @@ int main(int argc, char** argv)
 
     if(!multi_arm.stretch("left_arm", 0.1)){
         ROS_WARN("左臂前伸动作执行失败！");
-    }else{
+    }
+    else{
         ROS_INFO("左臂前伸动作执行成功。");
     }
 
@@ -77,7 +78,8 @@ int main(int argc, char** argv)
 
     if(!multi_arm.rotate("right_arm", 90.0)){
         ROS_WARN("右臂旋转动作执行失败！");
-    }else{
+    }
+    else{
         ROS_INFO("右臂旋转动作执行成功。");
     }
 
@@ -86,7 +88,7 @@ int main(int argc, char** argv)
     /* 测试：单臂 moveToPoseForArm */
     ROS_INFO("测试 3：单臂位姿控制（左臂）");
 
-    geometry_msgs::Pose left_single_tgt;  
+    geometry_msgs::Pose left_single_tgt;
     left_single_tgt.position.x = 0.455315;
     left_single_tgt.position.y = 0.258;
     left_single_tgt.position.z = 1.25001;
@@ -97,7 +99,8 @@ int main(int argc, char** argv)
 
     if(!multi_arm.moveToPoseForArm("left_arm", left_single_tgt)){
         ROS_WARN("左臂单臂位姿控制失败！");
-    }else{
+    }
+    else{
         ROS_INFO("左臂单臂位姿控制成功。");
     }
 
@@ -124,7 +127,8 @@ int main(int argc, char** argv)
 
     if(!multi_arm.moveToPoseForMultiArms(tgt_group)){
         ROS_WARN("双臂同步位姿控制失败！");
-    }else{
+    }
+    else{
         ROS_INFO("双臂同步位姿控制成功。");
     }
 
@@ -135,7 +139,8 @@ int main(int argc, char** argv)
 
     if(!multi_arm.resetMultiArmsToZero()){
         ROS_WARN("双臂复位失败（可能尚未配置零位参数）！");
-    }else{
+    }
+    else{
         ROS_INFO("双臂复位成功。");
     }
 

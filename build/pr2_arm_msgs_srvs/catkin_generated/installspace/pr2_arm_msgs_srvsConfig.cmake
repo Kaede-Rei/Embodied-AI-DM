@@ -67,14 +67,14 @@ set(pr2_arm_msgs_srvs_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(pr2_arm_msgs_srvs_SOURCE_PREFIX /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_msgs_srvs)
-  set(pr2_arm_msgs_srvs_DEVEL_PREFIX /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/devel)
+  set(pr2_arm_msgs_srvs_SOURCE_PREFIX /home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_msgs_srvs)
+  set(pr2_arm_msgs_srvs_DEVEL_PREFIX /home/kaerei/ROS_Workspace/multi_arm/devel)
   set(pr2_arm_msgs_srvs_INSTALL_PREFIX "")
   set(pr2_arm_msgs_srvs_PREFIX ${pr2_arm_msgs_srvs_DEVEL_PREFIX})
 else()
   set(pr2_arm_msgs_srvs_SOURCE_PREFIX "")
   set(pr2_arm_msgs_srvs_DEVEL_PREFIX "")
-  set(pr2_arm_msgs_srvs_INSTALL_PREFIX /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install)
+  set(pr2_arm_msgs_srvs_INSTALL_PREFIX /home/kaerei/ROS_Workspace/multi_arm/install)
   set(pr2_arm_msgs_srvs_PREFIX ${pr2_arm_msgs_srvs_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install/lib;/home/kaerei/ROS_Workspace/dm_ht_arm/devel/lib;/home/kaerei/ROS_Workspace/piper_controller/devel/lib;/home/kaerei/ROS_Workspace/roslearn/learn_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/kaerei/ROS_Workspace/multi_arm/install/lib;/home/kaerei/ROS_Workspace/dm_ht_arm/devel/lib;/home/kaerei/ROS_Workspace/piper_controller/devel/lib;/home/kaerei/ROS_Workspace/roslearn/learn_ws/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

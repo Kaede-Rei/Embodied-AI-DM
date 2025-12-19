@@ -5,7 +5,7 @@
 # or fall back to the destination set at configure time
 
 if test -z $_CATKIN_SETUP_DIR
-    set _CATKIN_SETUP_DIR /home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install
+    set _CATKIN_SETUP_DIR /home/kaerei/ROS_Workspace/multi_arm/install
 end
 
 set CATKIN_SETUP_UTIL_ARGS "--extend --local"

@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_controller/include/pr2_arm_controller/arm_controller.hpp
+/home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_controller/include/pr2_arm_controller/arm_controller.hpp
 string
 -
 ros/ros.h
@@ -20,21 +20,21 @@ moveit/move_group_interface/move_group_interface.h
 tf2_ros/transform_listener.h
 -
 
-/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_controller/include/pr2_arm_controller/multi_arm_controller.hpp
+/home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_controller/include/pr2_arm_controller/multi_arm_controller.hpp
 moveit/move_group_interface/move_group_interface.h
 -
 moveit/planning_scene_monitor/planning_scene_monitor.h
 -
 
-/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_controller/src/test.cpp
+/home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_controller/src/test.cpp
 ros/ros.h
 -
 moveit/robot_model_loader/robot_model_loader.h
 -
 pr2_arm_controller/multi_arm_controller.hpp
-/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_controller/src/pr2_arm_controller/multi_arm_controller.hpp
+/home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_controller/src/pr2_arm_controller/multi_arm_controller.hpp
 pr2_arm_controller/arm_controller.hpp
-/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/src/pr2_arm_controller/src/pr2_arm_controller/arm_controller.hpp
+/home/kaerei/ROS_Workspace/multi_arm/src/pr2_arm_controller/src/pr2_arm_controller/arm_controller.hpp
 
 /opt/ros/noetic/include/actionlib/action_definition.h
 

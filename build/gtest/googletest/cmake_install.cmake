@@ -2,7 +2,7 @@
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/kaerei/ROS_Workspace/roslearn/multi_arm_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/kaerei/ROS_Workspace/multi_arm/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

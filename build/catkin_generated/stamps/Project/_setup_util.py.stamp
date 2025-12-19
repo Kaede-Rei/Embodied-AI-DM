@@ -268,7 +268,7 @@ if __name__ == '__main__':
 
         if not args.local:
             # environment at generation time
-            CMAKE_PREFIX_PATH = r'/home/kaerei/ROS_Workspace/dm_ht_arm/devel;/home/kaerei/ROS_Workspace/piper_controller/devel;/home/kaerei/ROS_Workspace/roslearn/learn_ws/devel;/home/kaerei/软件/piper_ros/devel;/opt/ros/noetic'.split(';')
+            CMAKE_PREFIX_PATH = r'/home/kaerei/ROS_Workspace/dm_ht_arm/devel;/home/kaerei/ROS_Workspace/piper_controller/devel;/home/kaerei/ROS_Workspace/roslearn/learn_ws/devel;/opt/ros/noetic'.split(';')
         else:
             # don't consider any other prefix path than this one
             CMAKE_PREFIX_PATH = []
