@@ -1,0 +1,3 @@
+[submodule "src/trlc-dk1/motors/DM_Control_Python"]
+	path = src/trlc-dk1/motors/DM_Control_Python
+	url = https://github.com/cmjang/DM_Control_Python.git
