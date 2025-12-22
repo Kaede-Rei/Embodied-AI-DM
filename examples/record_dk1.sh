@@ -6,7 +6,7 @@
 # 2. 已 hf login（若需 push_to_hub）
 # 3. 在 ~/.bashrc 中添加：export HF_HOME="自定义缓存路径"
 # 
-# 使用方法示例：
+# 使用方法示例（注意 repo_id 必须填）：
 # ./examples/record_dk1.sh --repo_id $USER/dk1_my_task
 # ./examples/record_dk1.sh --repo_id $USER/dk1_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
 # ./examples/record_dk1.sh --repo_id $USER/dk1_my_task --no_cameras --resume
@@ -25,19 +25,20 @@
 # --no_cameras 不启用摄像头（默认启用两个摄像头）
 # --no_display 不启用 rerun.io 实时可视化（默认启用）
 
-# 默认参数
-FOLLOWER_PORT="/dev/ttyACM0"
-LEADER_PORT="/dev/ttyUSB0"
-JOINT_VELOCITY_SCALING=1.0
+# 默认参数配置
+FOLLOWER_PORT="/dev/ttyACM0"            # Follower 臂串口
+LEADER_PORT="/dev/ttyUSB0"              # Leader 臂串口
+JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
+# 预设摄像头配置，要严格按照示例格式填写：CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
 CAMERAS_CONFIG='{"PC": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30}}'
-NUM_EPISODES=50
-EPISODE_TIME_S=30
-RESET_TIME_S=15
-TASK_DESCRIPTION="Task description."
-PUSH_TO_HUB=false
-RESUME=false
-DISPLAY_DATA=true
-REPO_ID=""
+NUM_EPISODES=50                         # 录制 episode 数量
+EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
+RESET_TIME_S=15                         # 重置时间（秒）
+TASK_DESCRIPTION="Task description."    # 单任务描述
+PUSH_TO_HUB=false                       # 是否上传至 Hugging Face Hub
+RESUME=false                            # 是否从现有数据集继续录制
+DISPLAY_DATA=true                       # 是否启用 rerun.io 实时可视化
+REPO_ID=""                              # 数据集 repo_id（必须参数）
 
 # 解析命令行参数
 while [[ $# -gt 0 ]]; do
@@ -64,16 +65,18 @@ if [[ -z "$REPO_ID" ]]; then
     exit 1
 fi
 
-echo "启动 DK1 数据集录制（使用官方 lerobot-record）..."
-echo "Repo ID: $REPO_ID"
-echo "本地存储路径: $HF_HOME/lerobot/$REPO_ID（默认 /media/kaerei/.../huggingface/lerobot/$REPO_ID）"
-echo "键盘操作提示："
-echo " → (右箭头)：提前结束当前 episode 并保存"
-echo " ← (左箭头)：取消当前 episode 并重新录制"
-echo " ESC：立即停止整个录制过程（保存已录 episode，不失能电机）"
+echo "----------------------------------------"
+echo "- 启动 DK1 数据集录制（使用官方 lerobot-record）..."
+echo "- Repo ID: $REPO_ID"
+echo "- 本地存储路径: $HF_HOME/lerobot/$REPO_ID（默认 /media/kaerei/.../huggingface/lerobot/$REPO_ID）"
+echo "- 键盘操作提示："
+echo "-     → (右箭头)：提前结束当前 episode 并保存"
+echo "-     ← (左箭头)：取消当前 episode 并重新录制"
+echo "-     ESC：立即停止整个录制过程（保存已录 episode，不失能电机）"
 if [ "$DISPLAY_DATA" = true ]; then
-    echo "rerun.io 实时可视化已启用"
+    echo "- rerun.io 实时可视化已启用"
 fi
+echo "----------------------------------------"
 
 # 构建参数数组
 ARGS=(
@@ -111,12 +114,13 @@ lerobot-record "${ARGS[@]}"
 
 # 检查命令执行是否成功
 if [ $? -ne 0 ]; then
-    echo "错误：lerobot-record 执行失败"
+    echo "- 错误：lerobot-record 执行失败"
     exit 1
 fi
 
-echo "录制完成！数据集已保存"
-echo "数据集本地路径：$HF_HOME/lerobot/$REPO_ID"
+echo "----------------------------------------"
+echo "- 录制完成！数据集已保存至：$HF_HOME/lerobot/$REPO_ID"
 if [ "$PUSH_TO_HUB" = true ]; then
-    echo "已上传至 Hugging Face Hub: https://huggingface.co/datasets/$REPO_ID"
+    echo "- 已上传至 Hugging Face Hub: https://huggingface.co/datasets/$REPO_ID"
 fi
+echo "----------------------------------------"

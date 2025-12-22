@@ -95,7 +95,7 @@ lerobot-teleoperate \
     --robot.joint_velocity_scaling=1.0 \
   	--robot.disable_torque_on_disconnect=true \
     --robot.cameras="{
-        PC: {type: opencv, index_or_path: 0, width: 128, height: 720, fps: 10},
+        PC: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30},
     }" \
     --teleop.type=dk1_leader \
     --teleop.port=/dev/ttyUSB0 \
@@ -135,7 +135,11 @@ lerobot-teleoperate \
 
 训练集默认是存储在 `~./cache/huggingface/lerobot/<repo_id>/` 中，为了避免空间爆炸，需要在 `.bashrc` 里添加 `export HF_DATASETS_CACHE="路径"` 路径根据实际情况存到其他地方
 
-### 4.2. 训练集录包
+### 4.2. 扫描并加入摄像头
+
+使用脚本 `examples/get_uvc_cam_idx.py` 
+
+### 4.3. 训练集录包
 
 在运行命令行或脚本后的录包操作：
 
