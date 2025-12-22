@@ -38,7 +38,7 @@ def map_range(x: float, in_min: float, in_max: float, out_min: float, out_max: f
 @dataclass
 class DK1FollowerConfig(RobotConfig):
     port: str
-    disable_torque_on_disconnect: bool = False
+    disable_torque_on_disconnect: bool = True
     joint_velocity_scaling: float = 0.2
     max_gripper_torque: float = 1.0 # Nm (/0.00875m spur gear radius = 114N gripper force)
     cameras: dict[str, CameraConfig] = field(default_factory=dict)

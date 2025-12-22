@@ -22,7 +22,7 @@ sudo usermod -aG dialout $USER
 sudo reboot		# 重启
 ```
 
-### 1.2. 克隆仓库到本地
+### 1.2. 克隆仓库到本地或下载项目中修正后的包
 
 ```bash
 git clone https://github.com/robot-learning-co/trlc-dk1.git
@@ -50,6 +50,15 @@ pip install -e .
 - 自动拉取仓库依赖
 - 包括 **TRLC 的 LeRobot 分支** 作为依赖（对应 `trlc-dk1` 版本）([GitHub](https://github.com/robot-learning-co/trlc-dk1/tree/main?tab=readme-ov-file))
 
+### 1.5. 如果是克隆仓库，则将项目中的包的一下部分覆盖原仓库
+
+```bash
+- /examples
+- /src
+- pyproject.toml
+- README.md
+```
+
 ## 2. 识别设备串口并进入虚拟环境
 
 不同设备连接后系统会生成 `/dev/tty*`（Linux）或 `/dev/ttyUSB*` 等串口节点。
@@ -70,7 +79,7 @@ conda activate dk1
 
 ## 3. 主从遥操作（Teleoperation）
 
-### 3.1 单臂遥操作（Follower + Leader）
+### 3.1. 单臂遥操作（Follower + Leader）
 
 假设：
 
@@ -85,16 +94,12 @@ lerobot-teleoperate \
     --robot.port=/dev/ttyACM0 \
     --robot.joint_velocity_scaling=1.0 \
   	--robot.disable_torque_on_disconnect=true \
+    --robot.cameras="{
+        PC: {type: opencv, index_or_path: 0, width: 1280, height: 720, fps: 10},
+    }" \
     --teleop.type=dk1_leader \
     --teleop.port=/dev/ttyUSB0 \
     --display_data=true
-```
-
-```bash
-    --robot.cameras="{
-        context: {type: opencv, index_or_path: 0, width: 1280, height: 720, fps: 30},
-        wrist: {type: opencv, index_or_path: 1, width: 1280, height: 720, fps: 30}
-      }" \
 ```
 
 说明：
@@ -108,38 +113,67 @@ lerobot-teleoperate \
 
 在仓库的`example`中有方便使用的脚本：	
 
-| 脚本路径                                      | 作用                               | 注意事项                                                 |
-| --------------------------------------------- | ---------------------------------- | -------------------------------------------------------- |
-| `TRLC-DK1/examples/follower_read_position.py` | 读取从臂关节角度，确保有连接上从臂 | 端口要对应上                                             |
-| `TRLC-DK1/examples/leader_test.py`            | 读取主臂关节角度，确保有连接上主臂 | 端口要对应上                                             |
-| `TRLC-DK1/examples/teleop.py`                 | 启动单臂遥操作                     | 端口要对应上，可选参数 `--display_data` 启动 LeRobot GUI |
-| `TRLC-DK1/examples/calibration_follower.py`   | 将从臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
-| `TRLC-DK1/examples/calibration_leader.py`     | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
-| `TRLC-DK1/examples/bi_teleop.py`              | 启动双臂遥操作                     | 端口要对应上                                             |
+| 脚本路径                             | 作用                               | 注意事项                                                 |
+| ------------------------------------ | ---------------------------------- | -------------------------------------------------------- |
+| `examples/follower_read_position.py` | 读取从臂关节角度，确保有连接上从臂 | 端口要对应上                                             |
+| `examples/leader_test.py`            | 读取主臂关节角度，确保有连接上主臂 | 端口要对应上                                             |
+| `examples/teleop.py`                 | 启动单臂遥操作                     | 端口要对应上，可选参数 `--display_data` 启动 LeRobot GUI |
+| `examples/calibration_follower.py`   | 将从臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
+| `examples/calibration_leader.py`     | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
+| `examples/bi_teleop.py`              | 启动双臂遥操作                     | 端口要对应上                                             |
 
 ## 4. 数据采集（Recording）
 
-采集示教数据（用于后续训练学习模型）示例：
+### 4.1. 登录 Hugging Face 及修改训练集存储位置
+
+训练集需要上传到 Hugging Face Hub 上进行模型训练，现在 [Hugging Face](https://huggingface.co/) 上登录并在 `Setting/Access Tokens` 中新建一个 Token，将 Token 复制下来后在虚拟环境中输入命令 `hf auth login` 根据弹出来的提示依次输入 Token 和 Y (Add token as git credential)
+
+> 在登录前先配置 Git 的 credential helpr : `git config --global credential.helper store`
+> 		并且注意登录时梯子要挂全局模式（ 服务模式 + Tun 模式）让终端能翻墙登录后
+
+登录后用 `ht auth whoami` 来确认有没有登录成功，同时 Token 也会被保存在 `~./cache/huggingface/stored_tokens` 中
+
+训练集默认是存储在 `~./cache/huggingface/lerobot/<repo_id>/` 中，为了避免空间爆炸，需要在 `.bashrc` 里添加 `export HF_DATASETS_CACHE="路径"` 路径根据实际情况存到其他地方
+
+### 4.2. 训练集录包
+
+在运行命令行或脚本后的录包操作：
+
+- 语音播报内容：
+  - 开始录制 Y 个 episode 中的 第 X 个 episode：`"Recording episode X of Y"`
+  - 重置环境阶段：`"Reset the environment"`
+- 键盘操作：
+  - 右箭头键 `→` ：结束当前 episode 并推进到下一个
+  - 左箭头键 `←` ：重新录制当前 episode
+  - `ESC` 键：结束整个录制过程并根据是否启动 `push_to_hub` 来保存到本地 + 上传到 Hub 
+
+采集示教数据命令行示例：
 
 ```bash
 lerobot-record \
     --robot.type=dk1_follower \
     --robot.port=/dev/ttyACM0 \
     --robot.joint_velocity_scaling=1.0 \
-    --robot.cameras="{
+    --teleop.type=dk1_leader \
+    --teleop.port=/dev/ttyUSB0 \
+    --dataset.repo_id=$USER/test \
+    --dataset.push_to_hub=false \
+    --dataset.num_episodes=5 \
+    --dataset.episode_time_s=30 \
+    --dataset.reset_time_s=15 \
+    --dataset.single_task="test" \
+    --display_data=true
+```
+
+```bash
+     --robot.cameras="{
         context: {type: opencv, index_or_path: 0, width: 640, height: 360, fps: 30},
         wrist: {type: opencv, index_or_path: 1, width: 640, height: 360, fps: 30}
       }" \
-    --teleop.type=dk1_leader \
-    --teleop.port=/dev/ttyUSB0 \
-    --dataset.repo_id=$USER/my_dataset \
-    --dataset.push_to_hub=false \
-    --dataset.num_episodes=50 \
-    --dataset.episode_time_s=30 \
-    --dataset.reset_time_s=15 \
-    --dataset.single_task="My task description." \
-    --resume=true
+         --resume=true \
 ```
+
+
 
 说明：
 
@@ -147,6 +181,109 @@ lerobot-record \
 - `num_episodes`：采集的示教次数
 - `episode_time_s` & `reset_time_s`：每一集的时长及重置时间
 - `push_to_hub=false`：不推到 HuggingFace Hub（默认）([GitHub](https://github.com/robot-learning-co/trlc-dk1/tree/main?tab=readme-ov-file))
+
+脚本示例，位于 `examples/record_training_set` ：
+
+```python
+import argparse
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
+from lerobot.datasets.utils import hw_to_dataset_features
+from trlc_dk1.follower import DK1Follower, DK1FollowerConfig
+from trlc_dk1.leader import DK1Leader, DK1LeaderConfig
+from lerobot.utils.utils import log_say
+from lerobot.utils.visualization_utils import init_rerun
+from lerobot.utils.control_utils import init_keyboard_listener
+from lerobot.scripts.lerobot_record import record_loop
+
+def parse_args():
+    ap = argparse.ArgumentParser(description="DK1 Dataset Recording")
+    ap.add_argument("--follower_port", default="/dev/ttyACM0")
+    ap.add_argument("--leader_port", default="/dev/ttyUSB0")
+    ap.add_argument("--fps", type=int, default=30)
+    ap.add_argument("--num_episodes", type=int, default=50)
+    ap.add_argument("--episode_time_sec", type=int, default=60)
+    ap.add_argument("--reset_time_sec", type=int, default=10)
+    ap.add_argument("--repo_id", type=str, required=True, help="Hugging Face dataset repo_id")
+    ap.add_argument("--task_description", default="my DK1 task")
+    ap.add_argument("--cameras", action="store_true", help="是否启用相机录制（需手动配置 camera_config）")
+    ap.add_argument("--push_to_hub", action="store_true", help="是否上传到 Hub")
+    return ap.parse_args()
+
+def main():
+    args = parse_args()
+
+    # 配置（可根据需要添加相机）
+    camera_config = {}  # 示例：{"wrist": {...}, "context": {...}} 如果有相机
+    if args.cameras:
+        # 在此处添加相机配置
+        pass
+
+    follower_config = DK1FollowerConfig(port=args.follower_port, cameras=camera_config if args.cameras else None)
+    leader_config = DK1LeaderConfig(port=args.leader_port)
+
+    # 初始化
+    follower = DK1Follower(follower_config)
+    leader = DK1Leader(leader_config)
+
+    # 数据集特征
+    action_features = hw_to_dataset_features(follower.action_features, "action")
+    obs_features = hw_to_dataset_features(follower.observation_features, "observation")
+    dataset_features = {**action_features, **obs_features}
+
+    # 创建数据集（需先 hf auth login）
+    dataset = LeRobotDataset.create(
+        repo_id=args.repo_id,
+        fps=args.fps,
+        features=dataset_features,
+        use_videos=args.cameras,
+    )
+
+    # 辅助工具
+    _, events = init_keyboard_listener()
+    init_rerun(session_name="dk1_recording")
+
+    # 连接
+    follower.connect()
+    leader.connect()
+
+    try:
+        episode_idx = dataset.num_episodes
+        while episode_idx < args.num_episodes and not events["stop_recording"]:
+            log_say(f"Recording episode {episode_idx + 1} of {args.num_episodes}")
+
+            record_loop(
+                robot=follower,
+                teleop=leader,
+                dataset=dataset,
+                events=events,
+                fps=args.fps,
+                episode_time_s=args.episode_time_sec,
+                reset_time_s=args.reset_time_sec,
+                single_task=args.task_description,
+                display_data=True,
+            )
+
+            if events["rerecord_episode"]:
+                log_say("Re-recording episode")
+                events["rerecord_episode"] = False
+                dataset.clear_episode_buffer()
+                continue
+
+            dataset.save_episode()
+            episode_idx += 1
+
+        log_say("Recording finished")
+
+    finally:
+        follower.disconnect()
+        leader.disconnect()
+
+    if args.push_to_hub:
+        dataset.push_to_hub()
+
+if __name__ == "__main__":
+    main()
+```
 
 ## 5. 模型推理（Inference / Evaluation）
 

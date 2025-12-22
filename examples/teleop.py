@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import argparse, time, subprocess
 from trlc_dk1.follower import DK1Follower, DK1FollowerConfig
 from trlc_dk1.leader import DK1Leader, DK1LeaderConfig
@@ -43,7 +42,7 @@ def main():
         return
 
     # 无界面脚本联动
-    leader = DK1Leader(DK1LeaderConfig(port=args.leader_port))
+    leader = DK1Leader(DK1LeaderConfig(port=args.leader_port))  
     leader.connect()
 
     follower = DK1Follower(DK1FollowerConfig(
