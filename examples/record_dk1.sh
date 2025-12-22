@@ -72,7 +72,7 @@ echo " → (右箭头)：提前结束当前 episode 并保存"
 echo " ← (左箭头)：取消当前 episode 并重新录制"
 echo " ESC：立即停止整个录制过程（保存已录 episode，不失能电机）"
 if [ "$DISPLAY_DATA" = true ]; then
-    echo "rerun.io 实时可视化已启用。若需查看，请在新终端手动运行：rerun"
+    echo "rerun.io 实时可视化已启用"
 fi
 
 # 构建参数数组
@@ -111,11 +111,11 @@ lerobot-record "${ARGS[@]}"
 
 # 检查命令执行是否成功
 if [ $? -ne 0 ]; then
-    echo "错误：lerobot-record 执行失败。"
+    echo "错误：lerobot-record 执行失败"
     exit 1
 fi
 
-echo "录制完成！数据集已保存。"
+echo "录制完成！数据集已保存"
 echo "数据集本地路径：$HF_HOME/lerobot/$REPO_ID"
 if [ "$PUSH_TO_HUB" = true ]; then
     echo "已上传至 Hugging Face Hub: https://huggingface.co/datasets/$REPO_ID"

@@ -95,7 +95,7 @@ lerobot-teleoperate \
     --robot.joint_velocity_scaling=1.0 \
   	--robot.disable_torque_on_disconnect=true \
     --robot.cameras="{
-        PC: {type: opencv, index_or_path: 0, width: 1280, height: 720, fps: 10},
+        PC: {type: opencv, index_or_path: 0, width: 128, height: 720, fps: 10},
     }" \
     --teleop.type=dk1_leader \
     --teleop.port=/dev/ttyUSB0 \
