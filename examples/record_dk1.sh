@@ -31,7 +31,7 @@ LEADER_PORT="/dev/ttyUSB0"              # Leader 臂串口
 JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
 # 预设摄像头配置，要严格按照示例格式填写：
 # CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
-CAMERAS_CONFIG='{"PC": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30}}'
+CAMERAS_CONFIG='{"PC": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 15}}'
 NUM_EPISODES=50                         # 录制 episode 数量
 EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
 RESET_TIME_S=15                         # 重置时间（秒）

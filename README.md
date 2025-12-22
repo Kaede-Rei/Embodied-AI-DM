@@ -139,7 +139,7 @@ lerobot-teleoperate \
 
 - 使用脚本 `examples/get_uvc_cam_idx.py` 获取可用相机的索引，具体使用方法见脚本
 
-- 获取索引后配置 `examples/record_dk1.sh` 的相机参数 `CAMERAS_CONFIG` 
+- 获取索引后配置 `examples/record_dk1.sh` 的相机参数 `CAMERAS_CONFIG` ，修改相机索引
 
 - 相机可随意摆放，唯一要求是相机能观测到机械臂本体的完整动作（如果动作涉及交互物，则交互动作不能被遮挡），并且摆放好之后尽量别随意挪动位置
 
@@ -159,8 +159,15 @@ lerobot-teleoperate \
 
 - 录包脚本 `examples/record_dk1.sh` ：
   - 进入虚拟环境后在终端输入 `./examples/record_dk1.sh` 来启动录包脚本
-  - 参数 `--repo_id` 必填，为训练集名称；
-  - 
+  - 参数 `--repo_id` 必填，为训练集名称；默认开启续录，当训练集不存在时自动创建
+  - 常规使用：`./examples/record_dk1.sh --repo_id $USER/name`
+- 录包期间操作：
+  - 听语音播报：`Recording episode X` 时开始动作（其中 X 表示为在录第 X 个 episode）
+  - 听语音播报：`Reset the environment` 时恢复场景
+  - `←` 按键：重新录制当前 episode
+  - `→` 按键：录制完成当前 episode ，可以开始场景恢复以准备下一个 episode
+  - `ESC` 按键：终止录制，终止后小机械臂可以随便动，达妙机械臂会保持力矩在原位姿
+- 终止录制后，终端输入 `python examples/reset.py` 来让达妙机械臂复位并失能
 
 ## 5. 模型推理（Inference / Evaluation）
 
