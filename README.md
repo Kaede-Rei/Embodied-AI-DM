@@ -137,157 +137,30 @@ lerobot-teleoperate \
 
 ### 4.2. 扫描并加入摄像头
 
-使用脚本 `examples/get_uvc_cam_idx.py` 
+- 使用脚本 `examples/get_uvc_cam_idx.py` 获取可用相机的索引，具体使用方法见脚本
+
+- 获取索引后配置 `examples/record_dk1.sh` 的相机参数 `CAMERAS_CONFIG` 
+
+- 相机可随意摆放，唯一要求是相机能观测到机械臂本体的完整动作（如果动作涉及交互物，则交互动作不能被遮挡），并且摆放好之后尽量别随意挪动位置
 
 ### 4.3. 训练集录包
 
-在运行命令行或脚本后的录包操作：
+- 在运行命令行或脚本后的录包操作：
 
-- 语音播报内容：
-  - 开始录制 Y 个 episode 中的 第 X 个 episode：`"Recording episode X of Y"`
-  - 重置环境阶段：`"Reset the environment"`
-- 键盘操作：
-  - 右箭头键 `→` ：结束当前 episode 并推进到下一个
-  - 左箭头键 `←` ：重新录制当前 episode
-  - `ESC` 键：结束整个录制过程并根据是否启动 `push_to_hub` 来保存到本地 + 上传到 Hub 
+  - 语音播报内容：
+    - 开始录制 Y 个 episode 中的 第 X 个 episode：`"Recording episode X of Y"`
+    - 重置环境阶段：`"Reset the environment"`
 
-采集示教数据命令行示例：
-
-```bash
-lerobot-record \
-    --robot.type=dk1_follower \
-    --robot.port=/dev/ttyACM0 \
-    --robot.joint_velocity_scaling=1.0 \
-    --teleop.type=dk1_leader \
-    --teleop.port=/dev/ttyUSB0 \
-    --dataset.repo_id=$USER/test \
-    --dataset.push_to_hub=false \
-    --dataset.num_episodes=5 \
-    --dataset.episode_time_s=30 \
-    --dataset.reset_time_s=15 \
-    --dataset.single_task="test" \
-    --display_data=true
-```
-
-```bash
-     --robot.cameras="{
-        context: {type: opencv, index_or_path: 0, width: 640, height: 360, fps: 30},
-        wrist: {type: opencv, index_or_path: 1, width: 640, height: 360, fps: 30}
-      }" \
-         --resume=true \
-```
+  - 键盘操作：
+    - 右箭头键 `→` ：结束当前 episode 并推进到下一个
+      - 左箭头键 `←` ：重新录制当前 episode
+      - `ESC` 键：结束整个录制过程并根据 `push_to_hub` 参数来保存本地 + 上传 Hub
 
 
-
-说明：
-
-- `dataset.repo_id`：指定数据集名称
-- `num_episodes`：采集的示教次数
-- `episode_time_s` & `reset_time_s`：每一集的时长及重置时间
-- `push_to_hub=false`：不推到 HuggingFace Hub（默认）([GitHub](https://github.com/robot-learning-co/trlc-dk1/tree/main?tab=readme-ov-file))
-
-脚本示例，位于 `examples/record_training_set` ：
-
-```python
-import argparse
-from lerobot.datasets.lerobot_dataset import LeRobotDataset
-from lerobot.datasets.utils import hw_to_dataset_features
-from trlc_dk1.follower import DK1Follower, DK1FollowerConfig
-from trlc_dk1.leader import DK1Leader, DK1LeaderConfig
-from lerobot.utils.utils import log_say
-from lerobot.utils.visualization_utils import init_rerun
-from lerobot.utils.control_utils import init_keyboard_listener
-from lerobot.scripts.lerobot_record import record_loop
-
-def parse_args():
-    ap = argparse.ArgumentParser(description="DK1 Dataset Recording")
-    ap.add_argument("--follower_port", default="/dev/ttyACM0")
-    ap.add_argument("--leader_port", default="/dev/ttyUSB0")
-    ap.add_argument("--fps", type=int, default=30)
-    ap.add_argument("--num_episodes", type=int, default=50)
-    ap.add_argument("--episode_time_sec", type=int, default=60)
-    ap.add_argument("--reset_time_sec", type=int, default=10)
-    ap.add_argument("--repo_id", type=str, required=True, help="Hugging Face dataset repo_id")
-    ap.add_argument("--task_description", default="my DK1 task")
-    ap.add_argument("--cameras", action="store_true", help="是否启用相机录制（需手动配置 camera_config）")
-    ap.add_argument("--push_to_hub", action="store_true", help="是否上传到 Hub")
-    return ap.parse_args()
-
-def main():
-    args = parse_args()
-
-    # 配置（可根据需要添加相机）
-    camera_config = {}  # 示例：{"wrist": {...}, "context": {...}} 如果有相机
-    if args.cameras:
-        # 在此处添加相机配置
-        pass
-
-    follower_config = DK1FollowerConfig(port=args.follower_port, cameras=camera_config if args.cameras else None)
-    leader_config = DK1LeaderConfig(port=args.leader_port)
-
-    # 初始化
-    follower = DK1Follower(follower_config)
-    leader = DK1Leader(leader_config)
-
-    # 数据集特征
-    action_features = hw_to_dataset_features(follower.action_features, "action")
-    obs_features = hw_to_dataset_features(follower.observation_features, "observation")
-    dataset_features = {**action_features, **obs_features}
-
-    # 创建数据集（需先 hf auth login）
-    dataset = LeRobotDataset.create(
-        repo_id=args.repo_id,
-        fps=args.fps,
-        features=dataset_features,
-        use_videos=args.cameras,
-    )
-
-    # 辅助工具
-    _, events = init_keyboard_listener()
-    init_rerun(session_name="dk1_recording")
-
-    # 连接
-    follower.connect()
-    leader.connect()
-
-    try:
-        episode_idx = dataset.num_episodes
-        while episode_idx < args.num_episodes and not events["stop_recording"]:
-            log_say(f"Recording episode {episode_idx + 1} of {args.num_episodes}")
-
-            record_loop(
-                robot=follower,
-                teleop=leader,
-                dataset=dataset,
-                events=events,
-                fps=args.fps,
-                episode_time_s=args.episode_time_sec,
-                reset_time_s=args.reset_time_sec,
-                single_task=args.task_description,
-                display_data=True,
-            )
-
-            if events["rerecord_episode"]:
-                log_say("Re-recording episode")
-                events["rerecord_episode"] = False
-                dataset.clear_episode_buffer()
-                continue
-
-            dataset.save_episode()
-            episode_idx += 1
-
-        log_say("Recording finished")
-
-    finally:
-        follower.disconnect()
-        leader.disconnect()
-
-    if args.push_to_hub:
-        dataset.push_to_hub()
-
-if __name__ == "__main__":
-    main()
-```
+- 录包脚本 `examples/record_dk1.sh` ：
+  - 进入虚拟环境后在终端输入 `./examples/record_dk1.sh` 来启动录包脚本
+  - 参数 `--repo_id` 必填，为训练集名称；
+  - 
 
 ## 5. 模型推理（Inference / Evaluation）
 

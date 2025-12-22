@@ -60,11 +60,12 @@ def main():
     available_cams = scan_cameras(args.start, args.end)
     
     # 显示结果
-    print("\n" + "="*50)
+    print("\n===============================")
     if available_cams:
-        print(f"找到 {len(available_cams)} 个可用的摄像头:")
+        print(f"- 找到 {len(available_cams)} 个可用的摄像头:")
         for cam_idx in available_cams:
-            print(f"  索引 {cam_idx}: 可用")
+            print(f"-    索引 {cam_idx}: 可用")
+        print("===============================")
     else:
         print(f"在索引 {args.start} 到 {args.end} 范围内未找到可用的摄像头")
         print("请尝试调整 --start 和 --end 参数，或检查摄像头连接")
