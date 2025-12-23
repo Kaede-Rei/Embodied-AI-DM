@@ -1,10 +1,7 @@
 #!/bin/bash
 # DK1 模型训练 Bash 脚本
-#
-# 功能描述：
-# 封装 LeRobot 的 lerobot_train 命令，实现训练输出目录（output_dir）与 policy.repo_id 自动统一
-#
-# 前提条件：
+# 前提：训练集存在且可访问
+# 使用前确保：
 # 1. 已激活包含 LeRobot 的 Python 环境
 # 2. 若需后续上传模型，已执行 huggingface-cli login
 # 3. 训练数据集 repo_id 已存在并可访问
@@ -15,11 +12,11 @@
 # ./train_dk1.sh --policy_repo_id $USER/act_dk1_model --dataset_repo_id $USER/dk1_dataset --push_to_hub --steps 50000
 #
 # 支持的参数：
-# --policy_repo_id <repo_id>  必须：模型仓库 ID（如 $USER/act_dk1_model）
-# --dataset_repo_id <repo_id> 必须：数据集仓库 ID（无默认值，必须显式指定）
-# --batch_size <num>          训练批次大小（默认 2）
-# --steps <num>               训练总步数（默认 40000）
-# --push_to_hub               训练完成后自动上传模型至 Hugging Face Hub（默认不启用）
+# --policy_repo_id <repo_id>            必须：模型仓库 ID（如 $USER/act_dk1_model）
+# --dataset_repo_id <repo_id>           必须：数据集仓库 ID（无默认值，必须显式指定）
+# --batch_size <num>                    训练批次大小（默认 2）
+# --steps <num>                         训练总步数（默认 40000）
+# --push_to_hub                         训练完成后自动上传模型至 Hugging Face Hub（默认不启用）
 # 其他 lerobot_train 支持的参数也可直接传入（如 --wandb.enable=true 等），脚本会原样透传
 
 # 默认参数配置

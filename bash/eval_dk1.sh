@@ -1,32 +1,24 @@
 #!/bin/bash
 # DK1 机器人模型评估 Bash 脚本（使用 lerobot-record 加载训练好的模型）
-#
-# 功能描述：
-#   与训练脚本统一管理：通过 --policy_repo_id 自动推导模型检查点路径
-#   机器人将加载指定版本的训练模型，自主执行任务并录制评估 episode，便于后续分析
-#   评估数据集 repo_id 默认在 policy_repo_id 基础上添加 "eval_" 前缀（如 act_dk1_model → eval_act_dk1_model）
-#   resume 逻辑与录制脚本完全一致：默认启用，自动检测目录是否存在，仅当目录不存在时禁用 resume
-#
-# 前提条件：
+# 前提：DK1 已通过插件机制注册（--robot.type=dk1_follower 等可用）
+# 使用前确保：
 # 1. 已激活包含 LeRobot 的 Python 环境
 # 2. DK1 Follower 臂已正确连接并上电（无需 Leader 臂）
 # 3. 对应的模型训练已完成（outputs/train/<policy_repo_name>/checkpoints/last 存在）
 # 4. 若需上传评估数据集，已执行 huggingface-cli login
 #
-# 使用方法示例（所有参数顺序随意）：
-#   ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model
-#   ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --repo_id $USER/custom_eval
-#   ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_more_data --num_episodes 20 --joint_velocity_scaling 0.7 --push_to_hub
-#   ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --no_display --no_cameras --resume
+# 使用方法示例：
+# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model
+# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model --repo_id $USER/custom_eval
+# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_more_data --joint_velocity_scaling 0.7 --push_to_hub
+# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model --no_display --no_cameras --resume
 #
 # 支持的参数：
 # --policy_repo_id <repo_id>            必须：训练时使用的 policy.repo_id（如 $USER/act_dk1_model），用于自动定位模型路径
 # --repo_id <repo_id>                   评估数据集的 repo_id（可选，默认自动为 $USER/eval_<policy_repo_name>）
-# --follower_port <port>                Follower 臂串口（默认 /dev/ttyACM0）
-# --joint_velocity_scaling <val>        关节速度缩放因子（默认 1.0，部署时建议 0.5~0.8 以提高安全性）
-# --num_episodes <num>                  评估 episode 数量（默认 10）
+# --follower_port <port> Follower       从臂串口（默认 /dev/ttyACM0）
+# --joint_velocity_scaling <val>        关节速度缩放因子（默认 1.0）
 # --episode_time_s <sec>                每个 episode 最大执行时长（秒，默认 30）
-# --reset_time_s <sec>                  每个 episode 结束后机器人重置姿势的时间（秒，默认 15）
 # --task_description <desc>             评估数据集的单任务描述（默认 "Evaluation of trained ACT policy."）
 # --push_to_hub                         评估完成后自动上传数据集至 Hugging Face Hub（默认不启用）
 # --resume                              从现有评估数据集继续录制（默认启用）
@@ -36,15 +28,14 @@
 # 默认参数配置
 FOLLOWER_PORT="/dev/ttyACM0"
 JOINT_VELOCITY_SCALING=1.0
-NUM_EPISODES=10
+NUM_EPISODES=1                  # 固定为 1
 EPISODE_TIME_S=30
-RESET_TIME_S=15
+RESET_TIME_S=0                  # 固定为 0
 TASK_DESCRIPTION="Evaluation of trained ACT policy."
 PUSH_TO_HUB=false
-CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 25}}'
+CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 0, "width": 1280, "height": 720, "fps": 25}}'
 DISPLAY_DATA=true
 RESUME=true
-
 POLICY_REPO_ID=""
 REPO_ID=""
 
@@ -55,9 +46,7 @@ while [[ $# -gt 0 ]]; do
     --repo_id) REPO_ID="$2"; shift 2 ;;
     --follower_port) FOLLOWER_PORT="$2"; shift 2 ;;
     --joint_velocity_scaling) JOINT_VELOCITY_SCALING="$2"; shift 2 ;;
-    --num_episodes) NUM_EPISODES="$2"; shift 2 ;;
     --episode_time_s) EPISODE_TIME_S="$2"; shift 2 ;;
-    --reset_time_s) RESET_TIME_S="$2"; shift 2 ;;
     --task_description) TASK_DESCRIPTION="$2"; shift 2 ;;
     --push_to_hub) PUSH_TO_HUB=true; shift ;;
     --resume) RESUME=true; shift ;;
@@ -155,7 +144,7 @@ fi
 echo "========================================="
 echo "- 评估完成！评估数据集已保存至：$HF_HOME/lerobot/$REPO_ID"
 echo "- 可使用以下命令本地可视化："
-echo "  python -m lerobot.scripts.visualize_dataset --repo-id $REPO_ID"
+echo " python -m lerobot.scripts.visualize_dataset --repo-id $REPO_ID"
 echo "- 或访问 Hugging Face Space 在线查看（若已上传）"
 if [ "$PUSH_TO_HUB" = true ]; then
   echo "- 已上传至 Hugging Face Hub: https://huggingface.co/datasets/$REPO_ID"

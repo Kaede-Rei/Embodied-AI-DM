@@ -6,19 +6,19 @@
 # 2. 已 hf login（若需 push_to_hub）
 # 3. 在 ~/.bashrc 中添加：export HF_HOME="自定义缓存路径"
 # 
-# 使用方法示例（注意 repo_id 必须填）：
+# 使用方法示例：
 # ./bash/record_dk1.sh --repo_id $USER/dk1_my_task
 # ./bash/record_dk1.sh --repo_id $USER/dk1_my_task --no_cameras
 # ./bash/record_dk1.sh --repo_id $USER/dk1_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
 # 
 # 支持的参数：
+# --repo_id <repo_id>                   必须：数据集 repo_id（如 $USER/dk1_test）
 # --follower_port <port> Follower       从臂串口（默认 /dev/ttyACM0）
 # --leader_port <port> Leader           主臂串口（默认 /dev/ttyUSB0）
 # --joint_velocity_scaling <val>        关节速度缩放（默认 1.0）
 # --num_episodes <num>                  录制 episode 数量（默认 50）
 # --episode_time_s <sec>                每个 episode 时长（秒，默认 30）
 # --reset_time_s <sec>                  重置时间（秒，默认 0）
-# --repo_id <repo_id>                   必须：数据集 repo_id（如 $USER/dk1_test）
 # --task_description <desc>             单任务描述（默认 "Task description."）
 # --push_to_hub                         录制后自动上传至 Hugging Face Hub（默认不启用）
 # --resume                              从现有数据集继续录制（默认启用）
