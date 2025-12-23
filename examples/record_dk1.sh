@@ -32,9 +32,9 @@ JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
 # 预设摄像头配置，要严格按照示例格式填写：
 # CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
 CAMERAS_CONFIG='{"PC": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 15}}'
-NUM_EPISODES=50                         # 录制 episode 数量
+NUM_EPISODES=20                         # 录制 episode 数量
 EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
-RESET_TIME_S=15                         # 重置时间（秒）
+RESET_TIME_S=10                         # 重置时间（秒）
 TASK_DESCRIPTION="Task description."    # 单任务描述
 PUSH_TO_HUB=false                       # 是否上传至 Hugging Face Hub
 RESUME=true                             # 是否从现有数据集继续录制
@@ -125,9 +125,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "----------------------------------------"
+echo "========================================="
 echo "- 录制完成！数据集已保存至：$HF_HOME/lerobot/$REPO_ID"
 if [ "$PUSH_TO_HUB" = true ]; then
     echo "- 已上传至 Hugging Face Hub: https://huggingface.co/datasets/$REPO_ID"
 fi
-echo "----------------------------------------"
+echo "========================================="

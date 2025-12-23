@@ -137,7 +137,7 @@ lerobot-teleoperate \
 
 ### 4.2. 扫描并加入摄像头
 
-- 使用脚本 `examples/get_uvc_cam_idx.py` 获取可用相机的索引，具体使用方法见脚本
+- 使用脚本 `examples/get_uvc_cam_idx.py` 获取可用相机的索引和可用分辨率及对应帧数，一般使用直接 `python examples/get_uvc_cam_idx.py` 即可，其他参数及具体使用方法见脚本
 
 - 获取索引后配置 `examples/record_dk1.sh` 的相机参数 `CAMERAS_CONFIG` ，修改相机索引
 
