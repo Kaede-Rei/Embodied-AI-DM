@@ -1,3 +1,22 @@
+# DK1 遥操作（Teleoperation）脚本
+#
+# 前提：DK1 已通过插件机制注册（--robot.type=dk1_follower 等可用）
+# 使用前确保：
+# 1. 已激活包含 LeRobot 和 trlc_dk1 包的 Python 环境
+# 2. Leader 臂和 Follower 臂已正确连接并上电
+# 3. Leader 臂端口默认 /dev/ttyUSB0，Follower 臂端口默认 /dev/ttyACM0（可通过参数覆盖）
+#
+# 使用方法示例：
+# python teleop_dk1.py
+# python teleop_dk1.py --display_data
+# python teleop_dk1.py --follower_port /dev/ttyACM1 --leader_port /dev/ttyUSB1 --freq 100
+#
+# 支持的参数：
+# --follower_port <port>                Follower 臂串口路径（默认 /dev/ttyACM0）
+# --leader_port <port>                  Leader 臂串口路径（默认 /dev/ttyUSB0）
+# --freq <float>                        无界面模式下控制循环频率（Hz，默认 200.0）
+# --display_data                        若指定，则启动 lerobot-teleoperate GUI 模式（不运行脚本主循环）
+
 import argparse, time, subprocess
 from trlc_dk1.follower import DK1Follower, DK1FollowerConfig
 from trlc_dk1.leader import DK1Leader, DK1LeaderConfig
@@ -19,7 +38,7 @@ def main():
             "lerobot-teleoperate",
             f"--robot.type=dk1_follower",
             f"--robot.port={args.follower_port}",
-            f"--robot.joint_velocity_scaling=0.2",
+            f"--robot.joint_velocity_scaling=1.0",
             f"--teleop.type=dk1_leader",
             f"--teleop.port={args.leader_port}",
             "--display_data=true",

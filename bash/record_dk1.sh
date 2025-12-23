@@ -1,5 +1,6 @@
 #!/bin/bash
 # DK1 机器人数据集录制 Bash 脚本（使用 lerobot-record 命令）
+#
 # 前提：DK1 已通过插件机制注册（--robot.type=dk1_follower 等可用）
 # 使用前确保：
 # 1. 已激活包含 LeRobot 的 Python 环境

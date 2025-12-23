@@ -59,17 +59,29 @@ pip install -e .
 - README.md
 ```
 
+### 1.6. 硬件连接
+
+- 电源：小电源开 24V 供从臂；大电源开 6-10V(建议8V) 供主臂	<img src="/home/kaerei/LeRobot_Workspace/trlc-dk1/README.assets/image-20251223214229135.png" alt="image-20251223214229135" style="zoom:10%;" />
+
+- 从臂：小电源接转接板连接到底座供电，CAN 口接 USB转CAN模块 再接电脑，一般是 `/dev/ttyACM0` 
+
+  <img src="/home/kaerei/LeRobot_Workspace/trlc-dk1/README.assets/image-20251223214528974.png" alt="image-20251223214528974" style="zoom:20%;" />
+
+- 主臂：大电源降压后接到转接板连接到底座供电和串口信号，Type-C 口接电脑，一般是 `/dev/ttyUSB0`
+
+  <img src="/home/kaerei/LeRobot_Workspace/trlc-dk1/README.assets/image-20251223214814763.png" alt="image-20251223214814763" style="zoom:20%;" />
+
+- 相机：录包时必须接相机，相机 USB 直接连接，然后用下面的脚本识别
+
 ## 2. 识别设备串口并进入虚拟环境
 
 不同设备连接后系统会生成 `/dev/tty*`（Linux）或 `/dev/ttyUSB*` 等串口节点。
 
-使用 LeRobot 提供的 CLI 来查找：
+使用 LeRobot 提供的 CLI 来查找，按提示操作确定对应串口即可：
 
 ```bash
 lerobot-find-port
 ```
-
-这个命令会列出所有可用的串口，方便后续遥操作和采集命令使用([docs.robot-learning.co](https://docs.robot-learning.co/getting_started?utm_source=chatgpt.com))
 
 需要进入虚拟环境 `dk1` 中进行操作
 
@@ -81,33 +93,7 @@ conda activate dk1
 
 ### 3.1. 单臂遥操作
 
-假设：
-
-- follower（被控臂）串口是 `/dev/ttyACM0`
-- leader（示教手）串口是 `/dev/ttyUSB0`
-
-使用命令：
-
-```bash
-lerobot-teleoperate \
-    --robot.type=dk1_follower \
-    --robot.port=/dev/ttyACM0 \
-    --robot.joint_velocity_scaling=1.0 \
-  	--robot.disable_torque_on_disconnect=true \
-    --robot.cameras="{
-        PC: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30},
-    }" \
-    --teleop.type=dk1_leader \
-    --teleop.port=/dev/ttyUSB0 \
-    --display_data=true
-```
-
-说明：
-
-- `robot.type=dk1_follower`：定义被控臂类型
-- `teleop.type=dk1_leader`：定义主示教臂类型
-- `joint_velocity_scaling`：关节速度缩放，建议从 0.2 开始调试
-- `--robot.cameras`：配置上下文和腕部摄像头参数([GitHub](https://github.com/robot-learning-co/trlc-dk1/tree/main?tab=readme-ov-file))
+在虚拟环境中进入终端输入 `python scripts/teleop.py` ，具体参数配置见脚本注释，按实际修改
 
 ### 3.2. 脚本
 
@@ -122,7 +108,7 @@ lerobot-teleoperate \
 | `scripts/calibration_leader.py`     | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
 | `scripts/bi_teleop.py`              | 启动双臂遥操作                     | 端口要对应上                                             |
 
-## 4. 数据采集（record_dk1.py）
+## 4. 数据采集（record_dk1.sh）
 
 ### 4.1. 登录 Hugging Face 及修改训练集存储位置
 
@@ -141,7 +127,7 @@ lerobot-teleoperate \
 
 - 获取索引后配置 `scripts/record_dk1.sh` 的相机参数 `CAMERAS_CONFIG` ，修改相机索引
 
-- 相机可随意摆放，唯一要求是相机能观测到机械臂本体的完整动作（如果动作涉及交互物，则交互动作不能被遮挡），并且摆放好之后尽量别随意挪动位置
+- 相机可随意摆放，唯一要求是相机能观测到机械臂本体的完整动作（如果动作涉及交互物，则交互动作不能被遮挡），并且摆放好之后尽量别挪动位置
 
 ### 4.3. 训练集录包
 
@@ -175,11 +161,49 @@ lerobot-teleoperate \
 
 ## 5. 模型训练（train_dk1.sh）
 
+录制好训练集后即可开始训练，运行脚本：
 
+```bash
+./bash/train_dk1.sh --policy_repo_id 模型名称 --dataset_repo_id 训练集名称
+```
 
-## 6.模型评估（eval_dk1.sh）
+训练启动后会进入后台进行训练，训练进度在当前目录下生成的 `训练集名称.log` 中实时打印，第一次训练会有进度条不停打印在下载前置，正式开始训练时会有以下内容，每200步会打印一次进度：
 
+```bash
+INFO 2025-12-23 18:25:19 ot_train.py:347 step:200 smpl:400 ep:1 epch:0.05 loss:0.737 grdn:51.002 lr:1.0e-05 updt_s:0.182 data_s:0.005
+INFO 2025-12-23 18:25:55 ot_train.py:347 step:400 smpl:800 ep:2 epch:0.09 loss:0.546 grdn:36.100 lr:1.0e-05 updt_s:0.177 data_s:0.004
+INFO 2025-12-23 18:26:32 ot_train.py:347 step:600 smpl:1K ep:3 epch:0.14 loss:0.498 grdn:28.908 lr:1.0e-05 updt_s:0.181 data_s:0.004
+INFO 2025-12-23 18:27:07 ot_train.py:347 step:800 smpl:2K ep:4 epch:0.18 loss:0.445 grdn:26.680 lr:1.0e-05 updt_s:0.172 data_s:0.004
+INFO 2025-12-23 18:27:43 ot_train.py:347 step:1K smpl:2K ep:5 epch:0.23 loss:0.415 grdn:23.008 lr:1.0e-05 updt_s:0.175 data_s:0.004
+```
 
+训练完成后会有以下内容：
+
+```bash
+INFO 2025-12-23 20:13:54 ot_train.py:347 step:40K smpl:80K ep:182 epch:9.10 loss:0.092 grdn:6.646 lr:1.0e-05 updt_s:0.160 data_s:0.003
+INFO 2025-12-23 20:13:54 ot_train.py:357 Checkpoint policy after step 40000
+INFO 2025-12-23 20:13:55 ot_train.py:426 End of training
+```
+
+训练好的模型会在当前文件夹的 `output` 文件夹下，如果需要终止训练，则见 `训练集名称.param` 里的训练集PID：`TRAIN_PID=pid` ，在终端中输入 `kill pid` 即可停止终止训练，此时 `output` 文件夹里只会有训练了一半的模型（根据步数，在40000步情况下会有 20000 和 40000 两个步数时的模型）
+
+其他参数需要修改的见脚本注释
+
+## 6. 模型评估（eval_dk1.sh）
+
+训练好的模型可以运行脚本来评估：
+
+```bash
+./bash/eval_dk1.sh --policy_repo_id 模型名称
+```
+
+注意该评估脚本只能直接运行训练脚本训练出来的模型，如果想运行其他脚本，先上传到 Hub，然后输入：
+
+```bash
+# ./eval_dk1.sh --policy_repo_id 模型名称 --from_hub
+```
+
+评估也相当于一次录制，录制的结果会和训练集存在一起并加上前缀 `eval_`
 
 ## 7. 双臂操作
 

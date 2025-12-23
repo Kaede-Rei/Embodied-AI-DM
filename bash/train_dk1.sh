@@ -1,5 +1,6 @@
 #!/bin/bash
 # DK1 模型训练 Bash 脚本
+#
 # 前提：训练集存在且可访问
 # 使用前确保：
 # 1. 已激活包含 LeRobot 的 Python 环境
@@ -7,9 +8,9 @@
 # 3. 训练数据集 repo_id 已存在并可访问
 #
 # 使用方法示例：
-# ./train_dk1.sh --policy_repo_id $USER/act_dk1_model --dataset_repo_id $USER/dk1_dataset
-# ./train_dk1.sh --policy_repo_id $USER/act_dk1_more_data --dataset_repo_id $USER/dk1_dataset --steps 30000 --batch_size 4
-# ./train_dk1.sh --policy_repo_id $USER/act_dk1_model --dataset_repo_id $USER/dk1_dataset --push_to_hub --steps 50000
+# ./bash/train_dk1.sh --policy_repo_id $USER/act_dk1_model --dataset_repo_id $USER/dk1_dataset
+# ./bash/train_dk1.sh --policy_repo_id $USER/act_dk1_more_data --dataset_repo_id $USER/dk1_dataset --steps 30000 --batch_size 4
+# ./bash/train_dk1.sh --policy_repo_id $USER/act_dk1_model --dataset_repo_id $USER/dk1_dataset --push_to_hub --steps 50000
 #
 # 支持的参数：
 # --policy_repo_id <repo_id>            必须：模型仓库 ID（如 $USER/act_dk1_model）
@@ -29,7 +30,7 @@ N_ACTION_STEPS=50             # 动作步数
 CHUNK_SIZE=50                 # 数据块大小
 BATCH_SIZE=2                  # 训练批次大小
 STEPS=40000                   # 训练总步数
-DATASET_REPO_ID=""            # 必须参数：数据集仓库 ID（无默认值）
+DATASET_REPO_ID=""            # 必须参数：数据集仓库 ID
 POLICY_REPO_ID=""             # 必须参数：模型仓库 ID
 
 # 解析命令行参数
