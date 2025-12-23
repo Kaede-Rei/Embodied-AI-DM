@@ -12,8 +12,8 @@
 # ./bash/record_dk1.sh --repo_id $USER/dk1_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
 # 
 # 支持的参数：
-# --follower_port <port> Follower       臂串口（默认 /dev/ttyACM0）
-# --leader_port <port> Leader           臂串口（默认 /dev/ttyUSB0）
+# --follower_port <port> Follower       从臂串口（默认 /dev/ttyACM0）
+# --leader_port <port> Leader           主臂串口（默认 /dev/ttyUSB0）
 # --joint_velocity_scaling <val>        关节速度缩放（默认 1.0）
 # --num_episodes <num>                  录制 episode 数量（默认 50）
 # --episode_time_s <sec>                每个 episode 时长（秒，默认 30）

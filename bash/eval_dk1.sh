@@ -2,10 +2,10 @@
 # DK1 机器人模型评估 Bash 脚本（使用 lerobot-record 加载训练好的模型）
 #
 # 功能描述：
-#   与训练脚本统一管理：通过 --policy_repo_id 自动推导模型检查点路径。
-#   机器人将加载指定版本的训练模型，自主执行任务并录制评估 episode，便于后续分析。
-#   评估数据集 repo_id 默认在 policy_repo_id 基础上添加 "eval_" 前缀（如 act_dk1_model → eval_act_dk1_model）。
-#   resume 逻辑与录制脚本完全一致：默认启用，自动检测目录是否存在，仅当目录不存在时禁用 resume。
+#   与训练脚本统一管理：通过 --policy_repo_id 自动推导模型检查点路径
+#   机器人将加载指定版本的训练模型，自主执行任务并录制评估 episode，便于后续分析
+#   评估数据集 repo_id 默认在 policy_repo_id 基础上添加 "eval_" 前缀（如 act_dk1_model → eval_act_dk1_model）
+#   resume 逻辑与录制脚本完全一致：默认启用，自动检测目录是否存在，仅当目录不存在时禁用 resume
 #
 # 前提条件：
 # 1. 已激活包含 LeRobot 的 Python 环境
