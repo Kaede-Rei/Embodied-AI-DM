@@ -99,14 +99,14 @@ conda activate dk1
 
 在仓库的`example`中有方便使用的脚本：	
 
-| 脚本路径                            | 作用                               | 注意事项                                                 |
-| ----------------------------------- | ---------------------------------- | -------------------------------------------------------- |
-| `scripts/follower_read_position.py` | 读取从臂关节角度，确保有连接上从臂 | 端口要对应上                                             |
-| `scripts/leader_test.py`            | 读取主臂关节角度，确保有连接上主臂 | 端口要对应上                                             |
-| `scripts/teleop.py`                 | 启动单臂遥操作                     | 端口要对应上，可选参数 `--display_data` 启动 LeRobot GUI |
-| `scripts/calibration_follower.py`   | 将从臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
-| `scripts/calibration_leader.py`     | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
-| `scripts/bi_teleop.py`              | 启动双臂遥操作                     | 端口要对应上                                             |
+| 脚本路径                          | 作用                               | 注意事项                                                 |
+| --------------------------------- | ---------------------------------- | -------------------------------------------------------- |
+| `scripts/follower_test.py`        | 读取从臂关节角度，确保有连接上从臂 | 端口要对应上                                             |
+| `scripts/leader_test.py`          | 读取主臂关节角度，确保有连接上主臂 | 端口要对应上                                             |
+| `scripts/teleop.py`               | 启动单臂遥操作                     | 端口要对应上，可选参数 `--display_data` 启动 LeRobot GUI |
+| `scripts/calibration_follower.py` | 将从臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
+| `scripts/calibration_leader.py`   | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
+| `scripts/bi_teleop.py`            | 启动双臂遥操作                     | 端口要对应上                                             |
 
 ## 4. 数据采集（record_dk1.sh）
 
