@@ -25,16 +25,16 @@ Python 依赖：
 
 使用示例：
 1. 扫描默认索引范围（0~10）：
-   python get_uvc_cam_idx.py
+   python scripts/get_uvc_cam_idx.py
 
 2. 指定扫描索引范围：
-   python get_uvc_cam_idx.py --start 0 --end 4
+   python scripts/get_uvc_cam_idx.py --start 0 --end 4
 
 3. 扫描并预览所有可用摄像头：
-   python get_uvc_cam_idx.py --preview
+   python scripts/get_uvc_cam_idx.py --preview
 
 4. 指定范围并预览：
-   python get_uvc_cam_idx.py --start 2 --end 6 --preview
+   python scripts/get_uvc_cam_idx.py --start 2 --end 6 --preview
 
 参数说明：
 --start    起始 OpenCV 摄像头索引（默认 0）

@@ -7,23 +7,23 @@
 # 3. 在 ~/.bashrc 中添加：export HF_HOME="自定义缓存路径"
 # 
 # 使用方法示例（注意 repo_id 必须填）：
-# ./examples/record_dk1.sh --repo_id $USER/dk1_my_task
-# ./examples/record_dk1.sh --repo_id $USER/dk1_my_task --no_cameras
-# ./examples/record_dk1.sh --repo_id $USER/dk1_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
+# ./bash/record_dk1.sh --repo_id $USER/dk1_my_task
+# ./bash/record_dk1.sh --repo_id $USER/dk1_my_task --no_cameras
+# ./bash/record_dk1.sh --repo_id $USER/dk1_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
 # 
 # 支持的参数：
-# --follower_port <port> Follower 臂串口（默认 /dev/ttyACM0）
-# --leader_port <port> Leader 臂串口（默认 /dev/ttyUSB0）
-# --joint_velocity_scaling <val> 关节速度缩放（默认 1.0）
-# --num_episodes <num> 录制 episode 数量（默认 50）
-# --episode_time_s <sec> 每个 episode 时长（秒，默认 30）
-# --reset_time_s <sec> 重置时间（秒，默认 15）
-# --repo_id <repo_id> 必须：数据集 repo_id（如 $USER/dk1_test）
-# --task_description <desc> 单任务描述（默认 "Task description."）
-# --push_to_hub 录制后自动上传至 Hugging Face Hub（默认不启用）
-# --resume 从现有数据集继续录制（默认启用）
-# --no_cameras 不启用摄像头（默认启用两个摄像头）
-# --no_display 不启用 rerun.io 实时可视化（默认启用）
+# --follower_port <port> Follower       臂串口（默认 /dev/ttyACM0）
+# --leader_port <port> Leader           臂串口（默认 /dev/ttyUSB0）
+# --joint_velocity_scaling <val>        关节速度缩放（默认 1.0）
+# --num_episodes <num>                  录制 episode 数量（默认 50）
+# --episode_time_s <sec>                每个 episode 时长（秒，默认 30）
+# --reset_time_s <sec>                  重置时间（秒，默认 0）
+# --repo_id <repo_id>                   必须：数据集 repo_id（如 $USER/dk1_test）
+# --task_description <desc>             单任务描述（默认 "Task description."）
+# --push_to_hub                         录制后自动上传至 Hugging Face Hub（默认不启用）
+# --resume                              从现有数据集继续录制（默认启用）
+# --no_cameras                          不启用摄像头（默认启用两个摄像头）
+# --no_display                          不启用 rerun.io 实时可视化（默认启用）
 
 # 默认参数配置
 FOLLOWER_PORT="/dev/ttyACM0"            # Follower 臂串口
@@ -31,10 +31,10 @@ LEADER_PORT="/dev/ttyUSB0"              # Leader 臂串口
 JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
 # 预设摄像头配置，要严格按照示例格式填写：
 # CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
-CAMERAS_CONFIG='{"PC": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 15}}'
-NUM_EPISODES=20                         # 录制 episode 数量
+CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 0, "width": 1280, "height": 720, "fps": 25}}'
+NUM_EPISODES=50                         # 录制 episode 数量
 EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
-RESET_TIME_S=10                         # 重置时间（秒）
+RESET_TIME_S=0                          # 重置时间（秒），注意实际总重置时间是 重置时间 + (当前 episode 实际使用的时间 + 重置时间)，所以写 0 即可
 TASK_DESCRIPTION="Task description."    # 单任务描述
 PUSH_TO_HUB=false                       # 是否上传至 Hugging Face Hub
 RESUME=true                             # 是否从现有数据集继续录制
@@ -69,7 +69,7 @@ fi
 echo "========================================"
 echo "- 启动 DK1 数据集录制（使用官方 lerobot-record）..."
 echo "- Repo ID: $REPO_ID"
-echo "- 本地存储路径: $HF_HOME/lerobot/$REPO_ID（默认 /media/kaerei/.../huggingface/lerobot/$REPO_ID）"
+echo "- 本地存储路径: $HF_HOME/lerobot/$REPO_ID"
 echo "- 键盘操作提示："
 echo "-     → (右箭头)：提前结束当前 episode 并保存"
 echo "-     ← (左箭头)：取消当前 episode 并重新录制"
@@ -121,8 +121,8 @@ lerobot-record "${ARGS[@]}"
 
 # 检查命令执行是否成功
 if [ $? -ne 0 ]; then
-    echo "- 错误：lerobot-record 执行失败"
-    exit 1
+  echo "- 错误：lerobot-record 执行失败"
+  exit 1
 fi
 
 echo "========================================="

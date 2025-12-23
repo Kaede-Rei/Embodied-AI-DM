@@ -53,7 +53,7 @@ pip install -e .
 ### 1.5. 如果是克隆仓库，则将项目中的包的一下部分覆盖原仓库
 
 ```bash
-- /examples
+- /scripts
 - /src
 - pyproject.toml
 - README.md
@@ -77,9 +77,9 @@ lerobot-find-port
 conda activate dk1
 ```
 
-## 3. 主从遥操作（Teleoperation）
+## 3. 主从遥操作（teleop.py）
 
-### 3.1. 单臂遥操作（Follower + Leader）
+### 3.1. 单臂遥操作
 
 假设：
 
@@ -113,16 +113,16 @@ lerobot-teleoperate \
 
 在仓库的`example`中有方便使用的脚本：	
 
-| 脚本路径                             | 作用                               | 注意事项                                                 |
-| ------------------------------------ | ---------------------------------- | -------------------------------------------------------- |
-| `examples/follower_read_position.py` | 读取从臂关节角度，确保有连接上从臂 | 端口要对应上                                             |
-| `examples/leader_test.py`            | 读取主臂关节角度，确保有连接上主臂 | 端口要对应上                                             |
-| `examples/teleop.py`                 | 启动单臂遥操作                     | 端口要对应上，可选参数 `--display_data` 启动 LeRobot GUI |
-| `examples/calibration_follower.py`   | 将从臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
-| `examples/calibration_leader.py`     | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
-| `examples/bi_teleop.py`              | 启动双臂遥操作                     | 端口要对应上                                             |
+| 脚本路径                            | 作用                               | 注意事项                                                 |
+| ----------------------------------- | ---------------------------------- | -------------------------------------------------------- |
+| `scripts/follower_read_position.py` | 读取从臂关节角度，确保有连接上从臂 | 端口要对应上                                             |
+| `scripts/leader_test.py`            | 读取主臂关节角度，确保有连接上主臂 | 端口要对应上                                             |
+| `scripts/teleop.py`                 | 启动单臂遥操作                     | 端口要对应上，可选参数 `--display_data` 启动 LeRobot GUI |
+| `scripts/calibration_follower.py`   | 将从臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
+| `scripts/calibration_leader.py`     | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
+| `scripts/bi_teleop.py`              | 启动双臂遥操作                     | 端口要对应上                                             |
 
-## 4. 数据采集（Recording）
+## 4. 数据采集（record_dk1.py）
 
 ### 4.1. 登录 Hugging Face 及修改训练集存储位置
 
@@ -137,9 +137,9 @@ lerobot-teleoperate \
 
 ### 4.2. 扫描并加入摄像头
 
-- 使用脚本 `examples/get_uvc_cam_idx.py` 获取可用相机的索引和可用分辨率及对应帧数，一般使用直接 `python examples/get_uvc_cam_idx.py` 即可，其他参数及具体使用方法见脚本
+- 使用脚本 `scripts/get_uvc_cam_idx.py` 获取可用相机的索引和可用分辨率及对应帧数，一般使用直接 `python scripts/get_uvc_cam_idx.py` 即可，其他参数及具体使用方法见脚本
 
-- 获取索引后配置 `examples/record_dk1.sh` 的相机参数 `CAMERAS_CONFIG` ，修改相机索引
+- 获取索引后配置 `scripts/record_dk1.sh` 的相机参数 `CAMERAS_CONFIG` ，修改相机索引
 
 - 相机可随意摆放，唯一要求是相机能观测到机械臂本体的完整动作（如果动作涉及交互物，则交互动作不能被遮挡），并且摆放好之后尽量别随意挪动位置
 
@@ -157,44 +157,31 @@ lerobot-teleoperate \
       - `ESC` 键：结束整个录制过程并根据 `push_to_hub` 参数来保存本地 + 上传 Hub
 
 
-- 录包脚本 `examples/record_dk1.sh` ：
-  - 进入虚拟环境后在终端输入 `./examples/record_dk1.sh` 来启动录包脚本
+- 录包脚本 `bash/record_dk1.sh` ：
+
+  - 进入虚拟环境后先给脚本权限：`chmod +x bash/record_dk1.sh`
+  - 在终端输入 `./bash/record_dk1.sh` 来启动录包脚本
   - 参数 `--repo_id` 必填，为训练集名称；默认开启续录，当训练集不存在时自动创建
-  - 常规使用：`./examples/record_dk1.sh --repo_id $USER/name`
+  - 常规使用：`./bash/record_dk1.sh --repo_id $USER/name`
+  - 具体参数见脚本注释，主要要按格式填好摄像头配置，然后重置时间 `Reset the environment` 这个注意是重复 `episode` 使用的时间，例如预设的是30s，而实际提前录制完成使用的时间为15s，那 `RESET_TIME_S` 如果设置为10s，那就会再播报 `Reset the environment` 之后会有10s时间来继续遥操作，10s后停止遥操作并给 15s + 10s = 25s 的时间来重置环境；因此 `RESET_TIME_S` 建议设置为0，录制期间就完成动作并复位好机械臂然后按下 `→` 按键进行环境复原，效率会更高
+
 - 录包期间操作：
   - 听语音播报：`Recording episode X` 时开始动作（其中 X 表示为在录第 X 个 episode）
   - 听语音播报：`Reset the environment` 时恢复场景
   - `←` 按键：重新录制当前 episode
-  - `→` 按键：录制完成当前 episode ，可以开始场景恢复以准备下一个 episode
+  - `→` 按键：提前录制完成当前 episode ，可以开始场景恢复以准备下一个 episode
   - `ESC` 按键：终止录制，终止后小机械臂可以随便动，达妙机械臂会保持力矩在原位姿
-- 终止录制后，终端输入 `python examples/reset.py` 来让达妙机械臂复位并失能
+- 终止录制后，终端输入 `python scripts/reset.py` 来让达妙机械臂复位并失能
 
-## 5. 模型推理（Inference / Evaluation）
+## 5. 模型训练（train_dk1.sh）
 
-使用已训练的模型进行推理：
 
-```bash
-lerobot-record  \
-  --robot.type=dk1_follower \
-  --robot.port=/dev/ttyACM0 \
-  --robot.joint_velocity_scaling=0.5 \
-  --robot.cameras="{
-      context: {type: opencv, index_or_path: 0, width: 640, height: 360, fps: 30},
-      wrist: {type: opencv, index_or_path: 1, width: 640, height: 360, fps: 30}
-    }" \
-  --display_data=true \
-  --dataset.repo_id=$USER/eval_my_model \
-  --dataset.single_task="My task description." \
-  --dataset.push_to_hub=false \
-  --policy.path=outputs/my_model/checkpoints/last/pretrained_model
-```
 
-说明：
+## 6.模型评估（eval_dk1.sh）
 
-- `policy.path`：使用你自己的模型参数路径
-- `display_data=true`：实时显示传感器和控制数据([GitHub](https://github.com/robot-learning-co/trlc-dk1/tree/main?tab=readme-ov-file))
 
-## 6. 双臂（Bimanual）操作
+
+## 7. 双臂操作
 
 ```bash
 lerobot-teleoperate \
@@ -219,7 +206,7 @@ lerobot-teleoperate \
 - 支持双臂主从映射
 - 需要分配上下文和两个腕部摄像头([GitHub](https://github.com/robot-learning-co/trlc-dk1/tree/main?tab=readme-ov-file))
 
-## 7. URDF 模型（可视化 / ROS 集成）
+## 8. URDF 模型（可视化 / ROS 集成）
 
 仓库的 README 指向了一个高质量的 URDF（由社区贡献）链接，用于：
 
@@ -228,13 +215,13 @@ lerobot-teleoperate \
 
 （链接在 README 中可直接访问）([GitHub](https://github.com/robot-learning-co/trlc-dk1/tree/main?tab=readme-ov-file))
 
-## 8. 注意事项
+## 9. 注意事项
 
-### 8.1. 摄像头编号
+### 9.1. 摄像头编号
 
 不同 Ubuntu 机器摄像头编号可能不一样，在命令行中指定正确的 `--robot.cameras` 索引。
 
-### 8.2. 关节速度缩放
+### 9.2. 关节速度缩放
 
 ```
 --robot.joint_velocity_scaling=0.2
@@ -242,7 +229,7 @@ lerobot-teleoperate \
 
 确保安全后再提升到 1.0([docs.robot-learning.co](https://docs.robot-learning.co/getting_started?utm_source=chatgpt.com))
 
-### 8.3. USB 权限
+### 9.3. USB 权限
 
 没有正确的 udev 权限可能导致串口无法打开
 
