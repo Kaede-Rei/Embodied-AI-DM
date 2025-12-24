@@ -32,11 +32,12 @@ LEADER_PORT="/dev/ttyUSB0"              # Leader 臂串口
 JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
 # 预设摄像头配置，要严格按照示例格式填写：
 # CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
-CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 0, "width": 1280, "height": 720, "fps": 25}}'
+CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 25}}'
 NUM_EPISODES=50                         # 录制 episode 数量
 EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
 RESET_TIME_S=0                          # 重置时间（秒），注意实际总重置时间是 重置时间 + (当前 episode 实际使用的时间 + 重置时间)，所以写 0 即可
 TASK_DESCRIPTION="Task description."    # 单任务描述
+DATASET_FPS=25                          # 数据集保存的帧率（默认25，必须与相机帧率一致）
 PUSH_TO_HUB=false                       # 是否上传至 Hugging Face Hub
 RESUME=true                             # 是否从现有数据集继续录制
 DISPLAY_DATA=true                       # 是否启用 rerun.io 实时可视化
@@ -67,9 +68,38 @@ if [[ -z "$REPO_ID" ]]; then
     exit 1
 fi
 
+# 自动检测并验证帧率一致性
+if [ -n "$CAMERAS_CONFIG" ]; then
+    echo "检查相机帧率与数据集帧率一致性..."
+    
+    # 从CAMERAS_CONFIG中提取第一个相机的帧率
+    EXTRACTED_FPS=$(python3 -c "
+import json
+config = json.loads('$CAMERAS_CONFIG')
+if config:
+    first_camera = next(iter(config.values()))
+    print(first_camera.get('fps', $DATASET_FPS))
+else:
+    print($DATASET_FPS)
+")
+    
+    # 如果指定了dataset_fps但相机配置也有帧率，检查是否一致
+    if [ "$EXTRACTED_FPS" != "$DATASET_FPS" ]; then
+        echo "警告：相机帧率($EXTRACTED_FPS)与数据集帧率($DATASET_FPS)不一致！"
+        echo "建议：使用 --dataset_fps $EXTRACTED_FPS 保持一致性"
+        read -p "是否自动调整数据集帧率为相机帧率? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            DATASET_FPS=$EXTRACTED_FPS
+            echo "已自动调整数据集帧率为: $DATASET_FPS"
+        fi
+    fi
+fi
+
 echo "========================================"
 echo "- 启动 DK1 数据集录制（使用官方 lerobot-record）..."
 echo "- Repo ID: $REPO_ID"
+echo "- 数据集帧率: $DATASET_FPS Hz"
 echo "- 本地存储路径: $HF_HOME/lerobot/$REPO_ID"
 echo "- 键盘操作提示："
 echo "-     → (右箭头)：提前结束当前 episode 并保存"
@@ -88,6 +118,7 @@ ARGS=(
     --teleop.type=dk1_leader
     --teleop.port="$LEADER_PORT"
     --dataset.repo_id="$REPO_ID"
+    --dataset.fps="$DATASET_FPS"
     --dataset.push_to_hub="$PUSH_TO_HUB"
     --dataset.num_episodes="$NUM_EPISODES"
     --dataset.episode_time_s="$EPISODE_TIME_S"
@@ -128,6 +159,7 @@ fi
 
 echo "========================================="
 echo "- 录制完成！数据集已保存至：$HF_HOME/lerobot/$REPO_ID"
+echo "- 数据集帧率: $DATASET_FPS Hz"
 if [ "$PUSH_TO_HUB" = true ]; then
     echo "- 已上传至 Hugging Face Hub: https://huggingface.co/datasets/$REPO_ID"
 fi

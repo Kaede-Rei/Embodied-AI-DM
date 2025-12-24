@@ -150,7 +150,6 @@ conda activate dk1
   - 参数 `--repo_id` 必填，为训练集名称；默认开启续录，当训练集不存在时自动创建
   - 常规使用：`./bash/record_dk1.sh --repo_id $USER/name`
   - 具体参数见脚本注释，主要要按格式填好摄像头配置，然后重置时间 `Reset the environment` 这个注意是重复 `episode` 使用的时间，例如预设的是30s，而实际提前录制完成使用的时间为15s，那 `RESET_TIME_S` 如果设置为10s，那就会再播报 `Reset the environment` 之后会有10s时间来继续遥操作，10s后停止遥操作并给 15s + 10s = 25s 的时间来重置环境；因此 `RESET_TIME_S` 建议设置为0，录制期间就完成动作并复位好机械臂然后按下 `→` 按键进行环境复原，效率会更高
-
 - 录包期间操作：
   - 听语音播报：`Recording episode X` 时开始动作（其中 X 表示为在录第 X 个 episode）
   - 听语音播报：`Reset the environment` 时恢复场景
@@ -158,6 +157,28 @@ conda activate dk1
   - `→` 按键：提前录制完成当前 episode ，可以开始场景恢复以准备下一个 episode
   - `ESC` 按键：终止录制，终止后小机械臂可以随便动，达妙机械臂会保持力矩在原位姿
 - 终止录制后，终端输入 `python scripts/reset.py` 来让达妙机械臂复位并失能
+
+### 4.4. 录包技巧
+
+- 按 LeRobot 官方的推荐，应该 10 个 episodes 为一组，录制多个随机分布的场景，至少有五个场景也就是至少有 50 个 episodes 作为一次最简训练集，同时最佳实践是操作者能仅通过摄像头来完成全部操作，同时操作完整、平滑不突变，并在录包完成后对数据进行 线性插值 + 平滑滤波处理：
+
+  ```
+  Tips for gathering data
+  
+  Once you’re comfortable with data recording, you can create a larger dataset for training. A good starting task is grasping an object at different locations and placing it in a bin. We suggest recording at least 50 episodes, with 10 episodes per location. Keep the cameras fixed and maintain consistent grasping behavior throughout the recordings. Also make sure the object you are manipulating is visible on the camera’s. A good rule of thumb is you should be able to do the task yourself by only looking at the camera images.
+  
+  In the following sections, you’ll train your neural network. After achieving reliable grasping performance, you can start introducing more variations during data collection, such as additional grasp locations, different grasping techniques, and altering camera positions.
+  
+  Avoid adding too much variation too quickly, as it may hinder your results.
+  ```
+
+- 对于相机的摆布，建议是 一个全局视角相机 + 一个末端视角相机
+
+- 更多社区经验见：[LeRobot Community Datasets: what-makes-a-good-dataset](https://huggingface.co/blog/lerobot-datasets#what-makes-a-good-dataset)
+
+### 4.5. 数据处理
+
+找到自己的训练集所在位置，复制 `<repo_id>/data/chunk-xxx/file-xxx.parquet` 到仓库的 `./data` 中，终端输入 `./scripts/data_processer.py` 具体参数配置见脚本注释，查看处理前后的波形，直到突变点极少、波形平滑后再保存，然后将输出的 `file-xxx_new.parquet` 重命名并覆盖训练集的数据
 
 ## 5. 模型训练（train_dk1.sh）
 
@@ -167,7 +188,7 @@ conda activate dk1
 ./bash/train_dk1.sh --policy_repo_id 模型名称 --dataset_repo_id 训练集名称
 ```
 
-训练启动后会进入后台进行训练，训练进度在当前目录下生成的 `训练集名称.log` 中实时打印，第一次训练会有进度条不停打印在下载前置，正式开始训练时会有以下内容，每200步会打印一次进度：
+训练启动后会进入后台进行训练，训练进度在 `./log/` 下生成的 `训练集名称.log` 中实时打印，第一次训练会有进度条不停打印在下载前置，正式开始训练时会有以下内容，每200步会打印一次进度：
 
 ```bash
 INFO 2025-12-23 18:25:19 ot_train.py:347 step:200 smpl:400 ep:1 epch:0.05 loss:0.737 grdn:51.002 lr:1.0e-05 updt_s:0.182 data_s:0.005
@@ -185,7 +206,7 @@ INFO 2025-12-23 20:13:54 ot_train.py:357 Checkpoint policy after step 40000
 INFO 2025-12-23 20:13:55 ot_train.py:426 End of training
 ```
 
-训练好的模型会在当前文件夹的 `output` 文件夹下，如果需要终止训练，则见 `训练集名称.param` 里的训练集PID：`TRAIN_PID=pid` ，在终端中输入 `kill pid` 即可停止终止训练，此时 `output` 文件夹里只会有训练了一半的模型（根据步数，在40000步情况下会有 20000 和 40000 两个步数时的模型）
+训练好的模型会在当前文件夹的 `output` 文件夹下，如果需要终止训练，则见 `./log/训练集名称.param` 里的训练集PID：`TRAIN_PID=pid` ，在终端中输入 `kill pid` 即可停止终止训练，此时 `output` 文件夹里只会有训练了一半的模型（根据步数，在40000步情况下会有 20000 和 40000 两个步数时的模型）
 
 其他参数需要修改的见脚本注释
 

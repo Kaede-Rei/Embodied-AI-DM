@@ -26,10 +26,10 @@ POLICY_TYPE="act"             # 策略类型
 PUSH_TO_HUB=false             # 是否上传至 Hugging Face Hub
 DEVICE="cuda"                 # 训练设备选择
 USE_VAE=false                 # 是否使用 VAE 编码器
-N_ACTION_STEPS=50             # 动作步数
-CHUNK_SIZE=50                 # 数据块大小
-BATCH_SIZE=2                  # 训练批次大小
-STEPS=40000                   # 训练总步数
+N_ACTION_STEPS=50             # 动作步数（模型部署时采取预测序列的前 N 步）
+CHUNK_SIZE=100                # 数据块大小（轨迹片段的时序长度，通常越大越接近原轨迹，越小泛化能力越强）
+BATCH_SIZE=2                  # 训练批次大小（越小泛化能力越强但训练不稳定且慢，越大训练越稳定但易过拟合且需更多显存，通常 4-32，但显存不够时要降）
+STEPS=40000                   # 训练总步数（episodes < 50时建议 20k-30k，episodes 50-200时建议 10k-40k，episodes > 200时建议 40k+）
 DATASET_REPO_ID=""            # 必须参数：数据集仓库 ID
 POLICY_REPO_ID=""             # 必须参数：模型仓库 ID
 
@@ -61,6 +61,9 @@ REPO_NAME=$(basename "$POLICY_REPO_ID")
 # 自动构造本地训练输出目录，与 policy_repo_id 的仓库名称保持一致
 OUTPUT_DIR="outputs/train/$REPO_NAME"
 
+# 确保 log 目录存在
+mkdir -p ./log
+
 # 输出启动信息
 echo "========================================"
 echo "- 启动 DK1 ACT 模型训练"
@@ -90,14 +93,14 @@ echo "========================================"
     --output_dir="$OUTPUT_DIR" \
     --job_name="${REPO_NAME}" \
     "${EXTRA_ARGS[@]}" \
-    > "train_${REPO_NAME}.log" 2>&1
+    > "./log/train_${REPO_NAME}.log" 2>&1
 ) &
 
 # 捕获训练进程的 PID
 TRAIN_PID=$!
 
 # 生成参数文件 train_${REPO_NAME}.param
-PARAM_FILE="train_${REPO_NAME}.param"
+PARAM_FILE="./log/train_${REPO_NAME}.param"
 {
   echo "TRAIN_PID=$TRAIN_PID"
   echo "POLICY_REPO_ID=$POLICY_REPO_ID"

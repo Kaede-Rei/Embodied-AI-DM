@@ -23,7 +23,7 @@
 CAMERAS_CONFIG = {
     "context": {
         "type": "opencv",
-        "index_or_path": 0,
+        "index_or_path": 2,
         "width": 1280,
         "height": 720,
         "fps": 30
