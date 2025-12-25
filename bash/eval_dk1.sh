@@ -9,11 +9,13 @@
 # 4. 若从 Hugging Face Hub 加载模型或上传评估数据集：已执行 huggingface-cli login
 #
 # 使用方法示例：
-# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model
-# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model --from_hub
-# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model --repo_id $USER/custom_eval
-# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model --num_episodes 10 --joint_velocity_scaling 0.7 --push_to_hub
-# ./eval_dk1.sh --policy_repo_id $USER/act_dk1_model --no_display --no_cameras --resume
+# ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model
+# ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --from_hub
+# ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --repo_id $USER/custom_eval
+# ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --num_episodes 10 --joint_velocity_scaling 0.7 --push_to_hub
+# ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --no_display --no_cameras --resume
+# ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --no_display --no_cameras --resume
+# ./bash/eval_dk1.sh --policy_repo_id $USER/act_dk1_model --n_action_steps 10 --temporal_ensemble_coeff 0.02  # 新增示例
 #
 # 支持的参数：
 # --policy_repo_id <repo_id>            必须：模型仓库 ID（如 $USER/act_dk1_model）
@@ -28,22 +30,26 @@
 # --resume                              从现有评估数据集继续录制（默认启用）
 # --no_cameras                          不启用摄像头录制（默认启用单个 PC 摄像头）
 # --no_display                          不启用 rerun.io 实时可视化（默认启用）
+# --n_action_steps <int> ACT            策略中执行的动作步数（默认 1，启用平滑集成，较小值更平滑但速度慢，一般取 1~50）
+# --temporal_ensemble_coeff <float>     时序集成衰减系数（默认 0.01，，仅在 n_action_steps=1 时生效；值越小平滑越强，相当于对输出进行低通滤波）
 
 # 默认参数配置
 FOLLOWER_PORT="/dev/ttyACM0"
-JOINT_VELOCITY_SCALING=0.1
+JOINT_VELOCITY_SCALING=1.0
 NUM_EPISODES=5
 EPISODE_TIME_S=30
 RESET_TIME_S=0                          # 固定为 0
 TASK_DESCRIPTION="Evaluation of trained ACT policy."
-DATASET_FPS=25                          # 数据集保存的帧率（默认25，必须与相机帧率一致，会自动处理）
+DATASET_FPS=30                          # 数据集保存的帧率（默认25，必须与相机帧率一致，会自动处理）
 PUSH_TO_HUB=false
-CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 25}}'
+CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 0, "width": 1280, "height": 720, "fps": 25}}'
 DISPLAY_DATA=true
 RESUME=true
 FROM_HUB=false
 POLICY_REPO_ID=""
 REPO_ID=""
+N_ACTION_STEPS=1
+TEMPORAL_ENSEMBLE_COEFF=0.01
 
 # 解析命令行参数
 while [[ $# -gt 0 ]]; do
@@ -60,6 +66,8 @@ case $1 in
 --resume) RESUME=true; shift ;;
 --no_cameras) CAMERAS_CONFIG=""; shift ;;
 --no_display) DISPLAY_DATA=false; shift ;;
+--n_action_steps) N_ACTION_STEPS="$2"; shift 2 ;;
+--temporal_ensemble_coeff) TEMPORAL_ENSEMBLE_COEFF="$2"; shift 2 ;;
 *) echo "未知参数: $1"; exit 1 ;;
 esac
 done
@@ -145,7 +153,13 @@ ARGS=(
     --dataset.reset_time_s="$RESET_TIME_S"
     --dataset.single_task="$TASK_DESCRIPTION"
     --robot.disable_torque_on_disconnect=false
+    --policy.n_action_steps="$N_ACTION_STEPS"
 )
+
+# 处理 temporal ensembling 兼容性
+if [ "$N_ACTION_STEPS" = 1 ]; then
+ARGS+=(--policy.temporal_ensemble_coeff="$TEMPORAL_ENSEMBLE_COEFF")
+fi
 
 # 根据加载来源添加 policy 参数
 if [ "$FROM_HUB" = true ]; then
