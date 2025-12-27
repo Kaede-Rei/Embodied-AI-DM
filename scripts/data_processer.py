@@ -27,22 +27,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 
-
-# ============================================================
-# 默认参数（可被命令行覆盖）
-# ============================================================
-
+# 默认参数
 DEFAULT_TARGET = "observation.state"
 DEFAULT_JUMP_THRESHOLD = 0.1
 DEFAULT_SMOOTH_WINDOW = 25
 DEFAULT_POLY_ORDER = 3
 DEFAULT_LOOP = 1
 
-
-# ============================================================
 # 单关节处理逻辑
-# ============================================================
-
 def process_joint_once(raw_data, jump_threshold, smooth_window, poly_order):
     """
     对单个关节的一维时间序列执行一次处理：
@@ -85,10 +77,7 @@ def process_joint_loop(raw_data, loop, **kwargs):
     return data, all_masks[0]
 
 
-# ============================================================
 # Episode 级处理
-# ============================================================
-
 def plot_episode(df, ep_id, target, loop, args):
     """
     可视化单个 episode：
@@ -199,10 +188,6 @@ def process_all_episodes(df, target, loop, args):
     print("全部 episodes 处理完成")
     return df_out
 
-
-# ============================================================
-# 主入口
-# ============================================================
 
 def main():
     parser = argparse.ArgumentParser(

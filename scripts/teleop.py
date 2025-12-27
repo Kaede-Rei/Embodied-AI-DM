@@ -34,8 +34,8 @@ import argparse
 import time
 import subprocess
 import json
-from trlc_dk1.follower import DK1Follower, DK1FollowerConfig
-from trlc_dk1.leader import DK1Leader, DK1LeaderConfig
+from lerobot_robot_multi_robots.dm_arm import DMFollower, DMLeader
+from lerobot_robot_multi_robots.dm_arm import DMFollowerConfig, DMLeaderConfig
 
 CAMERAS_JSON = json.dumps(CAMERAS_CONFIG)
 
@@ -54,25 +54,24 @@ def main():
     if args.display_data:
         cmd = [
             "lerobot-teleoperate",
-            f"--robot.type=dk1_follower",
+            f"--robot.type=dm_follower",
             f"--robot.port={args.follower_port}",
             f"--robot.joint_velocity_scaling=1.0",
-            f"--teleop.type=dk1_leader",
+            f"--teleop.type=dm_leader",
             f"--teleop.port={args.leader_port}",
             "--display_data=true",
             f"--robot.cameras={CAMERAS_JSON}",  # 固定启用摄像头配置
         ]
 
-        print("Launching rerun.io GUI with cameras:", " ".join(cmd))
         try:
             subprocess.run(cmd, check=True)
         except KeyboardInterrupt:
             print("\nStopping teleop GUI...")
         finally:
             # 确保在退出时安全断开连接（若需要）
-            leader = DK1Leader(DK1LeaderConfig(port=args.leader_port))
+            leader = DMLeader(DMLeaderConfig(port=args.leader_port))
             leader.connect()
-            follower = DK1Follower(DK1FollowerConfig(
+            follower = DMFollower(DMFollowerConfig(
                 port=args.follower_port,
                 disable_torque_on_disconnect=True
             ))
@@ -82,9 +81,9 @@ def main():
         return
 
     # 无界面纯遥操作模式（仅关节动作映射，无摄像头、无 GUI）
-    leader = DK1Leader(DK1LeaderConfig(port=args.leader_port))
+    leader = DMLeader(DMLeaderConfig(port=args.leader_port))
     leader.connect()
-    follower = DK1Follower(DK1FollowerConfig(
+    follower = DMFollower(DMFollowerConfig(
         port=args.follower_port,
         joint_velocity_scaling=1.0,
         disable_torque_on_disconnect=True

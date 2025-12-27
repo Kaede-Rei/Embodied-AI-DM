@@ -1,11 +1,12 @@
-from trlc_dk1.leader import DK1Leader, DK1LeaderConfig
+from lerobot_robot_multi_robots.dm_arm import DMLeader
+from lerobot_robot_multi_robots.config_dm_arm import DMLeaderConfig
 import time
 
-leader_config = DK1LeaderConfig(
+leader_config = DMLeaderConfig(
     port="/dev/ttyUSB0"
 )
 
-leader = DK1Leader(leader_config)
+leader = DMLeader(leader_config)
 leader.connect()
 
 

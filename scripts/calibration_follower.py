@@ -1,14 +1,15 @@
-from trlc_dk1.follower import DK1Follower, DK1FollowerConfig
-from trlc_dk1.motors.DM_Control_Python.DM_CAN import *
+from lerobot_robot_multi_robots.dm_arm import DMFollower
+from lerobot_robot_multi_robots.config_dm_arm import DMFollowerConfig
+from lerobot_robot_multi_robots.motors.DM_Control_Python.DM_CAN import *
 
 import serial
 import time
 
 
-follower_config = DK1FollowerConfig(
+follower_config = DMFollowerConfig(
     port="/dev/ttyACM1",
 )
-follower = DK1Follower(follower_config)
+follower = DMFollower(follower_config)
 
 follower.serial_device = serial.Serial(follower_config.port, 921600, timeout=0.5)
 time.sleep(0.5)

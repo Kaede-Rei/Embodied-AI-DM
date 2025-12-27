@@ -1,6 +1,7 @@
-from trlc_dk1.leader import DK1Leader, DK1LeaderConfig
+from lerobot_robot_multi_robots.dm_arm import DMLeader
+from lerobot_robot_multi_robots.dm_arm import DMLeaderConfig
 
-leader = DK1Leader(DK1LeaderConfig(port="/dev/ttyUSB0"))
+leader = DMLeader(DMLeaderConfig(port="/dev/ttyUSB0"))
 leader.connect()
 
 # 建议先禁用夹爪力矩，避免写寄存器时受力

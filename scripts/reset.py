@@ -10,8 +10,8 @@ import argparse
 import time
 import sys
 import numpy as np
-from trlc_dk1.follower import DK1Follower, DK1FollowerConfig
-
+from lerobot_robot_multi_robots.dm_arm import DMFollower
+from lerobot_robot_multi_robots.config_dm_arm import DMFollowerConfig
 
 def parse_args():
     parser = argparse.ArgumentParser(description="DK1 Follower 平滑复位脚本")
@@ -84,7 +84,7 @@ def main():
 
     print("\n正在连接机械臂...")
     try:
-        follower = DK1Follower(DK1FollowerConfig(
+        follower = DMFollower(DMFollowerConfig(
             port=args.follower_port,
             joint_velocity_scaling=args.joint_velocity_scaling,
             disable_torque_on_disconnect=True

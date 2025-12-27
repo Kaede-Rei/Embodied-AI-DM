@@ -3,29 +3,18 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "trlc_dk1"
+name = "lerobot_robot_multi_robots"
 version = "0.1.0"
 dependencies = [
-  "numpy>=2.0.1",
-  "pyserial>=3.5",
-  "dynamixel-sdk>=3.7.31",
-  "lerobot@git+https://github.com/robot-learning-co/lerobot.git@trlc-dk1",
-  "opencv-python>=4.8.0",
-  "matplotlib>=3.7.2",
-  "pandas>=2.2.0",
-  "scipy>=1.11.1",
+    "numpy>=2.0.1",
+    "pyserial>=3.5",
+    "dynamixel-sdk>=3.7.31",
+    "lerobot",
+    "opencv-python>=4.8.0",
+    "matplotlib>=3.7.2",
+    "pandas>=2.2.0",
+    "scipy>=1.11.1",
 ]
-
-authors = [
-  {name = "Jannik Grothusen", email = "jannik@robot-learning.co"},
-]
-maintainers = [
-  {name = "Jannik Grothusen", email = "jannik@robot-learning.co"},
-]
-
-[project.urls]
-Homepage = "https://www.robot-learning.co/"
-Documentation = "https://www.docs.robot-learning.co/"
 
 [tool.hatch.metadata]
 allow-direct-references = true
