@@ -8,7 +8,8 @@
 # 3. 在 ~/.bashrc 中添加：export HF_HOME="自定义缓存路径"
 # 
 # 使用方法示例：
-# ./bash/record_dm.sh --repo_id $USER/dm_my_task
+# ./bash/record_dm.sh --repo_id agro/dm_record_vx（组织文件夹，vx 为版本号）
+# ./bash/record_dm.sh --repo_id $USER/dm_my_task（个人文件夹，可用于测试）
 # ./bash/record_dm.sh --repo_id $USER/dm_my_task --no_cameras
 # ./bash/record_dm.sh --repo_id $USER/dm_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
 # 
