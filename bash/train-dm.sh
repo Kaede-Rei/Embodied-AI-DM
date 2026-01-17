@@ -8,9 +8,9 @@
 # 3. 训练数据集 repo_id 已存在并可访问
 #
 # 使用方法示例：
-# ./bash/train_dm.sh --policy_repo_id $USER/act_dm_model --dataset_repo_id $USER/dm_dataset
-# ./bash/train_dm.sh --policy_repo_id $USER/act_dm_more_data --dataset_repo_id $USER/dm_dataset --steps 30000 --batch_size 4
-# ./bash/train_dm.sh --policy_repo_id $USER/act_dm_model --dataset_repo_id $USER/dm_dataset --push_to_hub --steps 50000
+# ./bash/train-dm.sh --policy_repo_id $USER/act_dm_model --dataset_repo_id $USER/dm_dataset
+# ./bash/train-dm.sh --policy_repo_id $USER/act_dm_more_data --dataset_repo_id $USER/dm_dataset --steps 30000 --batch_size 4
+# ./bash/train-dm.sh --policy_repo_id $USER/act_dm_model --dataset_repo_id $USER/dm_dataset --push_to_hub --steps 50000
 #
 # 支持的参数：
 # --policy_repo_id <repo_id>            必须：模型仓库 ID（如 $USER/act_dm_model）

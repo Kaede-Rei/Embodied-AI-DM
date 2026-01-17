@@ -9,12 +9,12 @@
 # 4. 若从 Hugging Face Hub 加载模型或上传评估数据集：已执行 huggingface-cli login
 #
 # 使用方法示例：
-# ./bash/eval_dm.sh --policy_repo_id $USER/act_dm_model
-# ./bash/eval_dm.sh --policy_repo_id $USER/act_dm_model --from_hub
-# ./bash/eval_dm.sh --policy_repo_id $USER/act_dm_model --repo_id $USER/custom_eval
-# ./bash/eval_dm.sh --policy_repo_id $USER/act_dm_model --num_episodes 10 --joint_velocity_scaling 0.7 --push_to_hub
-# ./bash/eval_dm.sh --policy_repo_id $USER/act_dm_model --no_display --no_cameras --resume
-# ./bash/eval_dm.sh --policy_repo_id $USER/act_dm_model --n_action_steps 10 --temporal_ensemble_coeff 0.02
+# ./bash/eval-dm.sh --policy_repo_id $USER/act_dm_model
+# ./bash/eval-dm.sh --policy_repo_id $USER/act_dm_model --from_hub
+# ./bash/eval-dm.sh --policy_repo_id $USER/act_dm_model --repo_id $USER/custom_eval
+# ./bash/eval-dm.sh --policy_repo_id $USER/act_dm_model --num_episodes 10 --joint_velocity_scaling 0.7 --push_to_hub
+# ./bash/eval-dm.sh --policy_repo_id $USER/act_dm_model --no_display --no_cameras --resume
+# ./bash/eval-dm.sh --policy_repo_id $USER/act_dm_model --n_action_steps 10 --temporal_ensemble_coeff 0.02
 #
 # 支持的参数：
 # --policy_repo_id <repo_id>            必须：模型仓库 ID（如 $USER/act_dm_model）
