@@ -1,39 +1,11 @@
-#!/bin/bash
-# DM 机器人数据集录制 Bash 脚本（使用 lerobot-record 命令）
-#
-# 前提：DM 已通过插件机制注册（--robot.type=dm_follower 等可用）
-# 使用前确保：
-# 1. 已激活包含 LeRobot 的 Python 环境
-# 2. 已 hf login（若需 push_to_hub）
-# 3. 在 ~/.bashrc 中添加：export HF_HOME="自定义缓存路径"
-# 
-# 使用方法示例：
-# ./bash/record_dm.sh --repo_id agro/dm_record_vx（组织文件夹，vx 为版本号）
-# ./bash/record_dm.sh --repo_id $USER/dm_my_task（个人文件夹，可用于测试）
-# ./bash/record_dm.sh --repo_id $USER/dm_my_task --no_cameras
-# ./bash/record_dm.sh --repo_id $USER/dm_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
-# 
-# 支持的参数：
-# --repo_id <repo_id>                   必须：数据集 repo_id（如 $USER/dm_test）
-# --follower_port <port> Follower       从臂串口（默认 /dev/ttyACM0）
-# --leader_port <port> Leader           主臂串口（默认 /dev/ttyUSB0）
-# --joint_velocity_scaling <val>        关节速度缩放（默认 1.0）
-# --num_episodes <num>                  录制 episode 数量（默认 50）
-# --episode_time_s <sec>                每个 episode 时长（秒，默认 30）
-# --reset_time_s <sec>                  重置时间（秒，默认 0）
-# --task_description <desc>             单任务描述（默认 "Task description."）
-# --push_to_hub                         录制后自动上传至 Hugging Face Hub（默认不启用）
-# --resume                              从现有数据集继续录制（默认启用）
-# --no_cameras                          不启用摄像头（默认启用两个摄像头）
-# --no_display                          不启用 rerun.io 实时可视化（默认启用）
-
 # 默认参数配置
-FOLLOWER_PORT="/dev/ttyACM0"            # Follower 臂串口
-LEADER_PORT="/dev/ttyUSB0"              # Leader 臂串口
-JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
+FOLLOWER_LEFT_PORT="/dev/ttyACM0"
+FOLLOWER_RIGHT_PORT="/dev/ttyACM1"
+LEADER_LEFT_PORT="/dev/ttyUSB0"
+LEADER_RIGHT_PORT="/dev/ttyUSB1"
 # 预设摄像头配置，要严格按照示例格式填写：
 # CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
-CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 25}}'
+CAMERAS_CONFIG='{"context_left": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 25}, "context_right": {"type": "opencv", "index_or_path": 3, "width": 1280, "height": 720, "fps": 25}}'
 NUM_EPISODES=50                         # 录制 episode 数量
 EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
 RESET_TIME_S=0                          # 重置时间（秒），注意实际总重置时间是 重置时间 + (当前 episode 实际使用的时间 + 重置时间)，所以写 0 即可
@@ -47,9 +19,10 @@ REPO_ID=""                              # 数据集 repo_id（必须参数）
 # 解析命令行参数
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --follower_port) FOLLOWER_PORT="$2"; shift 2 ;;
-        --leader_port) LEADER_PORT="$2"; shift 2 ;;
-        --joint_velocity_scaling) JOINT_VELOCITY_SCALING="$2"; shift 2 ;;
+        --follower_left_port) FOLLOWER_LEFT_PORT="$2"; shift 2 ;;
+        --follower_right_port) FOLLOWER_RIGHT_PORT="$2"; shift 2 ;;
+        --leader_left_port) LEADER_LEFT_PORT="$2"; shift 2 ;;
+        --leader_right_port) LEADER_RIGHT_PORT="$2"; shift 2 ;;
         --num_episodes) NUM_EPISODES="$2"; shift 2 ;;
         --episode_time_s) EPISODE_TIME_S="$2"; shift 2 ;;
         --reset_time_s) RESET_TIME_S="$2"; shift 2 ;;
@@ -72,8 +45,8 @@ fi
 # 自动检测并验证帧率一致性
 if [ -n "$CAMERAS_CONFIG" ]; then
     echo "检查相机帧率与数据集帧率一致性..."
-    
-    # 从 CAMERAS_CONFIG 中提取第一个相机的帧率
+
+    # 从 CAMERAS_CONFIG 中提取所有相机的帧率
     EXTRACTED_FPS=$(python3 -c "
 import json
 config = json.loads('$CAMERAS_CONFIG')
@@ -83,7 +56,7 @@ if config:
 else:
     print($DATASET_FPS)
 ")
-    
+
     # 如果指定了dataset_fps但相机配置也有帧率，检查是否一致
     if [ "$EXTRACTED_FPS" != "$DATASET_FPS" ]; then
         echo "警告：相机帧率($EXTRACTED_FPS)与数据集帧率($DATASET_FPS)不一致！"
@@ -113,12 +86,14 @@ echo "========================================"
 
 # 构建参数数组
 ARGS=(
-    --robot.type=dm_follower
-    --robot.port="$FOLLOWER_PORT"
+    --robot.type=dual_dm_follower
+    --robot.left_port="$FOLLOWER_LEFT_PORT"
+    --robot.right_port="$FOLLOWER_RIGHT_PORT"
     --robot.joint_velocity_scaling="$JOINT_VELOCITY_SCALING"
     --robot.disable_torque_on_disconnect=false
-    --teleop.type=dm_leader
-    --teleop.port="$LEADER_PORT"
+    --teleop.type=dual_dm_leader
+    --teleop.left_port="$LEADER_LEFT_PORT"
+    --teleop.right_port="$LEADER_RIGHT_PORT"
     --dataset.repo_id="$REPO_ID"
     --dataset.fps="$DATASET_FPS"
     --dataset.push_to_hub="$PUSH_TO_HUB"
@@ -130,7 +105,7 @@ ARGS=(
 
 # 添加可选的摄像头配置
 if [ -n "$CAMERAS_CONFIG" ]; then
-    ARGS+=(--robot.cameras="$CAMERAS_CONFIG")
+    ARGS+=(--robot.cameras_config="$CAMERAS_CONFIG")
 fi
 
 # 检测数据集是否已存在

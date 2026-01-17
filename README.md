@@ -23,6 +23,8 @@ sudo reboot		# 重启
 
 ### 1.2. 硬件连接
 
+- 移动硬盘：插入移动硬盘<img src="README.assets/image-20260117100307811.png" alt="image-20260117100307811" style="zoom: 15%;" />
+
 - 电源：小电源开 24V 供从臂；大电源开 7-10V(建议8V) 供主臂	<img src="README.assets/image-20251223214229135.png" alt="image-20251223214229135" style="zoom:15%;" />
 
 - 从臂：小电源接转接板连接到底座供电，CAN 口接 USB转CAN模块 再接电脑，一般是 `/dev/ttyACM0` 
@@ -37,9 +39,17 @@ sudo reboot		# 重启
 
 ## 2. 识别设备串口并进入虚拟环境
 
-### 2.1. 用 LeRobot 的 CLI 来识别设备串口
+### 2.1. 启用移动硬盘的 conda 环境
 
-不同设备连接后系统会生成 `/dev/tty*`（Linux）或 `/dev/ttyUSB*` 等串口节点。
+插入移动硬盘后在 `/media/$USER/AgroTech/home` 里打开终端输入命令进入虚拟环境 `lerobot` ：
+
+```bash
+. ./activate.sh lerobot
+```
+
+### 2.2. 用 LeRobot 的 CLI 来识别设备串口
+
+不同设备连接后系统会生成 `/dev/tty*`（Linux）或 `/dev/ttyUSB*` 等串口节点
 
 使用 LeRobot 提供的 CLI 来查找，按提示操作确定对应串口即可：
 
@@ -47,15 +57,7 @@ sudo reboot		# 重启
 lerobot-find-port
 ```
 
-需要进入虚拟环境 `lerobot` 中进行操作
-
-```bash
-如果终端所在目录为：/media/$USER/BF129129748FD44A/home/LeRobot-Workspace/custom-hw-sim
-	则：. ./../../activate.sh lerobot 或 source ./../../activate.sh lerobot
-也就是启动位于 home/ 目录下的移动硬盘虚拟环境激活
-```
-
-### 2.2. 创建固定端口符号链接（可选）
+### 2.1. 创建固定端口符号链接（可选）
 
 为了避免每次连接设备后端口变化，可以使用脚本 `bash/usb-port-create.sh` 来创建固定的符号链接(即每个实际的 USB 口分配相应的端口名称，如果连接了扩展 USB 则会可延伸)：
 
@@ -238,30 +240,15 @@ INFO 2025-12-23 20:13:55 ot_train.py:426 End of training
 
 评估也相当于一次录制，录制的结果会和训练集存在一起并加上前缀 `eval_`
 
-## 7. 双臂操作
+## 7. 双臂操作（dual_teleop.py 和 dual_record_dm.sh）
 
-```bash
-lerobot-teleoperate \
-    --robot.type=bi_dm_follower \
-    --robot.right_arm_port=/dev/ttyACM0 \
-    --robot.left_arm_port=/dev/ttyACM1 \
-    --robot.joint_velocity_scaling=1.0 \
-    --robot.cameras="{
-        context: {type: opencv, index_or_path: 2, width: 640, height: 360, fps: 30},
-        right_wrist: {type: opencv, index_or_path: 4, width: 640, height: 360, fps: 30},
-        left_wrist: {type: opencv, index_or_path: 0, width: 640, height: 360, fps: 30}
-      }" \
-    --teleop.type=bi_dm_leader \
-    --teleop.right_arm_port=/dev/ttyUSB0 \
-    --teleop.left_arm_port=/dev/ttyUSB1 \
-    --display_data=true \
-    --display_url=100.88.6.81
-```
+1. **主从遥操作**：
 
-说明：
+   类似单臂的脚本，双臂多加一对机械臂的端口，然后终端输入 `python ./scripts/dual_teleop.py`
 
-- 支持双臂主从映射
-- 需要分配上下文和两个腕部摄像头([GitHub](https://github.com/robot-learning-co/trlc-dm/tree/main?tab=readme-ov-file))
+2. **双臂录包**：
+
+   类似单臂的脚本，双臂多加一对机械臂的端口，然后终端输入 `./bash/dual_record_dm.sh --repo_id {repo_name}`
 
 ## 8. 自定义硬件
 
@@ -269,12 +256,29 @@ LeRobot 采用插件化架构，可以通过继承 Robot 基类并注册的方�
 
 ### 8.1. 核心步骤
 
-1. **定义配置类**：继承 `RobotConfig` 并注册名称
+1. **自定义硬件代码结构**：
 
-   - 创建一个继承自 `lerobot.robots.RobotConfig` 的数据类，使用 `@RobotConfig.register_subclass("robot_name")` 装饰器进行注册
+   ```bash
+   custom-hw-sim：
+   	├── lerobot_robot_multi_robots/（自定义硬件包）
+   	|	├──	motors/（放电机驱动库）
+   	|	├── __init__.py（导入自定义硬件）
+   	|	├── config_{name}.py（自定义硬件配置）
+   	|	└── {name}.py（自定义硬件驱动）
+   	|
+   	└── pyproject.toml（工作区配置文件）
+   ```
+
+2. **实现底层通信驱动( `lerobot_robot_multi_robots/motors/` )**：实现底层通信驱动类用于对接自定义硬件接口
+
+   ​		在**实现类**中集成实际的硬件通信代码可以直接使用 `serial`、`socket`、`pyserial` 等标准库，或引入第三方驱动（如 CAN 协议库、Dynamixel SDK、Feetech SDK 等）
+
+1. **定义配置类( `lerobot_robot_multi_robots/config_{name}.py` )**：继承 `RobotConfig` 并注册名称
+
+   - 创建一个继承自 `lerobot.robots.RobotConfig` 的数据类，使用 `@RobotConfig.register_subclass("{name}")` 装饰器进行注册
    - 该类用于存放硬件特定参数（如端口、波特率、相机配置等）
 
-2. **定义实现类**：继承 `Robot` 并实现核心接口
+4. **定义实现类( `lerobot_robot_multi_robots/{name}.py` )**：继承 `Robot` 并实现核心接口
 
    ​		创建一个继承自` lerobot.robots.Robot` 的类，指定 `config_class` 为上一步定义的配置类；
 
@@ -286,179 +290,413 @@ LeRobot 采用插件化架构，可以通过继承 Robot 基类并注册的方�
    - `send_action()`：向硬件发送控制指令
    - 可选实现 `calibrate()`、`configure()` 等
 
-3. **实现底层通信**：在类中调用硬件驱动（串口、CAN、RS485等）
+5. **导出自定义硬件( `lerobot_robot_multi_robots/__init__.py` )**：在包里统一导出自定义硬件各类
 
-   ​		在**实现类**中集成实际的硬件通信代码可以直接使用 `serial`、`socket`、`pyserial` 等标准库，或引入第三方驱动（如 CAN 协议库、Dynamixel SDK、Feetech SDK 等）
-
-   ​		所有通信逻辑封装在 `connect`、`get_observation`、`send_action` 等方法中
-
+6. **安装自定义硬件( `pyproject.toml` )**：配置好工作区环境，将自定义硬件安装进工作区里
 ### 8.2. 代码示例
 
 以 达妙机械臂 - LeRobot - TRLC - dm 的主臂为例，目前就是利用自定义硬件接口实现整机移动到新版 LeRobot 方便在移动硬盘使用和进行强化学习训练
 
+- `lerobot_robot_multi_robots/config_dm_arm.py` ：
+
 ```python
-# 导入 dataclasses 模块，用于创建数据类（自动生成 __init__、__repr__ 等方法）
 from dataclasses import dataclass, field
-# 导入类型提示相关模块
+
+from lerobot.robots import RobotConfig
+from lerobot.teleoperators import TeleoperatorConfig
+from lerobot.cameras import CameraConfig
+
+@RobotConfig.register_subclass("dm_follower")
+@dataclass
+class DMFollowerConfig(RobotConfig):
+    port: str
+    disable_torque_on_disconnect: bool = True
+    joint_velocity_scaling: float = 0.2
+    max_gripper_torque: float = 1.0
+    cameras: dict[str, CameraConfig] = field(default_factory=dict)
+
+@TeleoperatorConfig.register_subclass("dm_leader")
+@dataclass
+class DMLeaderConfig(TeleoperatorConfig):
+    port: str
+    gripper_open_pos: int = 2280
+    gripper_closed_pos: int = 1670
+```
+
+- `lerobot_robot_multi_robots/dm_arm.py` ：
+
+```python
+from .config_dm_arm import DMFollowerConfig, DMLeaderConfig
+
+from functools import cached_property
 from typing import Any
-# 导入串口通信库
-import serial
-# 导入时间模块，用于延时和计时
-import time
-# 导入日志模块，用于调试信息输出
 import logging
+import serial
+import time
 
-# 从 LeRobot 导入基类和相机相关工具
-from lerobot.robots import Robot, RobotConfig                   	# 机器人基类和配置基类
-from lerobot.cameras import CameraConfig                          	# 相机配置类
-from lerobot.cameras.utils import make_cameras_from_configs       	# 根据配置创建相机实例的工具函数
+from lerobot.robots import Robot
+from lerobot.teleoperators import Teleoperator
+from lerobot.cameras.utils import make_cameras_from_configs
+from lerobot.utils.errors import DeviceAlreadyConnectedError, DeviceNotConnectedError
+from lerobot.motors.dynamixel import DynamixelMotorsBus, OperatingMode
+from lerobot.motors import Motor, MotorNormMode
 
-# 创建日志记录器，用于输出调试信息
+from lerobot_robot_multi_robots.motors.DM_Control_Python.DM_CAN import *
+
 logger = logging.getLogger(__name__)
 
-# 定义配置类：继承 RobotConfig，并通过装饰器注册为 "new_robot"
-@RobotConfig.register_subclass("dm_follower")	# 注册名称，使 CLI 可通过 --robot.type=dm_follower 调用
-@dataclass                                      # 自动生成 __init__、__repr__ 等方法
-class dmFollowerConfig(RobotConfig):          	# 继承 LeRobot 的 RobotConfig 基类
-    port: str                                   # 必填参数：串口路径（如 "/dev/ttyUSB0"）
-    disable_torque_on_disconnect: bool = True   # 可选：断开连接时是否自动禁用电机扭矩（安全考虑）
-    joint_velocity_scaling: float = 0.2         # 可选：关节目标速度缩放系数（0~1，防止过快运动）
-    max_gripper_torque: float = 1.0             # 可选：夹爪最大力矩（单位：Nm）
-    cameras: dict[str, CameraConfig] = field(default_factory=dict)  # 可选：相机配置字典，默认为空
+def map_range(x: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float:
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
+class DMFollower(Robot):
+    """
+    TRLC-DK1 Follower Arm designed by The Robot Learning Company.
+    """
 
-# 2. 定义机器人实现类：继承 Robot
-class dmFollower(Robot):
-    config_class = dmFollowerConfig                   	# 指定对应的配置类
-    name = "dm_follower"                              	# 机器人名称（与注册名称一致）
+    config_class = DMFollowerConfig
+    name = "dm_follower"
 
-    def __init__(self, config: dmFollowerConfig):     	# 构造函数，接收配置实例
-        super().__init__(config)                       	# 调用父类初始化
-        self.config = config                           	# 保存配置便于后续访问
+    def __init__(self, config: DMFollowerConfig):
+        super().__init__(config)
         
-        # 导入第三方电机驱动库（此处为 TRLC-dm 专用的 DM_CAN 协议库）
-        from trlc_dm.motors.DM_Control_Python.DM_CAN import Motor, MotorControl, DM_Motor_Type
+        # Constants for EMIT control
+        self.DM4310_TORQUE_CONSTANT = 0.945  # Nm/A
+        self.EMIT_VELOCITY_SCALE = 100  # rad/s
+        self.EMIT_CURRENT_SCALE = 1000  # A
         
-        # 定义所有电机实例：键为关节名，值为 Motor 对象（包含电机类型、CAN ID 等）
-        self.motors = {
-            "joint_1": Motor(DM_Motor_Type.DM4340, 0x01, 0x11),
-            "joint_2": Motor(DM_Motor_Type.DM4340, 0x02, 0x12),
-            "joint_3": Motor(DM_Motor_Type.DM4340, 0x03, 0x13),
-            "joint_4": Motor(DM_Motor_Type.DM4310, 0x04, 0x14),
-            "joint_5": Motor(DM_Motor_Type.DM4310, 0x05, 0x15),
-            "joint_6": Motor(DM_Motor_Type.DM4310, 0x06, 0x16),
-            "gripper": Motor(DM_Motor_Type.DM4310, 0x07, 0x17),
+        self.JOINT_LIMITS = {
+            "joint_4": (-100/180*np.pi, 100/180*np.pi),
+            "joint_5": (-90/180*np.pi, 90/180*np.pi),
         }
         
-        # 初始化底层控制对象和通信状态
-        self.control = None                            	# MotorControl 实例（管理所有电机）
-        self.serial_device = None                      	# 串口对象
-        self.bus_connected = False                     	# 通信总线连接状态标志
-        
-        # 根据配置创建并初始化所有相机实例
+        self.DM4310_SPEED = 200/60*2*np.pi   # rad/s (200  rpm | 20.94 rad/s)
+        self.DM4340_SPEED = 52.5/60*2*np.pi  # rad/s (52.5 rpm | 5.49  rad/s)
+
+        self.config = config
+        self.motors = {
+            "joint_1": DM_Motor(DM_Motor_Type.DM4340, 0x01, 0x11),
+            "joint_2": DM_Motor(DM_Motor_Type.DM4340, 0x02, 0x12),
+            "joint_3": DM_Motor(DM_Motor_Type.DM4340, 0x03, 0x13),
+            "joint_4": DM_Motor(DM_Motor_Type.DM4310, 0x04, 0x14),
+            "joint_5": DM_Motor(DM_Motor_Type.DM4310, 0x05, 0x15),
+            "joint_6": DM_Motor(DM_Motor_Type.DM4310, 0x06, 0x16),
+            "gripper": DM_Motor(DM_Motor_Type.DM4310, 0x07, 0x17),
+        }
+        self.control = None
+        self.serial_device = None
+        self.bus_connected = False
+
+        self.gripper_open_pos = 0.0
+        self.gripper_closed_pos = -4.7
+
         self.cameras = make_cameras_from_configs(config.cameras)
 
-    # 定义观察空间：LeRobot 要求返回所有观察特征的名称和类型/形状
     @property
-    def observation_features(self) -> dict[str, Any]:
-        # 电机位置：每个关节一个 float 类型的位置值
-        motors = {f"{m}.pos": float for m in self.motors}
-        # 相机图像：返回 (height, width, 3) 的形状元组（RGB图像）
-        cams = {
-            cam: (self.config.cameras[cam].height, self.config.cameras[cam].width, 3)
-            for cam in self.cameras
+    def _motors_ft(self) -> dict[str, type]:
+        return {f"{motor}.pos": float for motor in self.motors}
+
+    @property
+    def _cameras_ft(self) -> dict[str, tuple]:
+        return {
+            cam: (self.config.cameras[cam].height, self.config.cameras[cam].width, 3) for cam in self.cameras
         }
-        return {**motors, **cams}                      	# 合并电机和相机特征
 
-    # 定义动作空间：LeRobot 要求返回所有可控制特征的名称和类型
+    @cached_property
+    def observation_features(self) -> dict[str, type | tuple]:
+        return {**self._motors_ft, **self._cameras_ft}
+
+    @cached_property
+    def action_features(self) -> dict[str, type]:
+        return self._motors_ft
+
     @property
-    def action_features(self) -> dict[str, Any]:
-        return {f"{m}.pos": float for m in self.motors} # 动作仅控制各关节位置
+    def is_connected(self) -> bool:
+        return self.bus_connected and all(cam.is_connected for cam in self.cameras.values())
 
-    # 连接硬件：建立串口通信并初始化电机和相机
     def connect(self) -> None:
-        if self.bus_connected:
-            raise RuntimeError("Already connected")    	# 防止重复连接
-        
-        # 打开串口（波特率 921600，与硬件匹配）
-        self.serial_device = serial.Serial(self.config.port, 921600, timeout=0.5)
-        time.sleep(0.5)                                	# 短暂延时等待硬件稳定
-        
-        # 创建电机控制总线实例
+        if self.is_connected:
+            raise DeviceAlreadyConnectedError(f"{self} already connected")
+
+        self.serial_device = serial.Serial(
+            self.config.port, 921600, timeout=0.5)
+        time.sleep(0.5)
+
         self.control = MotorControl(self.serial_device)
-        self.bus_connected = True                      	# 标记总线已连接
-        
-        self.configure()                               	# 执行电机参数配置
-        
-        # 连接所有相机
+        self.bus_connected = True
+        self.configure()
+
         for cam in self.cameras.values():
             cam.connect()
 
-    # 配置电机参数（包括使能、控制模式切换、PID 参数设置等）
-    def configure(self) -> None:
-        # 详细配置逻辑请参考原文件，此处省略以保持简洁
-        # 主要操作：添加电机、切换控制模式、设置加减速、PID、夹爪自动归零等
+    @property
+    def is_calibrated(self) -> bool:
+        return True
+
+    def calibrate(self) -> None:
         pass
 
-    # 获取当前观察：读取所有电机位置和相机图像
-    def get_observation(self) -> dict[str, Any]:
-        if not self.bus_connected:
-            raise RuntimeError("Not connected")        	# 未连接时抛出异常
-        
-        obs = {}                                       	# 观察字典
-        
-        # 刷新并读取每个电机的当前位置
-        for key, motor in self.motors.items():
-            self.control.refresh_motor_status(motor)   	# 更新电机状态
-            # 夹爪位置需特殊归一化处理（0=张开，1=闭合），其他关节直接读取
-            obs[f"{key}.pos"] = motor.getPosition()
-        
-        # 读取所有相机图像（异步读取以提高效率）
-        for cam_key, cam in self.cameras.items():
-            obs[cam_key] = cam.async_read()
-        
-        return obs                                     	# 返回完整观察字典
+    def configure(self) -> None:
 
-    # 发送动作：将策略输出的目标位置下发到硬件
+        for key, motor in self.motors.items():
+            self.control.addMotor(motor)
+
+            for _ in range(3):
+                self.control.refresh_motor_status(motor)
+                time.sleep(0.01)
+
+            if self.control.read_motor_param(motor, DM_variable.CTRL_MODE) is not None:
+                print(f"{key} ({motor.MotorType.name}) is connected.")
+
+                self.control.switchControlMode(motor, Control_Type.POS_VEL)
+                self.control.enable(motor)
+            else:
+                raise Exception(
+                    f"Unable to read from {key} ({motor.MotorType.name}).")
+
+        for joint in ["joint_1", "joint_2", "joint_3"]:
+            self.control.change_motor_param(self.motors[joint], DM_variable.ACC, 10.0)
+            self.control.change_motor_param(self.motors[joint], DM_variable.DEC, -10.0)
+            self.control.change_motor_param(self.motors[joint], DM_variable.KP_APR, 200)
+            self.control.change_motor_param(self.motors[joint], DM_variable.KI_APR, 10)
+
+        for joint in ["gripper"]:
+            self.control.change_motor_param(
+                self.motors[joint], DM_variable.KP_APR, 100)
+
+        # Open gripper and set zero position
+        self.control.switchControlMode(
+            self.motors["gripper"], Control_Type.VEL)
+        self.control.control_Vel(self.motors["gripper"], 10.0)
+        while True:
+            self.control.refresh_motor_status(self.motors["gripper"])
+            tau = self.motors["gripper"].getTorque()
+            if tau > 1.2:
+                self.control.control_Vel(self.motors["gripper"], 0.0)
+                self.control.disable(self.motors["gripper"])
+                self.control.set_zero_position(self.motors["gripper"])
+                time.sleep(0.2)
+                self.control.enable(self.motors["gripper"])
+                break
+            time.sleep(0.01)
+        self.control.switchControlMode(
+            self.motors["gripper"], Control_Type.Torque_Pos)
+
+    def get_observation(self) -> dict[str, Any]:
+        if not self.is_connected:
+            raise DeviceNotConnectedError(f"{self} is not connected.")
+
+        # Read arm position
+        start = time.perf_counter()
+
+        obs_dict = {}
+        for key, motor in self.motors.items():
+            self.control.refresh_motor_status(motor)
+            if key == "gripper":
+                # Normalize gripper position between 1 (closed) and 0 (open)
+                obs_dict[f"{key}.pos"] = map_range(
+                    motor.getPosition(), self.gripper_open_pos, self.gripper_closed_pos, 0.0, 1.0)
+            else:
+                obs_dict[f"{key}.pos"] = motor.getPosition()
+
+        dt_ms = (time.perf_counter() - start) * 1e3
+        logger.debug(f"{self} read state: {dt_ms:.1f}ms")
+
+        # Capture images from cameras
+        for cam_key, cam in self.cameras.items():
+            start = time.perf_counter()
+            obs_dict[cam_key] = cam.async_read()
+            dt_ms = (time.perf_counter() - start) * 1e3
+            logger.debug(f"{self} read {cam_key}: {dt_ms:.1f}ms")
+
+        return obs_dict
+
     def send_action(self, action: dict[str, Any]) -> dict[str, Any]:
-        if not self.bus_connected:
-            raise RuntimeError("Not connected")
-        
-        # 从动作字典中提取目标位置（键如 "joint_1.pos" → "joint_1"）
-        goal_pos = {k.removesuffix(".pos"): v for k, v in action.items() if k.endswith(".pos")}
-        
-        # 遍历每个电机下发指令
+        if not self.is_connected:
+            raise DeviceNotConnectedError(f"{self} is not connected.")
+
+        goal_pos = {key.removesuffix(
+            ".pos"): val for key, val in action.items() if key.endswith(".pos")}
+
+        # Send goal position to the arm
         for key, motor in self.motors.items():
             if key == "gripper":
-                # 夹爪使用力控位置模式（Torque_Pos），限制最大力矩
-                pass  # 具体实现见原文件
+                self.control.refresh_motor_status(motor)
+                gripper_goal_pos_mapped = map_range(goal_pos[key], 0.0, 1.0, self.gripper_open_pos, self.gripper_closed_pos)
+                self.control.control_pos_force(motor, gripper_goal_pos_mapped, self.DM4310_SPEED*self.EMIT_VELOCITY_SCALE,
+                                               i_des=self.config.max_gripper_torque/self.DM4310_TORQUE_CONSTANT*self.EMIT_CURRENT_SCALE)
             else:
-                # 普通关节使用位置-速度模式（Pos_Vel），速度受 scaling 限制
-                max_speed = 20.94  # 示例最大速度（rad/s），实际应根据电机型号定义
-                self.control.control_Pos_Vel(
-                    motor, goal_pos[key], self.config.joint_velocity_scaling * max_speed
-                )
-        
-        return action  # LeRobot 要求返回发送的动作（可用于记录）
+                if key in self.JOINT_LIMITS:
+                    goal_pos[key] = np.clip(goal_pos[key], self.JOINT_LIMITS[key][0], self.JOINT_LIMITS[key][1])
 
-    # 断开连接：安全关闭通信
-    def disconnect(self) -> None:
-        if not self.bus_connected:
-            return
-        
-        # 根据配置决定是否先禁用所有电机扭矩（推荐启用以确保安全）
+                self.control.control_Pos_Vel(
+                    motor, goal_pos[key], self.config.joint_velocity_scaling*self.DM4340_SPEED)
+
+        return {f"{motor}.pos": val for motor, val in goal_pos.items()}
+
+    def disconnect(self):
+        if not self.is_connected:
+            raise DeviceNotConnectedError(f"{self} is not connected.")
+
         if self.config.disable_torque_on_disconnect:
             for motor in self.motors.values():
                 self.control.disable(motor)
-        
-        self.bus_connected = False                     	# 标记断开
-        
-        # 断开所有相机
+        else:
+            self.control.serial_.close()
+        self.bus_connected = False
+
         for cam in self.cameras.values():
             cam.disconnect()
+
+        logger.info(f"{self} disconnected.")
+
+class DMLeader(Teleoperator):
+    config_class = DMLeaderConfig
+    name = "dm_leader"
+
+    def __init__(self, config: DMLeaderConfig):
+        super().__init__(config)
+        self.config = config
+        self.bus = DynamixelMotorsBus(
+            port=self.config.port,
+            motors={
+                "joint_1": Motor(1, "xl330-m288", MotorNormMode.DEGREES),
+                "joint_2": Motor(2, "xl330-m288", MotorNormMode.DEGREES),
+                "joint_3": Motor(3, "xl330-m288", MotorNormMode.DEGREES),
+                "joint_4": Motor(4, "xl330-m288", MotorNormMode.DEGREES),
+                "joint_5": Motor(5, "xl330-m077", MotorNormMode.DEGREES),
+                "joint_6": Motor(6, "xl330-m077", MotorNormMode.DEGREES),
+                "gripper": Motor(7, "xl330-m077", MotorNormMode.DEGREES),
+            },
+        )
+
+    @property
+    def action_features(self) -> dict[str, type]:
+        return {f"{motor}.pos": float for motor in self.bus.motors}
+
+    @property
+    def feedback_features(self) -> dict[str, type]:
+        return {}
+
+    @property
+    def is_connected(self) -> bool:
+        return self.bus.is_connected
+
+    def connect(self, calibrate: bool = False) -> None:
+        if self.is_connected:
+            raise DeviceAlreadyConnectedError(f"{self} already connected")
+
+        self.bus.connect(handshake=False)
+        self.bus.set_baudrate(1000000)
         
-        logger.info("Robot disconnected successfully.")
+        self.configure()
+        
+        logger.info(f"{self} connected.")
+
+    @property
+    def is_calibrated(self) -> bool:
+        return True
+
+    def calibrate(self) -> None:
+        pass
+
+    def configure(self) -> None:
+        self.bus.disable_torque()
+        self.bus.configure_motors()
+        
+        # Enable torque and set to position to open
+        self.bus.write("Torque_Enable", "gripper", 0, normalize=False)
+        self.bus.write("Operating_Mode", "gripper", OperatingMode.CURRENT_POSITION.value, normalize=False)
+        self.bus.write("Current_Limit", "gripper", 100, normalize=False)
+        self.bus.write("Torque_Enable", "gripper", 1, normalize=False)
+        self.bus.write("Goal_Position", "gripper", self.config.gripper_open_pos, normalize=False)
+        
+    def setup_motors(self) -> None:
+        for motor in self.bus.motors:
+            input(f"Connect the controller board to the '{motor}' motor only and press enter.")
+            self.bus.setup_motor(motor)
+            print(f"'{motor}' motor id set to {self.bus.motors[motor].id}")
+
+    def get_action(self) -> dict[str, float]:
+        if not self.is_connected:
+            raise DeviceNotConnectedError(f"{self} is not connected.")
+
+        start = time.perf_counter()
+        
+        action = self.bus.sync_read(normalize=False, data_name="Present_Position")
+        action = {f"{motor}.pos": (val/4096*2*np.pi-np.pi) if motor != "gripper" else val for motor, val in action.items()}
+        
+        action["joint_2.pos"] = -action["joint_2.pos"]
+
+        # # Normalize gripper position between 1 (closed) and 0 (open)
+        gripper_range = self.config.gripper_open_pos - self.config.gripper_closed_pos
+        action["gripper.pos"] = 1 - (action["gripper.pos"] - self.config.gripper_closed_pos) / gripper_range
+        
+        dt_ms = (time.perf_counter() - start) * 1e3
+        logger.debug(f"{self} read action: {dt_ms:.1f}ms")
+        return action
+
+    def send_feedback(self, feedback: dict[str, float]) -> None:
+        # TODO(rcadene, aliberts): Implement force feedback
+        raise NotImplementedError
+
+    def disconnect(self) -> None:
+        if not self.is_connected:
+            raise DeviceNotConnectedError(f"{self} is not connected.")
+
+        self.bus.disconnect()
+        logger.info(f"{self} disconnected.")
+
 ```
+
+- `lerobot_robot_multi_robots/__init__.py` ：
+
+```python
+from .config_dm_arm import DMFollowerConfig, DMLeaderConfig
+from .dm_arm import DMFollower, DMLeader
+```
+
+- `pyproject.toml` ：
+
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lerobot_robot_multi_robots"
+version = "0.1.0"
+dependencies = [
+    "numpy>=2.0.1",
+    "pyserial>=3.5",
+    "dynamixel-sdk>=3.7.31",
+    "lerobot",
+    "opencv-python>=4.8.0",
+    "matplotlib>=3.7.2",
+    "pandas>=2.2.0",
+    "scipy>=1.11.1",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+```
+
+### 8.3. 安装并查询是否可用
+
+进入虚拟环境后在终端输入 `pip install -e .` 安装成功后输入 `lerobot-teleoperate --robot.type --teleop.type --help` 来查看是否有安装的自定义硬件的可选参数
+
+```bash
+(lerobot) $USER@$USER:/media/$USER/AgroTech/home/LeRobot-Workspace/custom-hw-sim$ lerobot-teleoperate --robot.type --teleop.type --help
+# 输出：
+usage: lerobot-teleoperate [-h] [--config_path str] [--teleop str] 
+[--teleop.type {so100_leader,bi_so100_leader,gamepad,homunculus_glove,homunculus_arm,koch_leader,so101_leader,dm_leader}] 					# --teleop.type 这里的最后可以看到 dm_leader
+# ...
+# ...
+[--robot.type {so100_follower,bi_so100_follower,hope_jr_hand,hope_jr_arm,koch_follower,so101_follower,sim_robot,dm_follower}] 			  # --robot.type 这里的最后可以看到 dm_follower
+# ...
+# ...
+```
+
+
 
 
 
