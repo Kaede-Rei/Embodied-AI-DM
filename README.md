@@ -23,7 +23,7 @@ sudo reboot		# 重启
 
 ### 1.2. 硬件连接
 
-- 电源：小电源开 24V 供从臂；大电源开 6-10V(建议8V) 供主臂	<img src="README.assets/image-20251223214229135.png" alt="image-20251223214229135" style="zoom:15%;" />
+- 电源：小电源开 24V 供从臂；大电源开 7-10V(建议8V) 供主臂	<img src="README.assets/image-20251223214229135.png" alt="image-20251223214229135" style="zoom:15%;" />
 
 - 从臂：小电源接转接板连接到底座供电，CAN 口接 USB转CAN模块 再接电脑，一般是 `/dev/ttyACM0` 
 
@@ -36,6 +36,8 @@ sudo reboot		# 重启
 - 相机：录包时必须接相机，相机 USB 直接连接，然后用下面的脚本识别
 
 ## 2. 识别设备串口并进入虚拟环境
+
+### 2.1. 用 LeRobot 的 CLI 来识别设备串口
 
 不同设备连接后系统会生成 `/dev/tty*`（Linux）或 `/dev/ttyUSB*` 等串口节点。
 
@@ -53,6 +55,24 @@ lerobot-find-port
 也就是启动位于 home/ 目录下的移动硬盘虚拟环境激活
 ```
 
+### 2.2. 创建固定端口符号链接（可选）
+
+为了避免每次连接设备后端口变化，可以使用脚本 `bash/usb-port-create.sh` 来创建固定的符号链接(即每个实际的 USB 口分配相应的端口名称，如果连接了扩展 USB 则会可延伸)：
+
+```bash
+sudo ./bash/usb-port-create.sh
+```
+注意脚本必须用 `sudo` ，并且只需运行一次，之后每次连接设备后端口变化时，符号链接会自动指向正确的设备，终端输入 `ls -l /dev/com-*` 查询当前已连接设备的固定端口物理地址映射名称及其实际映射的设备：
+
+```bash
+示例输出：
+    /dev/com-3-video -> video0					// 第三个 USB 口连接了 video
+    /dev/com-1.4-tty -> ttyACM0					// 第一个 USB 口连接着扩展坞，扩展坞第四个口连接了 TTY
+    /dev/com-2.1-tty -> ttyUSB0					// 第二个 USB 口连接着扩展坞，扩展坞第一个口连接了 TTY
+```
+
+`udev` 规则文件位于 `/etc/udev/rules.d/90-usb-by-port.rules` ，只会新增固定地址的端口，不会影响原来的正常使用，如果后续需要删除则终端输入 `sudo rm -f /etc/udev/rules.d/90-usb-by-port.rules`
+
 ## 3. 主从遥操作（teleop.py）
 
 ### 3.1. 单臂遥操作
@@ -61,7 +81,7 @@ lerobot-find-port
 
 ### 3.2. 脚本
 
-在仓库的 `scripts` 中有方便使用的脚本：	
+在仓库 `/media/$USER/AgroTech/home/LeRobot-Workspace/custom-hw-sim` 的 `scripts` 中有方便使用的脚本：	
 
 | 脚本路径                          | 作用                               | 注意事项                                                 |
 | --------------------------------- | ---------------------------------- | -------------------------------------------------------- |
