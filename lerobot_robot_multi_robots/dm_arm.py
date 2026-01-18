@@ -17,8 +17,12 @@ from lerobot_robot_multi_robots.motors.DM_Control_Python.DM_CAN import *
 
 logger = logging.getLogger(__name__)
 
-def map_range(x: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float:
+
+def map_range(
+    x: float, in_min: float, in_max: float, out_min: float, out_max: float
+) -> float:
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
 
 class DMFollower(Robot):
     """
@@ -30,19 +34,19 @@ class DMFollower(Robot):
 
     def __init__(self, config: DMFollowerConfig):
         super().__init__(config)
-        
+
         # Constants for EMIT control
         self.DM4310_TORQUE_CONSTANT = 0.945  # Nm/A
         self.EMIT_VELOCITY_SCALE = 100  # rad/s
         self.EMIT_CURRENT_SCALE = 1000  # A
-        
+
         self.JOINT_LIMITS = {
-            "joint_4": (-100/180*np.pi, 100/180*np.pi),
-            "joint_5": (-90/180*np.pi, 90/180*np.pi),
+            "joint_4": (-100 / 180 * np.pi, 100 / 180 * np.pi),
+            "joint_5": (-90 / 180 * np.pi, 90 / 180 * np.pi),
         }
-        
-        self.DM4310_SPEED = 200/60*2*np.pi   # rad/s (200  rpm | 20.94 rad/s)
-        self.DM4340_SPEED = 52.5/60*2*np.pi  # rad/s (52.5 rpm | 5.49  rad/s)
+
+        self.DM4310_SPEED = 200 / 60 * 2 * np.pi  # rad/s (200  rpm | 20.94 rad/s)
+        self.DM4340_SPEED = 52.5 / 60 * 2 * np.pi  # rad/s (52.5 rpm | 5.49  rad/s)
 
         self.config = config
         self.motors = {
@@ -58,8 +62,9 @@ class DMFollower(Robot):
         self.serial_device = None
         self.bus_connected = False
 
+        # 映射开闭角度（默认 0.0 ~ -4.7）（完全闭合 0.0 ~ -5.25）
         self.gripper_open_pos = 0.0
-        self.gripper_closed_pos = -4.7
+        self.gripper_closed_pos = -5.25
 
         self.cameras = make_cameras_from_configs(config.cameras)
 
@@ -70,7 +75,8 @@ class DMFollower(Robot):
     @property
     def _cameras_ft(self) -> dict[str, tuple]:
         return {
-            cam: (self.config.cameras[cam].height, self.config.cameras[cam].width, 3) for cam in self.cameras
+            cam: (self.config.cameras[cam].height, self.config.cameras[cam].width, 3)
+            for cam in self.cameras
         }
 
     @cached_property
@@ -83,14 +89,15 @@ class DMFollower(Robot):
 
     @property
     def is_connected(self) -> bool:
-        return self.bus_connected and all(cam.is_connected for cam in self.cameras.values())
+        return self.bus_connected and all(
+            cam.is_connected for cam in self.cameras.values()
+        )
 
     def connect(self) -> None:
         if self.is_connected:
             raise DeviceAlreadyConnectedError(f"{self} already connected")
 
-        self.serial_device = serial.Serial(
-            self.config.port, 921600, timeout=0.5)
+        self.serial_device = serial.Serial(self.config.port, 921600, timeout=0.5)
         time.sleep(0.5)
 
         self.control = MotorControl(self.serial_device)
@@ -122,8 +129,7 @@ class DMFollower(Robot):
                 self.control.switchControlMode(motor, Control_Type.POS_VEL)
                 self.control.enable(motor)
             else:
-                raise Exception(
-                    f"Unable to read from {key} ({motor.MotorType.name}).")
+                raise Exception(f"Unable to read from {key} ({motor.MotorType.name}).")
 
         for joint in ["joint_1", "joint_2", "joint_3"]:
             self.control.change_motor_param(self.motors[joint], DM_variable.ACC, 10.0)
@@ -132,12 +138,10 @@ class DMFollower(Robot):
             self.control.change_motor_param(self.motors[joint], DM_variable.KI_APR, 10)
 
         for joint in ["gripper"]:
-            self.control.change_motor_param(
-                self.motors[joint], DM_variable.KP_APR, 100)
+            self.control.change_motor_param(self.motors[joint], DM_variable.KP_APR, 100)
 
         # Open gripper and set zero position
-        self.control.switchControlMode(
-            self.motors["gripper"], Control_Type.VEL)
+        self.control.switchControlMode(self.motors["gripper"], Control_Type.VEL)
         self.control.control_Vel(self.motors["gripper"], 10.0)
         while True:
             self.control.refresh_motor_status(self.motors["gripper"])
@@ -150,8 +154,7 @@ class DMFollower(Robot):
                 self.control.enable(self.motors["gripper"])
                 break
             time.sleep(0.01)
-        self.control.switchControlMode(
-            self.motors["gripper"], Control_Type.Torque_Pos)
+        self.control.switchControlMode(self.motors["gripper"], Control_Type.Torque_Pos)
 
     def get_observation(self) -> dict[str, Any]:
         if not self.is_connected:
@@ -166,7 +169,12 @@ class DMFollower(Robot):
             if key == "gripper":
                 # Normalize gripper position between 1 (closed) and 0 (open)
                 obs_dict[f"{key}.pos"] = map_range(
-                    motor.getPosition(), self.gripper_open_pos, self.gripper_closed_pos, 0.0, 1.0)
+                    motor.getPosition(),
+                    self.gripper_open_pos,
+                    self.gripper_closed_pos,
+                    0.0,
+                    1.0,
+                )
             else:
                 obs_dict[f"{key}.pos"] = motor.getPosition()
 
@@ -186,22 +194,44 @@ class DMFollower(Robot):
         if not self.is_connected:
             raise DeviceNotConnectedError(f"{self} is not connected.")
 
-        goal_pos = {key.removesuffix(
-            ".pos"): val for key, val in action.items() if key.endswith(".pos")}
+        goal_pos = {
+            key.removesuffix(".pos"): val
+            for key, val in action.items()
+            if key.endswith(".pos")
+        }
 
         # Send goal position to the arm
         for key, motor in self.motors.items():
             if key == "gripper":
                 self.control.refresh_motor_status(motor)
-                gripper_goal_pos_mapped = map_range(goal_pos[key], 0.0, 1.0, self.gripper_open_pos, self.gripper_closed_pos)
-                self.control.control_pos_force(motor, gripper_goal_pos_mapped, self.DM4310_SPEED*self.EMIT_VELOCITY_SCALE,
-                                               i_des=self.config.max_gripper_torque/self.DM4310_TORQUE_CONSTANT*self.EMIT_CURRENT_SCALE)
+                gripper_goal_pos_mapped = map_range(
+                    goal_pos[key],
+                    0.0,
+                    1.0,
+                    self.gripper_open_pos,
+                    self.gripper_closed_pos,
+                )
+                self.control.control_pos_force(
+                    motor,
+                    gripper_goal_pos_mapped,
+                    self.DM4310_SPEED * self.EMIT_VELOCITY_SCALE,
+                    i_des=self.config.max_gripper_torque
+                    / self.DM4310_TORQUE_CONSTANT
+                    * self.EMIT_CURRENT_SCALE,
+                )
             else:
                 if key in self.JOINT_LIMITS:
-                    goal_pos[key] = np.clip(goal_pos[key], self.JOINT_LIMITS[key][0], self.JOINT_LIMITS[key][1])
+                    goal_pos[key] = np.clip(
+                        goal_pos[key],
+                        self.JOINT_LIMITS[key][0],
+                        self.JOINT_LIMITS[key][1],
+                    )
 
                 self.control.control_Pos_Vel(
-                    motor, goal_pos[key], self.config.joint_velocity_scaling*self.DM4340_SPEED)
+                    motor,
+                    goal_pos[key],
+                    self.config.joint_velocity_scaling * self.DM4340_SPEED,
+                )
 
         return {f"{motor}.pos": val for motor, val in goal_pos.items()}
 
@@ -220,6 +250,7 @@ class DMFollower(Robot):
             cam.disconnect()
 
         logger.info(f"{self} disconnected.")
+
 
 class DMLeader(Teleoperator):
     config_class = DMLeaderConfig
@@ -259,9 +290,9 @@ class DMLeader(Teleoperator):
 
         self.bus.connect(handshake=False)
         self.bus.set_baudrate(1000000)
-        
+
         self.configure()
-        
+
         logger.info(f"{self} connected.")
 
     @property
@@ -274,17 +305,26 @@ class DMLeader(Teleoperator):
     def configure(self) -> None:
         self.bus.disable_torque()
         self.bus.configure_motors()
-        
+
         # Enable torque and set to position to open
         self.bus.write("Torque_Enable", "gripper", 0, normalize=False)
-        self.bus.write("Operating_Mode", "gripper", OperatingMode.CURRENT_POSITION.value, normalize=False)
+        self.bus.write(
+            "Operating_Mode",
+            "gripper",
+            OperatingMode.CURRENT_POSITION.value,
+            normalize=False,
+        )
         self.bus.write("Current_Limit", "gripper", 100, normalize=False)
         self.bus.write("Torque_Enable", "gripper", 1, normalize=False)
-        self.bus.write("Goal_Position", "gripper", self.config.gripper_open_pos, normalize=False)
-        
+        self.bus.write(
+            "Goal_Position", "gripper", self.config.gripper_open_pos, normalize=False
+        )
+
     def setup_motors(self) -> None:
         for motor in self.bus.motors:
-            input(f"Connect the controller board to the '{motor}' motor only and press enter.")
+            input(
+                f"Connect the controller board to the '{motor}' motor only and press enter."
+            )
             self.bus.setup_motor(motor)
             print(f"'{motor}' motor id set to {self.bus.motors[motor].id}")
 
@@ -293,16 +333,23 @@ class DMLeader(Teleoperator):
             raise DeviceNotConnectedError(f"{self} is not connected.")
 
         start = time.perf_counter()
-        
+
         action = self.bus.sync_read(normalize=False, data_name="Present_Position")
-        action = {f"{motor}.pos": (val/4096*2*np.pi-np.pi) if motor != "gripper" else val for motor, val in action.items()}
-        
+        action = {
+            f"{motor}.pos": (
+                (val / 4096 * 2 * np.pi - np.pi) if motor != "gripper" else val
+            )
+            for motor, val in action.items()
+        }
+
         action["joint_2.pos"] = -action["joint_2.pos"]
 
         # # Normalize gripper position between 1 (closed) and 0 (open)
         gripper_range = self.config.gripper_open_pos - self.config.gripper_closed_pos
-        action["gripper.pos"] = 1 - (action["gripper.pos"] - self.config.gripper_closed_pos) / gripper_range
-        
+        action["gripper.pos"] = (
+            1 - (action["gripper.pos"] - self.config.gripper_closed_pos) / gripper_range
+        )
+
         dt_ms = (time.perf_counter() - start) * 1e3
         logger.debug(f"{self} read action: {dt_ms:.1f}ms")
         return action
