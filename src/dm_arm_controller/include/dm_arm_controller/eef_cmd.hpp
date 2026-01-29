@@ -102,7 +102,7 @@ namespace dm_arm
      */
     class EefPoseCmd{
     public:
-        EefPoseCmd(ros::NodeHandle& nh, const std::string& plan_group_name);
+        EefPoseCmd(const ros::NodeHandle& nh, const std::string& plan_group_name);
 
         void eefTfBase(geometry_msgs::PoseStamped& target_pose_eef, geometry_msgs::PoseStamped& target_pose_base);
         bool isIkValid(const geometry_msgs::Pose& target_pose);
@@ -118,7 +118,7 @@ namespace dm_arm
         std::vector<double> getCurrentJointPose(void);
 
     private:
-        /// @brief 计算位姿之间的欧氏距离
+        /// @brief ROS节点句柄
         ros::NodeHandle _nh_;
         /// @brief 机械臂规划接口
         moveit::planning_interface::MoveGroupInterface _arm_;
@@ -142,10 +142,11 @@ namespace dm_arm
         const robot_state::JointModelGroup* _jmg_ = nullptr;
         /// @brief 当前机械臂状态指针
         moveit::core::RobotStatePtr _current_state_ = nullptr;
-
-        // 参数
+        /// @brief 最大可达距离
         double _max_reach_;
+        /// @brief 最小可达距离
         double _min_reach_;
+        /// @brief 最大搜索迭代次数
         int _max_iterations_;
     };
 
@@ -169,15 +170,21 @@ namespace dm_arm
         EefPoseCmd& _eef_cmd_;
         /// @brief 任务目标列表
         std::vector<TaskTarget_t> _task_list_;
-
-        // 参数
+        /// @brief 任务执行结果标志
         bool _enable_optimization_;
+        /// @brief 优化方法
         std::string _optimization_method_;
+        /// @brief 采摘高度偏移量
         double _pick_height_offset_;
+        /// @brief 放置高度偏移量
         double _place_height_offset_;
+        /// @brief 靠近距离
         double _approach_distance_;
+        /// @brief 撤离距离
         double _retreat_distance_;
+        /// @brief 默认等待时间
         double _default_wait_time_;
+        /// @brief 夹爪动作时间
         double _gripper_action_time_;
     };
 

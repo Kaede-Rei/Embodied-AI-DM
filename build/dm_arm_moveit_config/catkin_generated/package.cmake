@@ -11,6 +11,6 @@ set(dm_arm_moveit_config_RUN_DEPENDS "moveit_ros_move_group" "moveit_fake_contro
 set(dm_arm_moveit_config_TEST_DEPENDS )
 set(dm_arm_moveit_config_DOC_DEPENDS )
 set(dm_arm_moveit_config_URL_WEBSITE "http://moveit.ros.org/")
-set(dm_arm_moveit_config_URL_BUGTRACKER "https://github.com/ros-planning/moveit/issues")
-set(dm_arm_moveit_config_URL_REPOSITORY "https://github.com/ros-planning/moveit")
+set(dm_arm_moveit_config_URL_BUGTRACKER "https://github.com/moveit/moveit/issues")
+set(dm_arm_moveit_config_URL_REPOSITORY "https://github.com/moveit/moveit")
 set(dm_arm_moveit_config_DEPRECATED "")

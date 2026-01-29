@@ -2,19 +2,16 @@
 
 #include <cmath>
 #include <queue>
-#include <unordered_map>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
 // ! ========================= 宏 定 义 ========================= ! //
 
-#define SEARCH_STEP 5.0    // 搜索步长(度)
-#define SEARCH_RADIUS 45.0 // 搜索半径(度)
+
 
 namespace dm_arm
 {
-
     // ! ========================= 接 口 量 声 明 ========================= ! //
 
 
@@ -30,14 +27,14 @@ namespace dm_arm
      * @param nh ROS节点句柄
      * @param plan_group_name 机械臂规划组名称
      */
-    EefPoseCmd::EefPoseCmd(ros::NodeHandle& nh, const std::string& plan_group_name)
+    EefPoseCmd::EefPoseCmd(const ros::NodeHandle& nh, const std::string& plan_group_name)
         : _nh_(nh), _arm_(plan_group_name), _tf_listener_(_tf_buffer_)
     {
         // 获取规划参考坐标系
         _plan_frame_ = _arm_.getPlanningFrame();
         ROS_INFO_STREAM("规划坐标系为：" << _plan_frame_);
 
-        // 获取基末端坐标系名称
+        // 获取末端坐标系名称
         _eef_frame_ = _arm_.getEndEffectorLink();
         ROS_INFO_STREAM("末端执行器坐标系为：" << _eef_frame_);
 
@@ -58,7 +55,7 @@ namespace dm_arm
         _arm_.setMaxVelocityScalingFactor(vel_scale);
         _arm_.setMaxAccelerationScalingFactor(acc_scale);
 
-        // 读取更多 MoveIt 参数
+        // 规划器ID、规划时间、规划尝试次数、执行超时时间
         std::string planner_id;
         double planning_time;
         int num_planning_attempts;
@@ -72,18 +69,6 @@ namespace dm_arm
         _arm_.setPlannerId(planner_id);
         _arm_.setPlanningTime(planning_time);
         _arm_.setNumPlanningAttempts(num_planning_attempts);
-
-        // 读取工作空间参数
-        double ws_min_x, ws_min_y, ws_min_z;
-        double ws_max_x, ws_max_y, ws_max_z;
-        _nh_.param<double>("moveit/workspace/min_corner/x", ws_min_x, -0.8);
-        _nh_.param<double>("moveit/workspace/min_corner/y", ws_min_y, -0.8);
-        _nh_.param<double>("moveit/workspace/min_corner/z", ws_min_z, 0.0);
-        _nh_.param<double>("moveit/workspace/max_corner/x", ws_max_x, 0.8);
-        _nh_.param<double>("moveit/workspace/max_corner/y", ws_max_y, 0.8);
-        _nh_.param<double>("moveit/workspace/max_corner/z", ws_max_z, 1.0);
-
-        _arm_.setWorkspace(ws_min_x, ws_min_y, ws_min_z, ws_max_x, ws_max_y, ws_max_z);
 
         // 读取末端执行器参数
         _nh_.param<double>("end_effector/max_reach", _max_reach_, 0.6);
@@ -217,8 +202,8 @@ namespace dm_arm
 
         // 使用配置的最大迭代次数作为扩展限制，如果配置为0则使用自动计算的限制
         size_t max_expand = _max_iterations_;
-        if(max_expand == 0) {
-             max_expand = static_cast<size_t>((2 * step_count + 1) * (2 * step_count + 1) * 10);
+        if(max_expand == 0){
+            max_expand = static_cast<size_t>((2 * step_count + 1) * (2 * step_count + 1) * 10);
         }
         size_t expand_count = 0;
 
@@ -393,7 +378,7 @@ namespace dm_arm
         target_pose_eef.pose.orientation.y = 0.0;
         target_pose_eef.pose.orientation.z = 0.0;
 
-        return setGoalPoseEef(target_pose_eef);
+        return setGoalPoseEef(target_pose_eef, true, false);
     }
 
     /**
@@ -406,21 +391,21 @@ namespace dm_arm
         angle = angle * M_PI / 180.0; // 转换为弧度
 
         geometry_msgs::Pose current = getCurrentEefPose();
-        
+
         tf2::Quaternion q_current;
         tf2::fromMsg(current.orientation, q_current);
-        
+
         tf2::Quaternion q_delta;
         q_delta.setRPY(0, 0, angle);
 
         tf2::Quaternion q_new = q_current * q_delta;
-        
+
         geometry_msgs::PoseStamped target;
         target.header.frame_id = _plan_frame_;
         target.pose = current;
         target.pose.orientation = tf2::toMsg(q_new);
-        
-        return setGoalPoseBase(target, false, false);
+
+        return setGoalPoseBase(target, true, false);
     }
 
     /**
@@ -542,11 +527,11 @@ namespace dm_arm
 
             // 执行任务动作
             if(task.action == TargetAction_e::PICK && success){
-                
+
                 // TODO: 执行采摘动作
             }
             else if(task.action == TargetAction_e::STRETCH && success){
-                
+
                 // TODO: 根据视觉反馈调整伸缩参数
                 if(task.param1 == 0.0){
 
@@ -556,7 +541,7 @@ namespace dm_arm
                 if(!success) ROS_WARN("任务 [%zu] 伸缩动作失败。", task_index);
             }
             else if(task.action == TargetAction_e::ROTATE && success){
-                
+
                 // TODO: 根据视觉反馈调整旋转参数
                 if(task.param1 == 0.0){
 
@@ -569,7 +554,7 @@ namespace dm_arm
             // 等待时间：优先使用任务指定的等待时间，否则使用默认等待时间
             double wait = (task.wait_time > 0.0) ? task.wait_time : _default_wait_time_;
             if(wait > 0.0) ros::Duration(wait).sleep();
-            
+
             ++task_index;
         }
 

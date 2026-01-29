@@ -8,7 +8,7 @@
 **版本**：1.0.0
 **控制系统**：ROS Noetic
 **运动规划框架**：MoveIt! + ros_control
-**硬件接口**：达妙CAN转USB（XT30(2+2)端接机械臂，XT30接24V电源，Type-C线接电脑/工控机）
+ur**硬件接口**：达妙CAN转USB（XT30(2+2)端接机械臂，XT30接24V电源，Type-C线接电脑/工控机）
 
 ## 1. 系统概述
 
@@ -40,15 +40,19 @@ sudo apt install ros-noetic-moveit ros-noetic-controller-manager \
                  ros-noetic-rviz ros-noetic-ros-controllers
 ```
 
-## 4. 源码获取与编译
+## 4. 源码结构与编译
 
 ```bash
-# 克隆源码，结构：
+# 源码结构：
 dm_arm_ws
 ├── src
+│ 	├── dm_arm_controller			# 达妙机械臂控制节点
+│ 	├── dm_arm_description			# 达妙机械臂URDF及模型
 │   ├── dm_arm_moveit_config        # MoveIt 配置包
+│ 	├── dm_arm_msgs_srvs			# 达妙机械臂自定义消息类型及服务类型
 │   ├── dm_arm_service              # 机械臂服务节点
-│   └── dm_ht_controller            # 硬件接口节点
+│   ├── dm_ht_controller            # 硬件接口节点
+│   └──	serial_driver				# 串口及CAN驱动节点
 ├── README.md                       # 使用文档
 ├── 达妙机械臂服务器客户端接口文档.md    # 客户端接口说明
 └── test_service.sh                 # 测试脚本
@@ -63,7 +67,7 @@ source devel/setup.bash
 
 ## 5. 参数配置（重要！）
 
-启动前请确认以下参数文件已正确修改：
+启动前请确认以下参数按实际情况正确修改：
 
 **文件路径**：`dm_arm_service/config/dm_arm_config.yaml`
 
@@ -74,48 +78,28 @@ baudrate: 921600				# 波特率
 control_frequency: 500.0		# 控制频率(200~500)
 
 # 控制模式
-use_mit_mode: true				# 使用MIT模式
-kp: 30.0						# 比例项
-kd: 1.0							# 微分项
+use_mit_mode: false				# 使用MIT+位置速度混合模式（纯MIT有BUG）
 
 # 安全参数
-max_position_change: 0.5		# 最大单次位置移动(米)
 enable_write: true				# 允许写入角度(允许控制)
 
-# 手臂关节配置 - 6个旋转关节
-joint_names:
-  - joint1
-  - joint2
-  - joint3
-  - joint4
-  - joint5
-  - joint6
-
-# 电机ID
-motor_ids: [1, 2, 3, 4, 5, 6]
-
-# 电机类型：
-# 0 - DM4310
-# 1 - DM4310_48V
-# 2 - DM4340
-# 3 - DM4340_48V
-motor_types: [0, 0, 0, 0, 0, 0]
-
-# 关节状态控制器
-joint_state_controller:
-  type: joint_state_controller/JointStateController
-  publish_rate: 50
-
-# 手臂控制器
-arm_controller:
-  type: position_controllers/JointTrajectoryController
-  joints:
+# 手臂关节配置
+joints:
+  names:
     - joint1
     - joint2
     - joint3
     - joint4
     - joint5
     - joint6
+    - gripper_left
+  # 电机类型：
+  # 0 - DM4310
+  # 1 - DM4310_48V
+  # 2 - DM4340
+  # 3 - DM4340_48V
+  motor_ids: [1, 2, 3, 4, 5, 6, 7]     # 电机 ID
+  motor_types: [2, 2, 2, 0, 0, 0, 0]   # 电机类型
 ```
 
 ## 6. 一键启动命令及测试脚本
@@ -127,7 +111,7 @@ roslaunch dm_arm_service dm_arm_server.launch
 该 launch 文件会依次完成以下操作：
 
 1. 加载 URDF 到 parameter server
-2. 启动真实硬件接口节点 `dm_control_node`
+2. 启动真实硬件接口节点 `dm_ht_controller`
 3. 启动 `controller_manager`
 4. 加载 `joint_state_controller` 和 `joint_trajectory_controller`
 5. 启动 MoveIt `move_group` 节点
@@ -157,7 +141,7 @@ roslaunch dm_arm_service dm_arm_server.launch
 1. RViz 启动后，左侧 MotionPlanning 面板出现
 2. Context 标签页选择 `Planning Scene Topic` 为 `/move_group/monitored_planning_scene`
 3. 在 Planning 标签页：  
-   - Planning Group 选择 `arm`（或 `manipulator`）
+   - Planning Group 选择 `arm` 或 `end`
    - 拖动交互标记或在 Goal State 中点击 Random Valid 生成目标位姿
    - 点击 Plan 执行规划
    - 点击 Execute 执行运动

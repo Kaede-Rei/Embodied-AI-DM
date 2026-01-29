@@ -334,7 +334,7 @@ void DMHardwareInterface::returnZero()
     ROS_INFO("正在返回零位姿态以准备关闭...");
 
     // Zero姿态
-    std::vector<double> target_pos = {-0.006, -0.035, -0.072, -0.001, 0.052, 0.000, 0.000};
+    std::vector<double> target_pos = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
 
     if(joint_position_.size() != target_pos.size()){
         ROS_WARN("关节数量不匹配，跳过归零操作。");

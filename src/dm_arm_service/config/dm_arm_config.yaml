@@ -60,7 +60,7 @@ end_effector:
   search:
     step: 5.0                       # 搜索步长（度）
     radius: 45.0                    # 搜索半径（度）
-    max_iterations: 100             # 最大迭代次数
+    max_iterations: 0             # 最大迭代次数（为0则不限制）
   
   # 运动参数
   velocity_scaling: 0.3             # 速度缩放因子

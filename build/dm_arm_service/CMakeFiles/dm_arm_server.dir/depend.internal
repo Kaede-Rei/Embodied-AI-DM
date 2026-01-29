@@ -9,46 +9,6 @@ dm_arm_service/CMakeFiles/dm_arm_server.dir/src/dm_arm_server.cpp.o
  /home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_arm_service/include/dm_arm_service/dm_arm_service.hpp
  /home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_arm_service/src/dm_arm_server.cpp
  /home/kaerei/ROS_Workspace/dm_ht_arm/src/serial_driver/include/serial_driver/serial_driver.hpp
- /home/kaerei/软件/piper_ros/devel/include/moveit/moveit_kinematics_base_export.h
- /home/kaerei/软件/piper_ros/devel/include/moveit/moveit_planning_scene_export.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/collision_common.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/collision_detector_allocator.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/collision_env.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/collision_matrix.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/collision_plugin.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/collision_plugin_cache.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/occupancy_map.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/world.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/collision_detection/include/moveit/collision_detection/world_diff.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/exceptions/include/moveit/exceptions/exceptions.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/kinematic_constraints/include/moveit/kinematic_constraints/kinematic_constraint.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/kinematics_base/include/moveit/kinematics_base/kinematics_base.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/macros/include/moveit/macros/class_forward.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/macros/include/moveit/macros/declare_ptr.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/planning_scene/include/moveit/planning_scene/planning_scene.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/fixed_joint_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/floating_joint_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/joint_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/joint_model_group.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/link_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/planar_joint_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/prismatic_joint_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/revolute_joint_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_model/include/moveit/robot_model/robot_model.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_state/include/moveit/robot_state/attached_body.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_state/include/moveit/robot_state/robot_state.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/robot_trajectory/include/moveit/robot_trajectory/robot_trajectory.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/transforms/include/moveit/transforms/transforms.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_core/utils/include/moveit/utils/moveit_error_code.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/occupancy_map_monitor/include/moveit/occupancy_map_monitor/occupancy_map_monitor.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/occupancy_map_monitor/include/moveit/occupancy_map_monitor/occupancy_map_updater.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/planning/collision_plugin_loader/include/moveit/collision_plugin_loader/collision_plugin_loader.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/planning/kinematics_plugin_loader/include/moveit/kinematics_plugin_loader/kinematics_plugin_loader.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/planning/planning_scene_monitor/include/moveit/planning_scene_monitor/current_state_monitor.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/planning/planning_scene_monitor/include/moveit/planning_scene_monitor/planning_scene_monitor.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/planning/rdf_loader/include/moveit/rdf_loader/rdf_loader.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/planning/robot_model_loader/include/moveit/robot_model_loader/robot_model_loader.h
- /home/kaerei/软件/piper_ros/src/piper_moveit/moveit-1.1.11/moveit_ros/planning_interface/move_group_interface/include/moveit/move_group_interface/move_group_interface.h
  /opt/ros/noetic/include/actionlib/action_definition.h
  /opt/ros/noetic/include/actionlib/client/action_client.h
  /opt/ros/noetic/include/actionlib/client/client_goal_handle_imp.h
@@ -95,6 +55,47 @@ dm_arm_service/CMakeFiles/dm_arm_server.dir/src/dm_arm_server.cpp.o
  /opt/ros/noetic/include/geometry_msgs/Vector3.h
  /opt/ros/noetic/include/geometry_msgs/Vector3Stamped.h
  /opt/ros/noetic/include/geometry_msgs/Wrench.h
+ /opt/ros/noetic/include/moveit/collision_detection/collision_common.h
+ /opt/ros/noetic/include/moveit/collision_detection/collision_detector_allocator.h
+ /opt/ros/noetic/include/moveit/collision_detection/collision_env.h
+ /opt/ros/noetic/include/moveit/collision_detection/collision_matrix.h
+ /opt/ros/noetic/include/moveit/collision_detection/collision_plugin.h
+ /opt/ros/noetic/include/moveit/collision_detection/collision_plugin_cache.h
+ /opt/ros/noetic/include/moveit/collision_detection/occupancy_map.h
+ /opt/ros/noetic/include/moveit/collision_detection/world.h
+ /opt/ros/noetic/include/moveit/collision_detection/world_diff.h
+ /opt/ros/noetic/include/moveit/collision_plugin_loader/collision_plugin_loader.h
+ /opt/ros/noetic/include/moveit/exceptions/exceptions.h
+ /opt/ros/noetic/include/moveit/kinematic_constraints/kinematic_constraint.h
+ /opt/ros/noetic/include/moveit/kinematics_base/kinematics_base.h
+ /opt/ros/noetic/include/moveit/kinematics_plugin_loader/kinematics_plugin_loader.h
+ /opt/ros/noetic/include/moveit/macros/class_forward.h
+ /opt/ros/noetic/include/moveit/macros/declare_ptr.h
+ /opt/ros/noetic/include/moveit/move_group_interface/move_group_interface.h
+ /opt/ros/noetic/include/moveit/moveit_kinematics_base_export.h
+ /opt/ros/noetic/include/moveit/moveit_planning_scene_export.h
+ /opt/ros/noetic/include/moveit/occupancy_map_monitor/occupancy_map_monitor.h
+ /opt/ros/noetic/include/moveit/occupancy_map_monitor/occupancy_map_updater.h
+ /opt/ros/noetic/include/moveit/planning_scene/planning_scene.h
+ /opt/ros/noetic/include/moveit/planning_scene_monitor/current_state_monitor.h
+ /opt/ros/noetic/include/moveit/planning_scene_monitor/planning_scene_monitor.h
+ /opt/ros/noetic/include/moveit/rdf_loader/rdf_loader.h
+ /opt/ros/noetic/include/moveit/robot_model/fixed_joint_model.h
+ /opt/ros/noetic/include/moveit/robot_model/floating_joint_model.h
+ /opt/ros/noetic/include/moveit/robot_model/joint_model.h
+ /opt/ros/noetic/include/moveit/robot_model/joint_model_group.h
+ /opt/ros/noetic/include/moveit/robot_model/link_model.h
+ /opt/ros/noetic/include/moveit/robot_model/planar_joint_model.h
+ /opt/ros/noetic/include/moveit/robot_model/prismatic_joint_model.h
+ /opt/ros/noetic/include/moveit/robot_model/revolute_joint_model.h
+ /opt/ros/noetic/include/moveit/robot_model/robot_model.h
+ /opt/ros/noetic/include/moveit/robot_model_loader/robot_model_loader.h
+ /opt/ros/noetic/include/moveit/robot_state/attached_body.h
+ /opt/ros/noetic/include/moveit/robot_state/robot_state.h
+ /opt/ros/noetic/include/moveit/robot_trajectory/robot_trajectory.h
+ /opt/ros/noetic/include/moveit/transforms/transforms.h
+ /opt/ros/noetic/include/moveit/utils/lexical_casts.h
+ /opt/ros/noetic/include/moveit/utils/moveit_error_code.h
  /opt/ros/noetic/include/moveit_msgs/AllowedCollisionEntry.h
  /opt/ros/noetic/include/moveit_msgs/AllowedCollisionMatrix.h
  /opt/ros/noetic/include/moveit_msgs/AttachedCollisionObject.h
