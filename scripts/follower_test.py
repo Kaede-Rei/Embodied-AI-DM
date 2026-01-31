@@ -13,7 +13,7 @@ follower.connect()
 
 for key, motor in follower.motors.items():
     follower.control.disable(motor)
-    
+
 try:
     while True:
         print(follower.get_observation())

@@ -21,9 +21,16 @@
 # 固定摄像头配置（仅在 --display_data 模式下生效）
 # 根据实际硬件修改以下配置（例如摄像头索引、分辨率、FPS 等）
 CAMERAS_CONFIG = {
-    "context": {
+    "end": {
         "type": "opencv",
-        "index_or_path": 2,
+        "index_or_path": "/dev/com-1.2-video",
+        "width": 640,
+        "height": 480,
+        "fps": 30,
+    },
+    "eye": {
+        "type": "opencv",
+        "index_or_path": "/dev/com-1.4-video",
         "width": 1280,
         "height": 720,
         "fps": 30,
@@ -42,8 +49,8 @@ CAMERAS_JSON = json.dumps(CAMERAS_CONFIG)
 
 def parse_args():
     ap = argparse.ArgumentParser(description="DK1 teleoperation")
-    ap.add_argument("--follower_port", default="/dev/ttyACM0")
-    ap.add_argument("--leader_port", default="/dev/ttyUSB0")
+    ap.add_argument("--follower_port", default="/dev/com-1.3-tty")
+    ap.add_argument("--leader_port", default="/dev/com-1.1-tty")
     ap.add_argument("--freq", type=float, default=200.0)
     ap.add_argument(
         "--display_data",

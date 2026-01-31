@@ -62,9 +62,9 @@ class DMFollower(Robot):
         self.serial_device = None
         self.bus_connected = False
 
-        # 映射开闭角度（默认 0.0 ~ -4.7）（完全闭合 0.0 ~ -5.25）
+        # 映射开闭角度（默认 0.0 ~ -4.7）（完全闭合 0.0 ~ -5.23）
         self.gripper_open_pos = 0.0
-        self.gripper_closed_pos = -5.25
+        self.gripper_closed_pos = -5.23
 
         self.cameras = make_cameras_from_configs(config.cameras)
 
@@ -341,8 +341,6 @@ class DMLeader(Teleoperator):
             )
             for motor, val in action.items()
         }
-
-        action["joint_2.pos"] = -action["joint_2.pos"]
 
         # # Normalize gripper position between 1 (closed) and 0 (open)
         gripper_range = self.config.gripper_open_pos - self.config.gripper_closed_pos

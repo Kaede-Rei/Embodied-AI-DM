@@ -1,22 +1,22 @@
-#!/usr/bin/env python3
 """
-LeRobot parquet 数据处理脚本，支持跳变点检测、平滑、线性插值、可视化对比等功能
+LeRobot dataset/data/file.parquet 数据处理脚本，支持跳变点检测、平滑、线性插值、可视化对比等功能
 
-前提：将 <repo_id>/data/chunk-xxx/file-xxx.parquet 下载到本地 data/ 目录，最后会输出处理后的文件 file-xxx_new.parquet 放到 data/ 下
+前提：将 <repo_id>/data/chunk-xxx/file-xxx.parquet 下载到本地 dataset/data/ 目录，最后会输出处理后的文件 file-xxx_new.parquet 放到 dataset/data/ 下
 
 使用方法示例：
-python scripts/data_processer.py
-python scripts/data_processer.py --file file-001.parquet --loop 2
-python scripts/data_processer.py --target action
-python scripts/data_processer.py --jump_threshold 0.02 --smooth_window 31 --poly_order 3
+终端输入 cd /media/$USER/AgroTech/home/LeRobot-Workspace/custom-hw-sim/ 确保进入工作区后再启动脚本
+python scripts/process_data.py
+python scripts/process_data.py --file file-001.parquet --loop 2
+python scripts/process_data.py --target action
+python scripts/process_data.py --jump_threshold 0.02 --smooth_window 31 --poly_order 3
 
 支持的参数：
---file: 要处理的 parquet 文件名（位于 data/ 目录下）
---loop: 重复处理次数（用于观察过度平滑，建议最多两次）
---target: 处理字段（从臂 observation.state 或 主臂 action）
---jump_threshold: 跳变检测阈值（rad）
---smooth_window: Savitzky-Golay 窗口长度(奇数)，通常取控制频率的 0.5~2.0 倍 
---poly_order: Savitzky-Golay 多项式阶数，通常取 2 或 3
+--file: 要处理的 parquet 文件名（位于 dataset/data/ 目录下，默认 file-001.parquet）
+--loop: 重复处理次数（用于观察过度平滑，建议最多两次，默认 1 次）
+--target: 处理字段（从臂 observation.state 或 主臂 action，默认从臂 observation.state）
+--jump_threshold: 跳变检测阈值（rad，默认 0.1）
+--smooth_window: Savitzky-Golay 窗口长度(奇数)，通常取控制频率的 0.5~2.0 倍（默认 25）
+--poly_order: Savitzky-Golay 多项式阶数，通常取 2 或 3（默认 3）
 """
 
 import argparse
@@ -34,6 +34,7 @@ DEFAULT_SMOOTH_WINDOW = 25
 DEFAULT_POLY_ORDER = 3
 DEFAULT_LOOP = 1
 
+
 # 单关节处理逻辑
 def process_joint_once(raw_data, jump_threshold, smooth_window, poly_order):
     """
@@ -47,17 +48,10 @@ def process_joint_once(raw_data, jump_threshold, smooth_window, poly_order):
 
     series = pd.Series(raw_data)
     series[mask_jump] = np.nan
-    interp_data = series.interpolate(
-        method="linear",
-        limit_direction="both"
-    ).values
+    interp_data = series.interpolate(method="linear", limit_direction="both").values
 
     if len(interp_data) > smooth_window:
-        interp_data = savgol_filter(
-            interp_data,
-            smooth_window,
-            poly_order
-        )
+        interp_data = savgol_filter(interp_data, smooth_window, poly_order)
 
     return interp_data, mask_jump
 
@@ -92,11 +86,7 @@ def plot_episode(df, ep_id, target, loop, args):
     data_matrix = np.array(df_ep[target].tolist())
     num_frames, num_joints = data_matrix.shape
 
-    fig, axes = plt.subplots(
-        num_joints, 2,
-        figsize=(16, 2.5 * num_joints),
-        sharex=True
-    )
+    fig, axes = plt.subplots(num_joints, 2, figsize=(16, 2.5 * num_joints), sharex=True)
     plt.subplots_adjust(hspace=0.35)
 
     total_jumps = 0
@@ -121,12 +111,7 @@ def plot_episode(df, ep_id, target, loop, args):
         # 原始
         axes[j, 0].plot(raw, color="gray", alpha=0.6)
         if jumps.any():
-            axes[j, 0].scatter(
-                np.where(jumps)[0],
-                raw[jumps],
-                color="red",
-                s=12
-            )
+            axes[j, 0].scatter(np.where(jumps)[0], raw[jumps], color="red", s=12)
         axes[j, 0].set_ylim(y_min - margin, y_max + margin)
         axes[j, 0].set_ylabel(f"Joint {j}")
         axes[j, 0].grid(alpha=0.2)
@@ -164,7 +149,7 @@ def process_all_episodes(df, target, loop, args):
         ep_mask = df_out["episode_index"] == ep_id
         ep_size = ep_mask.sum()
 
-        ep_data = np.array(all_data[start_idx:start_idx + ep_size])
+        ep_data = np.array(all_data[start_idx : start_idx + ep_size])
         processed = np.zeros_like(ep_data)
 
         for j in range(ep_data.shape[1]):
@@ -190,51 +175,49 @@ def process_all_episodes(df, target, loop, args):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="LeRobot parquet joint cleaner"
-    )
+    parser = argparse.ArgumentParser(description="LeRobot parquet joint cleaner")
 
     parser.add_argument(
         "--file",
         type=str,
         default="file-000.parquet",
-        help="要处理的 parquet 文件名（位于 data/ 目录下）"
+        help="要处理的 parquet 文件名（位于 dataset/data/ 目录下）",
     )
     parser.add_argument(
         "--target",
         type=str,
         default=DEFAULT_TARGET,
-        help="处理字段（observation.state 或 action）"
+        help="处理字段（observation.state 或 action）",
     )
     parser.add_argument(
         "--jump_threshold",
         type=float,
         default=DEFAULT_JUMP_THRESHOLD,
-        help="跳变检测阈值（rad）"
+        help="跳变检测阈值（rad）",
     )
     parser.add_argument(
         "--smooth_window",
         type=int,
         default=DEFAULT_SMOOTH_WINDOW,
-        help="Savitzky-Golay 窗口长度（奇数）"
+        help="Savitzky-Golay 窗口长度（奇数）",
     )
     parser.add_argument(
         "--poly_order",
         type=int,
         default=DEFAULT_POLY_ORDER,
-        help="Savitzky-Golay 多项式阶数"
+        help="Savitzky-Golay 多项式阶数",
     )
     parser.add_argument(
         "--loop",
         type=int,
         default=DEFAULT_LOOP,
-        help="重复处理次数（用于观察过度平滑）"
+        help="重复处理次数（用于观察过度平滑）",
     )
 
     args = parser.parse_args()
 
     script_dir = Path(__file__).resolve().parent
-    data_file = script_dir.parent / "data" / args.file
+    data_file = script_dir.parent / "dataset" / "data" / args.file
     output_file = data_file.with_stem(data_file.stem + "_new")
 
     if not data_file.exists():
@@ -258,9 +241,7 @@ def main():
         if cmd == "q":
             break
         elif cmd == "save":
-            df_new = process_all_episodes(
-                df, args.target, args.loop, args
-            )
+            df_new = process_all_episodes(df, args.target, args.loop, args)
             df_new.to_parquet(output_file, index=False)
             print(f"已保存至: {output_file}")
             break

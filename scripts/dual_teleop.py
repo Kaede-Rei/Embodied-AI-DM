@@ -25,9 +25,23 @@
 # 固定摄像头配置（仅在 --display_data 模式下生效）
 # 根据实际硬件修改以下配置（例如摄像头索引、分辨率、FPS 等）
 CAMERAS_CONFIG = {
-    "context": {
+    "left": {
         "type": "opencv",
-        "index_or_path": 2,
+        "index_or_path": 10,
+        "width": 640,
+        "height": 480,
+        "fps": 30,
+    },
+    "mid": {
+        "type": "opencv",
+        "index_or_path": "/dev/com-2.2-video",
+        "width": 640,
+        "height": 480,
+        "fps": 30,
+    },
+    "right": {
+        "type": "opencv",
+        "index_or_path": 12,
         "width": 1280,
         "height": 720,
         "fps": 30,
@@ -49,10 +63,10 @@ CAMERAS_JSON = json.dumps(CAMERAS_CONFIG)
 
 def parse_args():
     ap = argparse.ArgumentParser(description="Dual DK1 teleoperation")
-    ap.add_argument("--follower_left_port", default="/dev/ttyACM1")
-    ap.add_argument("--follower_right_port", default="/dev/ttyACM0")
-    ap.add_argument("--leader_left_port", default="/dev/ttyUSB1")
-    ap.add_argument("--leader_right_port", default="/dev/ttyUSB0")
+    ap.add_argument("--follower_left_port", default="/dev/com-1.3-tty")
+    ap.add_argument("--follower_right_port", default="/dev/com-1.4-tty")
+    ap.add_argument("--leader_left_port", default="/dev/com-1.1-tty")
+    ap.add_argument("--leader_right_port", default="/dev/com-1.2-tty")
     ap.add_argument("--freq", type=float, default=200.0)
     ap.add_argument(
         "--display_data",
@@ -87,15 +101,15 @@ def main():
             # 确保在退出时安全断开连接
             leader = DualDMLeader(
                 DualDMLeaderConfig(
-                    left_arm_port=args.leader_left_port,
-                    right_arm_port=args.leader_right_port,
+                    left_port=args.leader_left_port,
+                    right_port=args.leader_right_port,
                 )
             )
             leader.connect()
             follower = DualDMFollower(
                 DualDMFollowerConfig(
-                    left_arm_port=args.follower_left_port,
-                    right_arm_port=args.follower_right_port,
+                    left_port=args.follower_left_port,
+                    right_port=args.follower_right_port,
                     disable_torque_on_disconnect=True,
                 )
             )
@@ -107,14 +121,14 @@ def main():
     # 无界面纯遥操作模式（仅关节动作映射，无摄像头、无 GUI）
     leader = DualDMLeader(
         DualDMLeaderConfig(
-            left_arm_port=args.leader_left_port, right_arm_port=args.leader_right_port
+            left_port=args.leader_left_port, right_port=args.leader_right_port
         )
     )
     leader.connect()
     follower = DualDMFollower(
         DualDMFollowerConfig(
-            left_arm_port=args.follower_left_port,
-            right_arm_port=args.follower_right_port,
+            left_port=args.follower_left_port,
+            right_port=args.follower_right_port,
             joint_velocity_scaling=1.0,
             disable_torque_on_disconnect=True,
         )

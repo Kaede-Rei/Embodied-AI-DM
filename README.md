@@ -177,6 +177,8 @@ sudo ./bash/usb-port-create.sh
 
 ### 4.6. 官方命令行入口点
 
+代码具体位置：`/AgroTech/home/micromamba/envs/lerobot/lib/python3.10/site-packages/lerobot/scripts`
+
 | **命令行入口点**          | **主要作用**                                                 |
 | ------------------------- | ------------------------------------------------------------ |
 | lerobot-calibrate         | 用于校准机器人组件（如关节、电机），支持多种硬件（如 OMX）   |

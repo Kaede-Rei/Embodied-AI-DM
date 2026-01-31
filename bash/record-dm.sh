@@ -26,19 +26,24 @@
 # --resume                              从现有数据集继续录制（默认启用）
 # --no_cameras                          不启用摄像头（默认启用两个摄像头）
 # --no_display                          不启用 rerun.io 实时可视化（默认启用）
+#
+# 注意：
+# --dataset.single_task 仅作占位符，不会注入 Language 描述
+# Language 描述应使用 process_language.py 脚本注入
 
 # 默认参数配置
-FOLLOWER_PORT="/dev/ttyACM0"            # Follower 臂串口
-LEADER_PORT="/dev/ttyUSB0"              # Leader 臂串口
+FOLLOWER_PORT="/dev/com-1.3-tty"        # Follower 臂串口
+LEADER_PORT="/dev/com-1.1-tty"          # Leader 臂串口
 JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
 # 预设摄像头配置，要严格按照示例格式填写：
 # CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
-CAMERAS_CONFIG='{"context": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 25}}'
+CAMERAS_CONFIG='{"eye": {"type": "opencv", "index_or_path": 0, "width": 1280, "height": 720, "fps": 30},
+                 "end": {"type": "opencv", "index_or_path": "/dev/com-1.2-video", "width": 640, "height": 480, "fps": 30}}'
 NUM_EPISODES=50                         # 录制 episode 数量
-EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
+EPISODE_TIME_S=120                      # 每个 episode 时长（秒）
 RESET_TIME_S=0                          # 重置时间（秒），注意实际总重置时间是 重置时间 + (当前 episode 实际使用的时间 + 重置时间)，所以写 0 即可
 TASK_DESCRIPTION="Task description."    # 单任务描述
-DATASET_FPS=25                          # 数据集保存的帧率（默认25，必须与相机帧率一致）
+DATASET_FPS=30                          # 数据集保存的帧率（默认30，必须与相机帧率一致）
 PUSH_TO_HUB=false                       # 是否上传至 Hugging Face Hub
 RESUME=true                             # 是否从现有数据集继续录制
 DISPLAY_DATA=true                       # 是否启用 rerun.io 实时可视化
@@ -59,14 +64,14 @@ while [[ $# -gt 0 ]]; do
         --resume) RESUME=true; shift ;;
         --no_cameras) CAMERAS_CONFIG=""; shift ;;
         --no_display) DISPLAY_DATA=false; shift ;;
-        *) echo "未知参数: $1"; exit 1 ;;
+        *) echo "未知参数: $1";  ;;
     esac
 done
 
 # 检查必须参数
 if [[ -z "$REPO_ID" ]]; then
     echo "错误：必须指定 --repo_id（例如 $USER/dm_my_task）"
-    exit 1
+    
 fi
 
 # 自动检测并验证帧率一致性
@@ -155,7 +160,7 @@ lerobot-record "${ARGS[@]}"
 # 检查命令执行是否成功
 if [ $? -ne 0 ]; then
   echo "- 错误：lerobot-record 执行失败"
-  exit 1
+  
 fi
 
 echo "========================================="

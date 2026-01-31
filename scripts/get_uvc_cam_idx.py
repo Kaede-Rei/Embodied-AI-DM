@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 USB 摄像头检测与能力扫描工具（OpenCV + v4l2）
 

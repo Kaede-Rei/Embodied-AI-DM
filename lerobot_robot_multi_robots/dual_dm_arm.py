@@ -36,7 +36,6 @@ class DualDMFollower(Robot):
             disable_torque_on_disconnect=self.config.disable_torque_on_disconnect,
             joint_velocity_scaling=self.config.joint_velocity_scaling,
             max_gripper_torque=self.config.max_gripper_torque,
-            cameras=self.config.cameras,
         )
 
         right_config = DMFollowerConfig(
@@ -44,7 +43,6 @@ class DualDMFollower(Robot):
             disable_torque_on_disconnect=self.config.disable_torque_on_disconnect,
             joint_velocity_scaling=self.config.joint_velocity_scaling,
             max_gripper_torque=self.config.max_gripper_torque,
-            cameras=self.config.cameras,
         )
 
         self.left = DMFollower(left_config)

@@ -7,7 +7,7 @@ import time
 
 
 follower_config = DMFollowerConfig(
-    port="/dev/ttyACM1",
+    port="/dev/ttyACM0",
 )
 follower = DMFollower(follower_config)
 
@@ -20,7 +20,7 @@ for key, motor in follower.motors.items():
     for _ in range(3):
         follower.control.refresh_motor_status(motor)
         time.sleep(0.01)
-    
+
     if follower.control.read_motor_param(motor, DM_variable.CTRL_MODE) is not None:
         print(f"{key} ({motor.MotorType.name}) is connected.")
     else:
@@ -29,5 +29,5 @@ for key, motor in follower.motors.items():
 for key, motor in follower.motors.items():
     follower.control.set_zero_position(motor)
     print(f"{key} ({motor.MotorType.name}) set to zero position.")
-    
+
 follower.control.serial_.close()
