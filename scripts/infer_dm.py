@@ -1,194 +1,258 @@
 #!/usr/bin/env python
-
 """
-LeRobot 纯推理脚本 (Infinite Inference Loop)
-
-功能：
-1. 加载指定路径的模型。
-2. 创建环境（基于模型配置）。
-3. 无限循环运行推理 (Observation -> Policy -> Action -> Env)，直到 Ctrl+C。
-4. 实时 Render 画面。
-
-默认路径：
-- 模型: ./outputs/leaf_v0_model/checkpoints/last/pretrained_model
-- 数据集根目录: ./dataset/
+DM 机械臂推理脚本 - 使用训练好的模型进行持续推理
+从 ./outputs/leaf_v0_model/checkpoints/last/pretrained_model 加载模型
 """
 
-import json
-import logging
+import argparse
 import time
-import signal
-import sys
 from pathlib import Path
 from contextlib import nullcontext
 
-import gymnasium as gym
 import numpy as np
 import torch
-from termcolor import colored
 
-# LeRobot 内部组件引用
-from lerobot.envs.factory import make_env, make_env_pre_post_processors
-from lerobot.envs.utils import preprocess_observation
-from lerobot.policies.factory import make_policy, make_pre_post_processors
-from lerobot.utils.utils import get_safe_torch_device, init_logging, set_seed
-from lerobot.utils.constants import ACTION
+# LeRobot imports
+from lerobot.policies.act.modeling_act import ACTPolicy
+from lerobot.processor import PolicyProcessorPipeline
+from lerobot.cameras.opencv import OpenCVCameraConfig
 
-# ================= 配置区域 =================
-# 你要求的模型路径
-PRETRAINED_MODEL_PATH = Path("./outputs/leaf_v0_model/checkpoints/last/pretrained_model")
-# 你要求的数据集路径 (如果环境或策略需要读取本地 dataset info)
-DATASET_ROOT = Path("./dataset/")
-# 设备 (自动检测 cuda/mps/cpu)
-DEVICE = get_safe_torch_device("cuda", log=True)
-# 是否使用混合精度 (通常设为 False 即可，除非模型极大)
-USE_AMP = False
-# 渲染频率限制 (FPS)，设为 None 则全速运行
-MAX_FPS = 30
-# ===========================================
+# Local imports
+from lerobot_robot_multi_robots.dm_arm import DMFollower
+from lerobot_robot_multi_robots.config_dm_arm import DMFollowerConfig
 
-def signal_handler(sig, frame):
-    print(colored("\n[INFO] 检测到 Ctrl+C，正在停止推理...", "yellow"))
-    sys.exit(0)
+# ===================== 配置 =====================
 
-def main():
-    init_logging()
-    signal.signal(signal.SIGINT, signal_handler)
+# 相机配置 - 使用 OpenCVCameraConfig 对象
+CAMERAS_CONFIG = {
+    "end": OpenCVCameraConfig(
+        index_or_path="/dev/com-1.2-video",
+        width=640,
+        height=480,
+        fps=30,
+    ),
+    "eye": OpenCVCameraConfig(
+        index_or_path=4,
+        width=1280,
+        height=720,
+        fps=30,
+    ),
+}
 
-    if not PRETRAINED_MODEL_PATH.exists():
-        print(colored(f"[Error] 模型路径不存在: {PRETRAINED_MODEL_PATH}", "red"))
-        return
+# 默认模型路径
+DEFAULT_MODEL_PATH = "./outputs/leaf_v0_model/checkpoints/last/pretrained_model"
 
-    # 1. 加载 Config
-    # LeRobot 模型文件夹下通常有 config.json，我们需要它来构建正确的环境和策略
-    config_path = PRETRAINED_MODEL_PATH / "config.json"
-    with open(config_path, "r") as f:
-        cfg_dict = json.load(f)
-    
-    # 简单的 Namespace 对象模拟 Hydra 配置，方便后续函数调用
-    from argparse import Namespace
-    
-    # 提取关键配置
-    # 注意：这里假设 config.json 结构符合 LeRobot 标准
-    # 如果是旧版本模型，可能需要根据实际 json 结构微调
-    policy_cfg = Namespace(**cfg_dict["policy"])
-    env_cfg = Namespace(**cfg_dict["env"])
-    
-    # 修正 pretrained_path 为本地绝对路径/相对路径
-    policy_cfg.pretrained_path = str(PRETRAINED_MODEL_PATH)
-    
-    # 设置随机种子
-    set_seed(1000)
 
-    print(colored(f"加载模型: {PRETRAINED_MODEL_PATH}", "green"))
-    print(colored(f"使用设备: {DEVICE}", "green"))
-
-    # 2. 创建环境
-    # 将 dataset root 注入环境变量或配置中，以防环境需要读取 dataset info
-    # 注意：大多数 LeRobot 推理不需要 raw dataset，只需要 config 里的 stats。
-    # 但如果环境是基于文件的（如 aloha_sim 某些版本），可能需要。
-    logging.info("Making environment...")
-    env = make_env(
-        env_cfg,
-        n_envs=1, # 推理时我们通常只看一个环境
-        dataset_root=str(DATASET_ROOT) # 传递数据集路径
+def parse_args():
+    parser = argparse.ArgumentParser(description="DM 机械臂推理脚本")
+    parser.add_argument(
+        "--model_path",
+        type=str,
+        default=DEFAULT_MODEL_PATH,
+        help="预训练模型路径",
     )
-
-    # 3. 创建策略 (Policy)
-    logging.info("Making policy...")
-    policy = make_policy(
-        cfg=policy_cfg,
-        env_cfg=env_cfg,
-        dataset_root=str(DATASET_ROOT)
+    parser.add_argument(
+        "--port",
+        type=str,
+        default="/dev/ttyACM0",
+        help="机械臂串口",
     )
-    policy.eval()
-    policy.to(DEVICE)
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="cuda",
+        help="推理设备 (cuda/cpu)",
+    )
+    parser.add_argument(
+        "--freq",
+        type=float,
+        default=30.0,
+        help="推理频率 Hz",
+    )
+    parser.add_argument(
+        "--use_amp",
+        action="store_true",
+        help="使用混合精度推理",
+    )
+    parser.add_argument(
+        "--joint_velocity_scaling",
+        type=float,
+        default=0.2,
+        help="关节速度缩放 (0-1)",
+    )
+    return parser.parse_args()
 
-    # 4. 创建处理器 (Pre/Post Processors)
-    # 这一步至关重要，处理图像归一化、Action 反归一化等
-    preprocessor_overrides = {
-        "device_processor": {"device": str(DEVICE)},
+
+def preprocess_observation(obs_dict: dict, device: torch.device) -> dict:
+    """
+    将机械臂观测转换为模型输入格式
+    
+    Args:
+        obs_dict: 来自机械臂的原始观测
+        device: 目标设备
+    
+    Returns:
+        处理后的观测字典
+    """
+    processed = {}
+    
+    # 处理关节状态 (7个关节: joint_1-6 + gripper)
+    state_keys = [
+        "joint_1.pos", "joint_2.pos", "joint_3.pos",
+        "joint_4.pos", "joint_5.pos", "joint_6.pos",
+        "gripper.pos"
+    ]
+    state = np.array([obs_dict[key] for key in state_keys], dtype=np.float32)
+    # 添加 batch 维度: (7,) -> (1, 7)
+    processed["observation.state"] = torch.from_numpy(state).unsqueeze(0).to(device)
+    
+    # 处理图像 (HWC uint8 -> CHW float32, normalized)
+    for cam_name in ["eye", "end"]:
+        if cam_name in obs_dict:
+            img = obs_dict[cam_name]  # (H, W, C) uint8
+            # 转换为 (C, H, W) float32
+            img = np.transpose(img, (2, 0, 1)).astype(np.float32) / 255.0
+            # 添加 batch 维度: (C, H, W) -> (1, C, H, W)
+            processed[f"observation.images.{cam_name}"] = torch.from_numpy(img).unsqueeze(0).to(device)
+    
+    return processed
+
+
+def postprocess_action(action: torch.Tensor) -> dict:
+    """
+    将模型输出转换为机械臂动作格式
+    
+    Args:
+        action: 模型输出的动作张量 (batch, action_dim)
+    
+    Returns:
+        机械臂动作字典
+    """
+    # 移除 batch 维度并转为 numpy
+    action_np = action.squeeze(0).cpu().numpy()
+    
+    action_dict = {
+        "joint_1.pos": float(action_np[0]),
+        "joint_2.pos": float(action_np[1]),
+        "joint_3.pos": float(action_np[2]),
+        "joint_4.pos": float(action_np[3]),
+        "joint_5.pos": float(action_np[4]),
+        "joint_6.pos": float(action_np[5]),
+        "gripper.pos": float(action_np[6]),
     }
     
-    # 通用处理器
-    preprocessor, postprocessor = make_pre_post_processors(
-        policy_cfg=policy_cfg,
-        pretrained_path=str(PRETRAINED_MODEL_PATH),
-        preprocessor_overrides=preprocessor_overrides,
-    )
-    
-    # 环境特定处理器 (比如 Libero 需要特定处理)
-    env_preprocessor, env_postprocessor = make_env_pre_post_processors(
-        env_cfg=env_cfg, 
-        policy_cfg=policy_cfg
-    )
+    return action_dict
 
-    # ================= 推理主循环 =================
-    print(colored("\n开始无限推理循环... (按 Ctrl+C 停止)", "cyan", attrs=["bold"]))
+
+def main():
+    args = parse_args()
     
-    observation, info = env.reset(seed=None)
+    # 设置设备
+    device = torch.device(args.device if torch.cuda.is_available() or args.device == "cpu" else "cpu")
+    print(f"使用设备: {device}")
+    
+    # 设置高性能模式
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cuda.matmul.allow_tf32 = True
+    
+    # ===================== 加载模型 =====================
+    print(f"加载模型: {args.model_path}")
+    model_path = Path(args.model_path)
+    
+    if not model_path.exists():
+        raise FileNotFoundError(f"模型路径不存在: {model_path}")
+    
+    # 使用 ACTPolicy.from_pretrained 加载模型
+    policy = ACTPolicy.from_pretrained(str(model_path))
+    policy.to(device)
+    policy.eval()
+    print(f"模型加载成功: {type(policy).__name__}")
+    print(f"模型配置: chunk_size={policy.config.chunk_size}, n_action_steps={policy.config.n_action_steps}")
+    
+    # ===================== 初始化机械臂 =====================
+    print("初始化机械臂...")
+    robot_config = DMFollowerConfig(
+        port=args.port,
+        cameras=CAMERAS_CONFIG,
+        joint_velocity_scaling=args.joint_velocity_scaling,
+        disable_torque_on_disconnect=True,
+    )
+    robot = DMFollower(robot_config)
     
     try:
+        robot.connect()
+        print("机械臂连接成功")
+        
+        # ===================== 推理循环 =====================
+        period = 1.0 / args.freq
+        print(f"开始推理循环，频率: {args.freq} Hz")
+        print("按 Ctrl+C 停止...")
+        
+        step = 0
+        amp_context = torch.autocast(device_type=device.type) if args.use_amp else nullcontext()
+        
         while True:
-            loop_start_time = time.time()
-
-            # A. 预处理 Observation
-            # 1. 转换为 Tensor 并调整维度 (numpy -> torch)
-            observation = preprocess_observation(observation)
-            # 2. 环境特定的预处理
-            observation = env_preprocessor(observation)
-            # 3. 策略通用的预处理 (如归一化)
-            observation = preprocessor(observation)
-
-            # B. 策略推理
-            with torch.inference_mode(), torch.autocast(device_type=DEVICE.type) if USE_AMP else nullcontext():
-                action = policy.select_action(observation)
-
-            # C. 后处理 Action
-            # 1. 策略通用的后处理 (如反归一化)
-            action = postprocessor(action)
-            # 2. 包装成字典以便通过 env_postprocessor
-            action_transition = {ACTION: action}
-            action_transition = env_postprocessor(action_transition)
-            action = action_transition[ACTION]
-
-            # D. 执行 Action
-            # 转换为 Numpy (Batch size 1 -> Squeeze)
-            action_numpy = action.to("cpu").numpy()
+            loop_start = time.perf_counter()
             
-            # Env step
-            observation, reward, terminated, truncated, info = env.step(action_numpy)
+            # 1. 读取观测
+            obs_start = time.perf_counter()
+            raw_obs = robot.get_observation()
+            obs_time = (time.perf_counter() - obs_start) * 1000
             
-            # E. 渲染画面
-            # vector env 需要调用 envs[0] 或者直接 render (取决于 gymnasium 版本)
-            # LeRobot 的 make_env 返回的是 SyncVectorEnv
-            if hasattr(env, "envs"):
-                env.envs[0].render()
-            else:
-                env.render()
-
-            # F. 自动重置逻辑
-            # VectorEnv 通常会自动 reset，但为了逻辑清晰，我们检查 done
-            # 注意: gym.vector.VectorEnv 会在 done 时自动 reset 并将 info["final_observation"] 返回
-            # 所以这里其实不需要手动 reset，除非你想在 done 时停顿
-            done = terminated | truncated
-            if np.any(done):
-                 print(colored("Episode Finished. Auto-resetting...", "blue"))
-                 # 在 VectorEnv 中，Reset 是自动发生的，observation已经是新的了
-                 pass
-
-            # G. 控制帧率 (可选，方便肉眼观察)
-            if MAX_FPS:
-                dt = time.time() - loop_start_time
-                target_dt = 1.0 / MAX_FPS
-                if dt < target_dt:
-                    time.sleep(target_dt - dt)
-
+            # 2. 预处理观测
+            proc_start = time.perf_counter()
+            obs = preprocess_observation(raw_obs, device)
+            proc_time = (time.perf_counter() - proc_start) * 1000
+            
+            # 3. 模型推理
+            infer_start = time.perf_counter()
+            with torch.inference_mode(), amp_context:
+                action = policy.select_action(obs)
+            infer_time = (time.perf_counter() - infer_start) * 1000
+            
+            # 4. 后处理动作
+            action_dict = postprocess_action(action)
+            
+            # 5. 发送动作
+            send_start = time.perf_counter()
+            robot.send_action(action_dict)
+            send_time = (time.perf_counter() - send_start) * 1000
+            
+            # 统计
+            total_time = (time.perf_counter() - loop_start) * 1000
+            
+            if step % 30 == 0:  # 每秒打印一次
+                print(
+                    f"[Step {step:5d}] "
+                    f"obs: {obs_time:5.1f}ms | "
+                    f"proc: {proc_time:5.1f}ms | "
+                    f"infer: {infer_time:5.1f}ms | "
+                    f"send: {send_time:5.1f}ms | "
+                    f"total: {total_time:5.1f}ms | "
+                    f"gripper: {action_dict['gripper.pos']:.3f}"
+                )
+            
+            # 控制循环频率
+            elapsed = time.perf_counter() - loop_start
+            if elapsed < period:
+                time.sleep(period - elapsed)
+            
+            step += 1
+            
     except KeyboardInterrupt:
-        pass
+        print("\n停止推理...")
+    except Exception as e:
+        print(f"错误: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
-        env.close()
-        print("环境已关闭。")
+        print("断开机械臂连接...")
+        try:
+            robot.disconnect()
+        except:
+            pass
+        print("完成")
+
 
 if __name__ == "__main__":
     main()
