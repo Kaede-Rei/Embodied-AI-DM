@@ -2,8 +2,6 @@
 
 # 达妙机械臂 - LeRobot 使用教程
 
-------
-
 ## 1. 安装与环境准备
 
 ### 1.1. 环境配置
@@ -198,33 +196,50 @@ sudo ./bash/usb-port-create.sh
 
 ## 5. 模型训练（train_dm.sh）
 
-录制好训练集后即可开始训练，运行脚本：
+### 5.1. 本机本地训练
 
-```bash
-./bash/train_dm.sh --policy_repo_id 模型名称 --dataset_repo_id 训练集名称
-```
+1.   录制好训练集后即可开始训练，运行脚本：
 
-训练启动后会进入后台进行训练，训练进度在 `./log/` 下生成的 `训练集名称.log` 中实时打印，第一次训练会有进度条不停打印在下载前置，正式开始训练时会有以下内容，每200步会打印一次进度：
+     ```bash
+     ./bash/train_dm.sh --policy_repo_id 模型名称 --dataset_repo_id 训练集名称
+     ```
 
-```bash
-INFO 2025-12-23 18:25:19 ot_train.py:347 step:200 smpl:400 ep:1 epch:0.05 loss:0.737 grdn:51.002 lr:1.0e-05 updt_s:0.182 data_s:0.005
-INFO 2025-12-23 18:25:55 ot_train.py:347 step:400 smpl:800 ep:2 epch:0.09 loss:0.546 grdn:36.100 lr:1.0e-05 updt_s:0.177 data_s:0.004
-INFO 2025-12-23 18:26:32 ot_train.py:347 step:600 smpl:1K ep:3 epch:0.14 loss:0.498 grdn:28.908 lr:1.0e-05 updt_s:0.181 data_s:0.004
-INFO 2025-12-23 18:27:07 ot_train.py:347 step:800 smpl:2K ep:4 epch:0.18 loss:0.445 grdn:26.680 lr:1.0e-05 updt_s:0.172 data_s:0.004
-INFO 2025-12-23 18:27:43 ot_train.py:347 step:1K smpl:2K ep:5 epch:0.23 loss:0.415 grdn:23.008 lr:1.0e-05 updt_s:0.175 data_s:0.004
-```
+2.   训练启动后会进入后台进行训练，训练进度在 `./log/` 下生成的 `训练集名称.log` 中实时打印，第一次训练会有进度条不停打印在下载前置，正式开始训练时会有以下内容，每200步会打印一次进度：
 
-训练完成后会有以下内容：
+     ```bash
+     INFO 2025-12-23 18:25:19 ot_train.py:347 step:200 smpl:400 ep:1 epch:0.05 loss:0.737 grdn:51.002 lr:1.0e-05 updt_s:0.182 data_s:0.005
+     INFO 2025-12-23 18:25:55 ot_train.py:347 step:400 smpl:800 ep:2 epch:0.09 loss:0.546 grdn:36.100 lr:1.0e-05 updt_s:0.177 data_s:0.004
+     INFO 2025-12-23 18:26:32 ot_train.py:347 step:600 smpl:1K ep:3 epch:0.14 loss:0.498 grdn:28.908 lr:1.0e-05 updt_s:0.181 data_s:0.004
+     INFO 2025-12-23 18:27:07 ot_train.py:347 step:800 smpl:2K ep:4 epch:0.18 loss:0.445 grdn:26.680 lr:1.0e-05 updt_s:0.172 data_s:0.004
+     INFO 2025-12-23 18:27:43 ot_train.py:347 step:1K smpl:2K ep:5 epch:0.23 loss:0.415 grdn:23.008 lr:1.0e-05 updt_s:0.175 data_s:0.004
+     ```
 
-```bash
-INFO 2025-12-23 20:13:54 ot_train.py:347 step:40K smpl:80K ep:182 epch:9.10 loss:0.092 grdn:6.646 lr:1.0e-05 updt_s:0.160 data_s:0.003
-INFO 2025-12-23 20:13:54 ot_train.py:357 Checkpoint policy after step 40000
-INFO 2025-12-23 20:13:55 ot_train.py:426 End of training
-```
+3.   训练完成后会有以下内容：
 
-训练好的模型会在当前文件夹的 `output` 文件夹下，如果需要终止训练，则见 `./log/训练集名称.param` 里的训练集PID：`TRAIN_PID=pid` ，在终端中输入 `kill pid` 即可停止终止训练，此时 `output` 文件夹里只会有训练了一半的模型（根据步数，在40000步情况下会有 20000 和 40000 两个步数时的模型）
+     ```bash
+     INFO 2025-12-23 20:13:54 ot_train.py:347 step:40K smpl:80K ep:182 epch:9.10 loss:0.092 grdn:6.646 lr:1.0e-05 updt_s:0.160 data_s:0.003
+     INFO 2025-12-23 20:13:54 ot_train.py:357 Checkpoint policy after step 40000
+     INFO 2025-12-23 20:13:55 ot_train.py:426 End of training
+     ```
 
-其他参数需要修改的见脚本注释
+4.   训练好的模型会在当前文件夹的 `output` 文件夹下，如果需要终止训练，则见 `./log/训练集名称.param` 里的训练集PID：`TRAIN_PID=pid` ，在终端中输入 `kill pid` 即可停止终止训练，此时 `output` 文件夹里只会有训练了一半的模型（根据步数，在40000步情况下会有 20000 和 40000 两个步数时的模型）
+
+     >   *其他参数需要修改的见脚本注释*
+
+### 5.2. 超算平台训练
+
+1.   **网址：**[北京超级云计算中心](https://cloud.blsc.cn/)
+     -   界面：<img src="README.assets/image-20260201232643080.png" alt="image-20260201232643080" style="zoom: 33%;" />
+     -   主要功能：①快传：用于传文件；②SSH：终端（注意连接后就会开始计费，此外就是提交作业到完成期间会计费）
+2.   **快传：**进入 `/data/home/su0101/run/` ，文件都要放这里，`/data/home/su0101/` 及父目录存不了多少，超过就会另外计费
+     -   `/data/home/su0101/run/lerobo_robot_multi_robots/` 目录下是双臂的内容
+     -   `/data/home/su0101/run/lerobo_robot_multi_robots/hub/` 是训练 `VLA` 模型需要的预训练模型
+     -   `/data/home/su0101/run/lerobo_robot_multi_robots/torch_cache/` 是训练 `ACT` 模型需要的预训练模型
+     -   `/data/home/su0101/run/lerobo_robot_multi_robots/lerobot/` 是训练集
+     -   `/data/home/su0101/run/lerobo_robot_multi_robots/models/` 是训练好的模型
+     -   `/data/home/su0101/run/lerobo_robot_multi_robots/run.sh` 是训练脚本
+     -   `/data/home/su0101/run/lerobo_robot_multi_robots/datasets/` 是训练期间的缓存，不用管
+3.   
 
 ## 6. 模型评估（eval_dm.sh）
 

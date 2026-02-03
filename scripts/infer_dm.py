@@ -1,150 +1,194 @@
+#!/usr/bin/env python
+
+"""
+LeRobot 纯推理脚本 (Infinite Inference Loop)
+
+功能：
+1. 加载指定路径的模型。
+2. 创建环境（基于模型配置）。
+3. 无限循环运行推理 (Observation -> Policy -> Action -> Env)，直到 Ctrl+C。
+4. 实时 Render 画面。
+
+默认路径：
+- 模型: ./outputs/leaf_v0_model/checkpoints/last/pretrained_model
+- 数据集根目录: ./dataset/
+"""
+
+import json
+import logging
+import time
+import signal
+import sys
+from pathlib import Path
+from contextlib import nullcontext
+
+import gymnasium as gym
+import numpy as np
 import torch
-from lerobot.policies.pretrained import PreTrainedPolicy
-from lerobot_robot_multi_robots.dm_arm import DMFollower, DMFollowerConfig
+from termcolor import colored
 
-# ========== 配 置 区 域 ==========
-# 加载预训练模型
-policy = PreTrainedPolicy.from_pretrained(
-    "./outputs/train/act_dk1_test_v3/checkpoints/last/pretrained_model"
-)
+# LeRobot 内部组件引用
+from lerobot.envs.factory import make_env, make_env_pre_post_processors
+from lerobot.envs.utils import preprocess_observation
+from lerobot.policies.factory import make_policy, make_pre_post_processors
+from lerobot.utils.utils import get_safe_torch_device, init_logging, set_seed
+from lerobot.utils.constants import ACTION
 
-# 机械臂配置
-robot_config = DMFollowerConfig(
-    port="/dev/ttyACM0",
-)
+# ================= 配置区域 =================
+# 你要求的模型路径
+PRETRAINED_MODEL_PATH = Path("./outputs/leaf_v0_model/checkpoints/last/pretrained_model")
+# 你要求的数据集路径 (如果环境或策略需要读取本地 dataset info)
+DATASET_ROOT = Path("./dataset/")
+# 设备 (自动检测 cuda/mps/cpu)
+DEVICE = get_safe_torch_device("cuda", log=True)
+# 是否使用混合精度 (通常设为 False 即可，除非模型极大)
+USE_AMP = False
+# 渲染频率限制 (FPS)，设为 None 则全速运行
+MAX_FPS = 30
+# ===========================================
 
-# 卡尔曼滤波器参数
-action_dim = 6  # 动作维度
-process_std = 0.05  # 过程噪声标准差（用于提高灵敏度）
-measurement_std = 0.2  # 测量噪声标准差（用于提高平滑度）
-# ================================
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-class KalmanFilter:
-    def __init__(self, action_dim, device, process_std=0.05, measurement_std=0.2):
-        """
-        初始化卡尔曼滤波器
-        :param action_dim: 动作维度
-        :param device: 计算设备
-        :param process_std: 过程噪声标准差
-        :param measurement_std: 测量噪声标准差
-        """
-        self.dim = action_dim
-        self.device = device
-
-        # 状态向量 x: [位置，速度]
-        self.x = torch.zeros((2 * action_dim, 1), device=device)
-
-        # 状态转移矩阵 F: x_t = x_{t-1} + v_{t-1}
-        # [I, I]
-        # [0, I]
-        self.F = torch.eye(2 * action_dim, device=device)
-        for i in range(action_dim):
-            self.F[i, i + action_dim] = 1.0
-
-        # 观测矩阵 H: 只观测位置
-        # [I, 0]
-        self.H = torch.zeros((action_dim, 2 * action_dim), device=device)
-        for i in range(action_dim):
-            self.H[i, i] = 1.0
-
-        # 协方差矩阵 P: 初始为单位矩阵
-        self.P = torch.eye(2 * action_dim, device=device)
-
-        # 噪声矩阵 Q 和 R
-        self.Q = torch.eye(2 * action_dim, device=device) * (process_std**2)
-        self.R = torch.eye(action_dim, device=device) * (measurement_std**2)
-
-        self.is_initialized = False
-
-    def update(self, measurement):
-        """
-        使用测量值更新滤波器状态
-        :param measurement: 测量值
-        :return: 更新后的状态估计
-        """
-        z = measurement.unsqueeze(1)
-
-        if not self.is_initialized:
-            self.x[: self.dim] = z
-            self.is_initialized = True
-            return measurement
-
-        # 预测步骤
-        # x' = F * x
-        x_pred = self.F @ self.x
-        # P' = F * P * F_T + Q
-        p_pred = self.F @ self.P @ self.F.T + self.Q
-
-        # 更新
-        # 卡尔曼增益 K = P' * H_T * inv(H * P' * H_T + R)
-        S = self.H @ p_pred @ self.H.T + self.R
-        K = p_pred @ self.H.T @ torch.inverse(S)
-
-        # 修正状态 x = x' + K * (z - H * x')
-        self.x = x_pred + K @ (z - self.H @ x_pred)
-
-        # 更新协方差 P = (I - K * H) * P'
-        I = torch.eye(2 * self.dim, device=self.device)
-        self.P = (I - K @ self.H) @ p_pred
-
-        return self.x[: self.dim].squeeze(1)
-
-
-def prepare_observation(obs):
-    """
-    观测预处理函数
-    该函数将观测数据转换为适合模型输入的格式
-    :param obs: 原始观测数据
-    :return: 处理后的观测数据
-    """
-    if isinstance(obs, dict):
-        return {k: prepare_observation(v) for k, v in obs.items()}
-    if isinstance(obs, (int, float, list)):
-        return torch.as_tensor(obs, dtype=torch.float32).unsqueeze(0).to(device)
-    if isinstance(obs, torch.Tensor):
-        return obs.unsqueeze(0).to(device)
-    return obs
-
+def signal_handler(sig, frame):
+    print(colored("\n[INFO] 检测到 Ctrl+C，正在停止推理...", "yellow"))
+    sys.exit(0)
 
 def main():
-    policy.to(device)
-    policy.eval()
+    init_logging()
+    signal.signal(signal.SIGINT, signal_handler)
 
-    robot = DMFollower(robot_config)
-    robot.connect()
+    if not PRETRAINED_MODEL_PATH.exists():
+        print(colored(f"[Error] 模型路径不存在: {PRETRAINED_MODEL_PATH}", "red"))
+        return
 
-    kf = KalmanFilter(
-        action_dim=action_dim,
-        device=device,
-        process_std=process_std,
-        measurement_std=measurement_std,
+    # 1. 加载 Config
+    # LeRobot 模型文件夹下通常有 config.json，我们需要它来构建正确的环境和策略
+    config_path = PRETRAINED_MODEL_PATH / "config.json"
+    with open(config_path, "r") as f:
+        cfg_dict = json.load(f)
+    
+    # 简单的 Namespace 对象模拟 Hydra 配置，方便后续函数调用
+    from argparse import Namespace
+    
+    # 提取关键配置
+    # 注意：这里假设 config.json 结构符合 LeRobot 标准
+    # 如果是旧版本模型，可能需要根据实际 json 结构微调
+    policy_cfg = Namespace(**cfg_dict["policy"])
+    env_cfg = Namespace(**cfg_dict["env"])
+    
+    # 修正 pretrained_path 为本地绝对路径/相对路径
+    policy_cfg.pretrained_path = str(PRETRAINED_MODEL_PATH)
+    
+    # 设置随机种子
+    set_seed(1000)
+
+    print(colored(f"加载模型: {PRETRAINED_MODEL_PATH}", "green"))
+    print(colored(f"使用设备: {DEVICE}", "green"))
+
+    # 2. 创建环境
+    # 将 dataset root 注入环境变量或配置中，以防环境需要读取 dataset info
+    # 注意：大多数 LeRobot 推理不需要 raw dataset，只需要 config 里的 stats。
+    # 但如果环境是基于文件的（如 aloha_sim 某些版本），可能需要。
+    logging.info("Making environment...")
+    env = make_env(
+        env_cfg,
+        n_envs=1, # 推理时我们通常只看一个环境
+        dataset_root=str(DATASET_ROOT) # 传递数据集路径
     )
 
+    # 3. 创建策略 (Policy)
+    logging.info("Making policy...")
+    policy = make_policy(
+        cfg=policy_cfg,
+        env_cfg=env_cfg,
+        dataset_root=str(DATASET_ROOT)
+    )
+    policy.eval()
+    policy.to(DEVICE)
+
+    # 4. 创建处理器 (Pre/Post Processors)
+    # 这一步至关重要，处理图像归一化、Action 反归一化等
+    preprocessor_overrides = {
+        "device_processor": {"device": str(DEVICE)},
+    }
+    
+    # 通用处理器
+    preprocessor, postprocessor = make_pre_post_processors(
+        policy_cfg=policy_cfg,
+        pretrained_path=str(PRETRAINED_MODEL_PATH),
+        preprocessor_overrides=preprocessor_overrides,
+    )
+    
+    # 环境特定处理器 (比如 Libero 需要特定处理)
+    env_preprocessor, env_postprocessor = make_env_pre_post_processors(
+        env_cfg=env_cfg, 
+        policy_cfg=policy_cfg
+    )
+
+    # ================= 推理主循环 =================
+    print(colored("\n开始无限推理循环... (按 Ctrl+C 停止)", "cyan", attrs=["bold"]))
+    
+    observation, info = env.reset(seed=None)
+    
     try:
         while True:
-            obs = robot.get_observation()
-            obs = prepare_observation(obs)
+            loop_start_time = time.time()
 
-            with torch.no_grad():
-                action_chunk = policy.select_action(obs)
+            # A. 预处理 Observation
+            # 1. 转换为 Tensor 并调整维度 (numpy -> torch)
+            observation = preprocess_observation(observation)
+            # 2. 环境特定的预处理
+            observation = env_preprocessor(observation)
+            # 3. 策略通用的预处理 (如归一化)
+            observation = preprocessor(observation)
 
-            raw_action = action_chunk.squeeze(0)[0]
+            # B. 策略推理
+            with torch.inference_mode(), torch.autocast(device_type=DEVICE.type) if USE_AMP else nullcontext():
+                action = policy.select_action(observation)
 
-            current_action = kf.update(raw_action)
+            # C. 后处理 Action
+            # 1. 策略通用的后处理 (如反归一化)
+            action = postprocessor(action)
+            # 2. 包装成字典以便通过 env_postprocessor
+            action_transition = {ACTION: action}
+            action_transition = env_postprocessor(action_transition)
+            action = action_transition[ACTION]
 
-            robot.send_action(current_action.cpu().numpy())
+            # D. 执行 Action
+            # 转换为 Numpy (Batch size 1 -> Squeeze)
+            action_numpy = action.to("cpu").numpy()
+            
+            # Env step
+            observation, reward, terminated, truncated, info = env.step(action_numpy)
+            
+            # E. 渲染画面
+            # vector env 需要调用 envs[0] 或者直接 render (取决于 gymnasium 版本)
+            # LeRobot 的 make_env 返回的是 SyncVectorEnv
+            if hasattr(env, "envs"):
+                env.envs[0].render()
+            else:
+                env.render()
+
+            # F. 自动重置逻辑
+            # VectorEnv 通常会自动 reset，但为了逻辑清晰，我们检查 done
+            # 注意: gym.vector.VectorEnv 会在 done 时自动 reset 并将 info["final_observation"] 返回
+            # 所以这里其实不需要手动 reset，除非你想在 done 时停顿
+            done = terminated | truncated
+            if np.any(done):
+                 print(colored("Episode Finished. Auto-resetting...", "blue"))
+                 # 在 VectorEnv 中，Reset 是自动发生的，observation已经是新的了
+                 pass
+
+            # G. 控制帧率 (可选，方便肉眼观察)
+            if MAX_FPS:
+                dt = time.time() - loop_start_time
+                target_dt = 1.0 / MAX_FPS
+                if dt < target_dt:
+                    time.sleep(target_dt - dt)
 
     except KeyboardInterrupt:
-        print("\nStopping inference...")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+        pass
     finally:
-        robot.disconnect()
-        print("Robot disconnected safely.")
-
+        env.close()
+        print("环境已关闭。")
 
 if __name__ == "__main__":
     main()

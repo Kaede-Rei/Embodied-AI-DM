@@ -1,10 +1,11 @@
 """
-LeRobot Task Language 完整处理脚本
+LeRobot Task Language 完整处理脚本 (支持 observation.task)
 
 功能：
 1. 交互式编辑 meta/tasks.parquet 中的 task 语言描述
 2. 自动将 task 字段注入到所有 data/file-*.parquet 数据分片中
-3. 完整的验证和备份机制
+3. 支持注入到 observation.task（VLA 模型需要）
+4. 完整的验证和备份机制
 
 工作流程：
 Step 1: 读取并编辑 meta/tasks.parquet
@@ -19,11 +20,13 @@ Step 3: 验证注入结果
 - 单任务 / 多任务 LeRobot 数据集
 - 为 BC / VLA / Language-conditioned Policy 注入或完善 task 语义
 - 自动处理元数据和实际数据的同步
+- 支持 SmolVLA 等需要 observation.task 的模型
 
 注意事项：
 - 所有修改操作都会自动备份原文件
 - 不会新增或伪造 task_index
 - 不会修改 episode / frame / action / observation 其他字段
+- 同时注入顶层 task 和 observation.task 以保证兼容性
 """
 
 import pandas as pd
@@ -190,6 +193,8 @@ def inject_tasks_to_data(df_tasks: pd.DataFrame, language_col: str, data_dir: Pa
     """
     Step 2: 将 task 字段注入到所有数据分片文件
     
+    注意：同时注入 task 和 observation.task 两个字段以保证兼容性
+    
     参数：
         df_tasks: tasks.parquet 的 DataFrame
         language_col: language 列的名称
@@ -222,6 +227,9 @@ def inject_tasks_to_data(df_tasks: pd.DataFrame, language_col: str, data_dir: Pa
     # 询问是否继续
     print("\n" + "⚠️ " * 20)
     print("注意：本操作将修改所有 data/file-*.parquet 文件")
+    print("将注入以下字段：")
+    print("  - task (顶层，兼容传统模型)")
+    print("  - observation.task (VLA 模型需要)")
     print("原文件将自动备份为 .parquet.bak（仅首次备份）")
     print("⚠️ " * 20)
     
@@ -257,12 +265,16 @@ def inject_tasks_to_data(df_tasks: pd.DataFrame, language_col: str, data_dir: Pa
                 continue
             
             # 根据 task_index 映射 task 字段
-            df["task"] = df["task_index"].map(task_map)
+            task_values = df["task_index"].map(task_map)
+            
+            # 注入到两个位置
+            df["task"] = task_values  # 顶层 task（兼容性）
+            df["observation.task"] = task_values  # observation.task（VLA 模型需要）
             
             # 检查是否有未映射的 task_index
-            unmapped = df["task"].isnull().sum()
+            unmapped = task_values.isnull().sum()
             if unmapped > 0:
-                unique_unmapped = df[df["task"].isnull()]["task_index"].unique()
+                unique_unmapped = df[df["task_index"].map(task_map).isnull()]["task_index"].unique()
                 tqdm.write(
                     f"⚠️  {parquet_file.name}: {unmapped}/{len(df)} 条数据无法映射 "
                     f"(task_index: {list(unique_unmapped)})"
@@ -306,23 +318,45 @@ def verify_injection(data_dir: Path):
     try:
         df = pd.read_parquet(sample_file)
         
-        if "task" not in df.columns:
-            print("❌ task 字段不存在")
+        # 检查两个 task 字段
+        has_task = "task" in df.columns
+        has_obs_task = "observation.task" in df.columns
+        
+        print(f"\n字段检查:")
+        print(f"  {'✓' if has_task else '❌'} task (顶层)")
+        print(f"  {'✓' if has_obs_task else '❌'} observation.task")
+        
+        if not has_task and not has_obs_task:
+            print("\n❌ 两个 task 字段都不存在！")
             return
         
-        print(f"✓ task 字段存在")
         print(f"\n数据集总行数: {len(df)}")
-        print(f"task 空值数量: {df['task'].isnull().sum()}")
         
-        print(f"\n前 5 条数据的 task 内容：")
+        # 检查顶层 task
+        if has_task:
+            null_count = df['task'].isnull().sum()
+            print(f"\ntask 空值数量: {null_count}/{len(df)}")
+        
+        # 检查 observation.task
+        if has_obs_task:
+            null_count = df['observation.task'].isnull().sum()
+            print(f"observation.task 空值数量: {null_count}/{len(df)}")
+        
+        # 显示示例内容（优先 observation.task）
+        display_col = "observation.task" if has_obs_task else "task"
+        print(f"\n前 5 条数据的 {display_col} 内容：")
         print("-" * 80)
-        preview = df[["task_index", "task"]].head()
+        
+        preview = df[["task_index", display_col]].head()
         for _, row in preview.iterrows():
-            task_text = str(row['task'])[:60] + "..." if len(str(row['task'])) > 60 else str(row['task'])
+            task_text = str(row[display_col])[:60] + "..." if len(str(row[display_col])) > 60 else str(row[display_col])
             print(f"  Task {row['task_index']}: {task_text}")
         
         print("\n" + "=" * 80)
-        print("✓ 验证通过！数据集已成功注入 task 字段")
+        if has_obs_task:
+            print("✓ 验证通过！数据集已成功注入 observation.task 字段")
+        else:
+            print("⚠️  仅注入了顶层 task，VLA 模型可能需要 observation.task")
         print("=" * 80)
         
     except Exception as e:
@@ -332,13 +366,14 @@ def verify_injection(data_dir: Path):
 def main():
     """主流程"""
     print("=" * 80)
-    print(" LeRobot Task Language 完整处理工具")
+    print(" LeRobot Task Language 完整处理工具 (支持 VLA)")
     print("=" * 80)
     print()
     print("功能：")
     print("  1. 交互式编辑 meta/tasks.parquet")
     print("  2. 自动注入 task 字段到 data/file-*.parquet")
-    print("  3. 验证注入结果")
+    print("  3. 同时注入顶层 task 和 observation.task（VLA 模型支持）")
+    print("  4. 验证注入结果")
     print()
     
     # 定位数据集路径
@@ -371,8 +406,9 @@ def main():
         print("处理完成！")
         print("\n后续步骤：")
         print("  1. 检查验证结果是否符合预期")
-        print("  2. 重新运行训练脚本")
-        print("  3. 如有问题，可从 .parquet.bak 备份文件恢复")
+        print("  2. 更新 info.json 添加 observation.task 配置")
+        print("  3. 重新运行训练脚本")
+        print("  4. 如有问题，可从 .parquet.bak 备份文件恢复")
         print("=" * 80)
         
     except Exception as e:

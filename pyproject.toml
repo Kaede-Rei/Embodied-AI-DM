@@ -9,11 +9,19 @@ dependencies = [
     "numpy>=2.0.1",
     "pyserial>=3.5",
     "dynamixel-sdk>=3.7.31",
-    "lerobot",
+    "lerobot[all]",
     "opencv-python>=4.8.0",
     "matplotlib>=3.7.2",
     "pandas>=2.2.0",
     "scipy>=1.11.1",
+    "setuptools>=40.8.0",
+    "wheel",
+    "transformers",
+    "accelerate",
+    "num2words",
+    "docopt",
+    "tokenizers",
+    "typeguard",
 ]
 
 [tool.hatch.metadata]
