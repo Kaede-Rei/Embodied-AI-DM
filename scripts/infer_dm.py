@@ -1,11 +1,68 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-DM 机械臂推理脚本 - 使用训练好的模型进行持续推理
-从 ./outputs/leaf_v0_model/checkpoints/last/pretrained_model 加载模型
+DM 机械臂实时策略推理与执行脚本（LeRobot + ACTPolicy + Kalman Filter）
 
-特性：
-- 卡尔曼滤波平滑推理结果
-- 终止时平滑归零（无论正常还是异常退出）
+功能：
+1. 加载训练好的 ACTPolicy 预训练模型（from_pretrained）
+2. 实时采集机械臂状态 + 相机图像
+3. 预处理为策略网络输入格式（state + images）
+4. 执行前向推理得到关节动作
+5. 可选卡尔曼滤波平滑动作（降低抖动/尖峰）
+6. 将动作发送至机械臂闭环控制
+7. 退出时自动平滑归零（安全停止，避免急停）
+
+系统依赖：
+- Ubuntu22.04
+- 串口权限（/dev/ttyACM*）
+- CUDA（可选，用于 GPU 推理）
+
+Python 依赖：
+- torch
+- numpy
+- lerobot
+- opencv-python
+- DMFollower 相关驱动包
+
+模型目录结构示例：
+outputs/
+└── xxx_model/
+    └── checkpoints/
+        └── last/
+            └── pretrained_model/
+
+使用示例：
+1. 默认运行（GPU 自动检测）：
+   python dm_infer.py
+2. 指定模型路径：
+   python dm_infer.py --model_path ./outputs/my_model/checkpoints/last/pretrained_model
+3. 开启混合精度（推荐 GPU）：
+   python dm_infer.py --use_amp
+4. 调整推理频率：
+   python dm_infer.py --freq 60
+5. 调整卡尔曼滤波强度：
+   python dm_infer.py --kalman_process_noise 0.001 --kalman_measurement_noise 0.1
+6. 禁用滤波（原始输出）：
+   python dm_infer.py --no_kalman
+7. 退出不归零（调试用）：
+   python dm_infer.py --no_reset
+
+参数说明：
+--model_path                模型路径
+--device                    cuda / cpu
+--freq                      推理频率 Hz
+--use_amp                   混合精度推理
+--joint_velocity_scaling    关节速度缩放比例
+--kalman_process_noise      过程噪声 Q
+--kalman_measurement_noise  观测噪声 R
+--no_kalman                 禁用滤波
+--reset_time                归零时间
+--no_reset                  退出不归零（危险）
+
+注意事项：
+- 建议开启 KalmanFilter 或低通滤波，否则模型输出可能抖动
+- 不要在高负载 CPU 下运行高频控制（会导致丢帧/卡顿）
+- 真机测试前先降低 joint_velocity_scaling
+- 退出时请保持机械臂工作空间安全
 """
 
 import argparse
@@ -18,33 +75,44 @@ import torch
 
 # LeRobot imports
 from lerobot.policies.act.modeling_act import ACTPolicy
-from lerobot.processor import PolicyProcessorPipeline
 from lerobot.cameras.opencv import OpenCVCameraConfig
 
 # Local imports
 from lerobot_robot_multi_robots.dm_arm import DMFollower
 from lerobot_robot_multi_robots.config_dm_arm import DMFollowerConfig
 
-# ===================== 配置 =====================
+# ! ========================= 配 置 区 ========================= ! #
 
-# 相机配置 - 使用 OpenCVCameraConfig 对象
+DEFAULT_MODEL_PATH = (
+    "./outputs/dk1_test_v2_model/checkpoints/last/pretrained_model"  # 默认模型路径
+)
+ARM_PORT = "/dev/ttyACM0"  # 机械臂串口
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"  # 使用 CUDA
+INFER_FREQ = 30.0  # 推理频率
+JOINT_VEL_SCALING = 0.1  # 关节速度缩放(0-1)
+RESET_TIME = 2.0  # 归零时间(秒)
+
+# 相机配置
 CAMERAS_CONFIG = {
-    "end": OpenCVCameraConfig(
-        index_or_path="/dev/com-1.2-video",
-        width=640,
-        height=480,
-        fps=30,
-    ),
-    "eye": OpenCVCameraConfig(
-        index_or_path=2,
+    # "end": OpenCVCameraConfig(
+    #     index_or_path="/dev/com-1.2-video",
+    #     width=640,
+    #     height=480,
+    #     fps=30,
+    # ),
+    # "eye": OpenCVCameraConfig(
+    #     index_or_path=4,
+    #     width=1280,
+    #     height=720,
+    #     fps=30,
+    # ),
+    "context": OpenCVCameraConfig(
+        index_or_path=4,
         width=1280,
         height=720,
         fps=30,
     ),
 }
-
-# 默认模型路径
-DEFAULT_MODEL_PATH = "./outputs/leaf_v0_model/checkpoints/last/pretrained_model"
 
 # 关节名称列表
 JOINT_NAMES = [
@@ -58,7 +126,7 @@ JOINT_NAMES = [
 ]
 
 
-# ===================== 卡尔曼滤波器 =====================
+# ! ========================= 工 具 区 ========================= ! #
 
 
 class KalmanFilter:
@@ -158,9 +226,6 @@ class KalmanFilter:
         """预测 + 更新"""
         self.predict(dt)
         return self.update(z)
-
-
-# ===================== 平滑归零 =====================
 
 
 def smooth_reset(
@@ -283,14 +348,13 @@ def smooth_reset(
         print("\n最终关节位置:")
         for j in joints:
             q = final_obs[f"{j}.pos"]
-            status = "✓" if abs(q) <= tolerance else "✗"
-            print(f"  {j}: {q:+.3f} rad {status}")
+            print(f"  {j}: {q:+.3f} rad")
     except:
         pass
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="DM 机械臂推理脚本")
+    parser = argparse.ArgumentParser(description="DM 机械臂纯推理脚本")
     parser.add_argument(
         "--model_path",
         type=str,
@@ -300,19 +364,19 @@ def parse_args():
     parser.add_argument(
         "--port",
         type=str,
-        default="/dev/ttyACM0",
+        default=ARM_PORT,
         help="机械臂串口",
     )
     parser.add_argument(
         "--device",
         type=str,
-        default="cuda",
+        default=DEVICE,
         help="推理设备 (cuda/cpu)",
     )
     parser.add_argument(
         "--freq",
         type=float,
-        default=30.0,
+        default=INFER_FREQ,
         help="推理频率 Hz",
     )
     parser.add_argument(
@@ -323,7 +387,7 @@ def parse_args():
     parser.add_argument(
         "--joint_velocity_scaling",
         type=float,
-        default=0.1,
+        default=JOINT_VEL_SCALING,
         help="关节速度缩放 (0-1)",
     )
     # 卡尔曼滤波参数
@@ -348,7 +412,7 @@ def parse_args():
     parser.add_argument(
         "--reset_time",
         type=float,
-        default=2.0,
+        default=RESET_TIME,
         help="归零期望时间 (秒)",
     )
     parser.add_argument(
@@ -383,15 +447,18 @@ def preprocess_observation(obs_dict: dict, device: torch.device) -> dict:
         "gripper.pos",
     ]
     state = np.array([obs_dict[key] for key in state_keys], dtype=np.float32)
+
     # 添加 batch 维度: (7,) -> (1, 7)
     processed["observation.state"] = torch.from_numpy(state).unsqueeze(0).to(device)
 
     # 处理图像 (HWC uint8 -> CHW float32, normalized)
-    for cam_name in ["eye", "end"]:
+    for cam_name in CAMERAS_CONFIG.keys():
         if cam_name in obs_dict:
             img = obs_dict[cam_name]  # (H, W, C) uint8
+
             # 转换为 (C, H, W) float32
             img = np.transpose(img, (2, 0, 1)).astype(np.float32) / 255.0
+
             # 添加 batch 维度: (C, H, W) -> (1, C, H, W)
             processed[f"observation.images.{cam_name}"] = (
                 torch.from_numpy(img).unsqueeze(0).to(device)
@@ -426,6 +493,9 @@ def postprocess_action(action: torch.Tensor) -> dict:
     return action_dict
 
 
+# ! ========================= 逻 辑 区 ========================= ! #
+
+
 def main():
     args = parse_args()
 
@@ -439,7 +509,7 @@ def main():
     torch.backends.cudnn.benchmark = True
     torch.backends.cuda.matmul.allow_tf32 = True
 
-    # ===================== 加载模型 =====================
+    # 加载模型
     print(f"加载模型: {args.model_path}")
     model_path = Path(args.model_path)
 
@@ -455,7 +525,7 @@ def main():
         f"模型配置: chunk_size={policy.config.chunk_size}, n_action_steps={policy.config.n_action_steps}"
     )
 
-    # ===================== 初始化卡尔曼滤波器 =====================
+    # 初始化卡尔曼滤波器
     kalman_filter = None
     if not args.no_kalman:
         kalman_filter = KalmanFilter(
@@ -469,7 +539,7 @@ def main():
     else:
         print("卡尔曼滤波已禁用")
 
-    # ===================== 初始化机械臂 =====================
+    # 初始化机械臂
     print("初始化机械臂...")
     robot_config = DMFollowerConfig(
         port=args.port,
@@ -485,7 +555,7 @@ def main():
         robot_connected = True
         print("机械臂连接成功")
 
-        # ===================== 推理循环 =====================
+        # 推理循环
         period = 1.0 / args.freq
         print(f"开始推理循环，频率: {args.freq} Hz")
         print("按 Ctrl+C 停止...")
@@ -501,26 +571,26 @@ def main():
             dt = loop_start - last_time
             last_time = loop_start
 
-            # 1. 读取观测
+            # 读取观测
             obs_start = time.perf_counter()
             raw_obs = robot.get_observation()
             obs_time = (time.perf_counter() - obs_start) * 1000
 
-            # 2. 预处理观测
+            # 预处理观测
             proc_start = time.perf_counter()
             obs = preprocess_observation(raw_obs, device)
             proc_time = (time.perf_counter() - proc_start) * 1000
 
-            # 3. 模型推理
+            # 模型推理
             infer_start = time.perf_counter()
             with torch.inference_mode(), amp_context:
                 action = policy.select_action(obs)
             infer_time = (time.perf_counter() - infer_start) * 1000
 
-            # 4. 后处理动作
+            # 后处理动作
             action_dict = postprocess_action(action)
 
-            # 5. 卡尔曼滤波平滑
+            # 卡尔曼滤波平滑
             filter_start = time.perf_counter()
             if kalman_filter is not None:
                 # 提取动作为数组
@@ -553,7 +623,7 @@ def main():
                 }
             filter_time = (time.perf_counter() - filter_start) * 1000
 
-            # 6. 发送动作
+            # 发送动作
             send_start = time.perf_counter()
             robot.send_action(action_dict)
             send_time = (time.perf_counter() - send_start) * 1000
@@ -606,6 +676,7 @@ def main():
             robot.disconnect()
         except:
             pass
+
 
 if __name__ == "__main__":
     main()
