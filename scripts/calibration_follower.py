@@ -22,7 +22,7 @@ for key, motor in follower.motors.items():
         time.sleep(0.01)
 
     if follower.control.read_motor_param(motor, DM_variable.CTRL_MODE) is not None:
-        print(f"{key} ({motor.MotorType.name}) is connected.")
+        print(f"  {key} ({motor.MotorType.name}) is connected.")
     else:
         raise Exception(f"Unable to read from {key} ({motor.MotorType.name}).")
 

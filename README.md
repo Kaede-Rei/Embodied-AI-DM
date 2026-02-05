@@ -462,7 +462,7 @@ class DMFollower(Robot):
                 time.sleep(0.01)
 
             if self.control.read_motor_param(motor, DM_variable.CTRL_MODE) is not None:
-                print(f"{key} ({motor.MotorType.name}) is connected.")
+                print(f"  {key} ({motor.MotorType.name}) is connected.")
 
                 self.control.switchControlMode(motor, Control_Type.POS_VEL)
                 self.control.enable(motor)

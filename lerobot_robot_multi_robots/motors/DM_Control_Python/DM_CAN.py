@@ -83,7 +83,7 @@ class MotorControl:
         self.motors_map = dict()
         self.data_save = bytes()  # save data
         if self.serial_.is_open:  # open the serial port
-            print("Serial port is open")
+            print("  Serial port is open")
             serial_device.close()
         self.serial_.open()
 
