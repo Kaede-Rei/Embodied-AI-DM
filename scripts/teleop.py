@@ -30,7 +30,7 @@ CAMERAS_CONFIG = {
     },
     "eye": {
         "type": "opencv",
-        "index_or_path": "/dev/com-1.4-video",
+        "index_or_path": 4,
         "width": 1280,
         "height": 720,
         "fps": 30,
@@ -49,8 +49,8 @@ CAMERAS_JSON = json.dumps(CAMERAS_CONFIG)
 
 def parse_args():
     ap = argparse.ArgumentParser(description="DK1 teleoperation")
-    ap.add_argument("--follower_port", default="/dev/com-1.3-tty")
-    ap.add_argument("--leader_port", default="/dev/com-1.1-tty")
+    ap.add_argument("--follower_port", default="/dev/com-1.4-tty")
+    ap.add_argument("--leader_port", default="/dev/com-1.2-tty")
     ap.add_argument("--freq", type=float, default=200.0)
     ap.add_argument(
         "--display_data",

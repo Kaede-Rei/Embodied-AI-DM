@@ -26,10 +26,6 @@
 # --resume                              从现有数据集继续录制（默认启用）
 # --no_cameras                          不启用摄像头（默认启用两个摄像头）
 # --no_display                          不启用 rerun.io 实时可视化（默认启用）
-#
-# 注意：
-# --dataset.single_task 仅作占位符，不会注入 Language 描述
-# Language 描述应使用 process_language.py 脚本注入
 
 # 默认参数配置
 FOLLOWER_PORT="/dev/com-1.3-tty"        # Follower 臂串口
@@ -42,7 +38,7 @@ CAMERAS_CONFIG='{"eye": {"type": "opencv", "index_or_path": 0, "width": 1280, "h
 NUM_EPISODES=50                         # 录制 episode 数量
 EPISODE_TIME_S=120                      # 每个 episode 时长（秒）
 RESET_TIME_S=0                          # 重置时间（秒），注意实际总重置时间是 重置时间 + (当前 episode 实际使用的时间 + 重置时间)，所以写 0 即可
-TASK_DESCRIPTION="Task description."    # 单任务描述
+TASK_DESCRIPTION="Left robotic arm places the mineral water bottle with a green circular label on its surface onto the brown carton; the right robotic arm immediately sleeves the white adhesive ring over the mineral water bottle."    # 单任务描述
 DATASET_FPS=30                          # 数据集保存的帧率（默认30，必须与相机帧率一致）
 PUSH_TO_HUB=false                       # 是否上传至 Hugging Face Hub
 RESUME=true                             # 是否从现有数据集继续录制

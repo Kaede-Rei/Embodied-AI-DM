@@ -1,7 +1,7 @@
 """
 LeRobot dataset/meta/stats.json 数据处理脚本，用于统计信息的重新计算与更新
 
-前提：将所有 <repo_id>/data/chunk-xxx/file-xxx.parquet 下载到本地 dataset/data/ 目录，最后会输出更新后的 stats.json 到 dataset/meta/ 下
+前提：将所有 <repo_id>/data/chunk-xxx/file-xxx.parquet 下载到本地 dataset/data/ 目录，经过处理后得到 file-xxx_new.parquet，最后处理新数据会输出更新后的 stats.json 到 dataset/meta/ 下
 
 使用方法：
 终端输入 cd /media/$USER/AgroTech/home/LeRobot-Workspace/custom-hw-sim/ 确保进入工作区后再启动脚本

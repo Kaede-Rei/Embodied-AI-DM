@@ -27,7 +27,7 @@
 CAMERAS_CONFIG = {
     "left": {
         "type": "opencv",
-        "index_or_path": 10,
+        "index_or_path": "/dev/com-2.1-video",
         "width": 640,
         "height": 480,
         "fps": 30,
@@ -35,13 +35,13 @@ CAMERAS_CONFIG = {
     "mid": {
         "type": "opencv",
         "index_or_path": "/dev/com-2.2-video",
-        "width": 640,
-        "height": 480,
+        "width": 1280,
+        "height": 720,
         "fps": 30,
     },
     "right": {
         "type": "opencv",
-        "index_or_path": 12,
+        "index_or_path": "/dev/com-2.3-video",
         "width": 1280,
         "height": 720,
         "fps": 30,

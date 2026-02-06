@@ -1,16 +1,50 @@
+#!/bin/bash
+# DM 双臂机器人数据集录制 Bash 脚本（使用 lerobot-record 命令）
+#
+# 前提：dual DM 已通过插件机制注册（--robot.type=dual_dm_follower 等可用）
+# 使用前确保：
+# 1. 已激活包含 LeRobot 的 Python 环境
+# 2. 已 hf login（若需 push_to_hub）
+# 3. 在 ~/.bashrc 中添加：export HF_HOME="自定义缓存路径"
+#
+# 使用方法示例：
+# ./bash/dual-record-dm.sh --repo_id agro/dm_dual_record_vx（组织文件夹，vx 为版本号）
+# ./bash/dual-record-dm.sh --repo_id $USER/dm_dual_my_task（个人文件夹，可用于测试）
+# ./bash/dual-record-dm.sh --repo_id $USER/dm_dual_my_task --no_cameras
+# ./bash/dual-record-dm.sh --repo_id $USER/dm_dual_my_task --num_episodes 100 --task_description "Pick and place objects" --push_to_hub
+#
+# 支持的参数：
+# --repo_id <repo_id>                   必须：数据集 repo_id（如 $USER/dm_dual_test）
+# --follower_left_port <port>           左从臂串口（默认 /dev/ttyACM0）
+# --follower_right_port <port>          右从臂串口（默认 /dev/ttyACM1）
+# --leader_left_port <port>             左主臂串口（默认 /dev/ttyUSB0）
+# --leader_right_port <port>            右主臂串口（默认 /dev/ttyUSB1）
+# --joint_velocity_scaling <val>        关节速度缩放（默认 1.0）
+# --num_episodes <num>                  录制 episode 数量（默认 50）
+# --episode_time_s <sec>                每个 episode 时长（秒，默认 120）
+# --reset_time_s <sec>                  重置时间（秒，默认 0）
+# --task_description <desc>             单任务描述（默认 "Task description.")
+# --push_to_hub                         录制后自动上传至 Hugging Face Hub（默认不启用）
+# --resume                              从现有数据集继续录制（默认启用）
+# --no_cameras                          不启用摄像头（默认启用两个摄像头）
+# --no_display                          不启用 rerun.io 实时可视化（默认启用）
+
 # 默认参数配置
-FOLLOWER_LEFT_PORT="/dev/ttyACM0"
-FOLLOWER_RIGHT_PORT="/dev/ttyACM1"
-LEADER_LEFT_PORT="/dev/ttyUSB0"
-LEADER_RIGHT_PORT="/dev/ttyUSB1"
+FOLLOWER_LEFT_PORT="/dev/com-1.3-tty"
+FOLLOWER_RIGHT_PORT="/dev/com-1.4-tty"
+LEADER_LEFT_PORT="/dev/com-1.1-tty"
+LEADER_RIGHT_PORT="/dev/com-1.2-tty"
+JOINT_VELOCITY_SCALING=1.0              # 关节速度缩放
 # 预设摄像头配置，要严格按照示例格式填写：
 # CAMERAS_CONFIG='{"相机名称": {"type": "opencv", "index_or_path": 设备索引或路径, "width": 宽度, "height": 高度, "fps": 帧率}}'
-CAMERAS_CONFIG='{"context_left": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 25}, "context_right": {"type": "opencv", "index_or_path": 3, "width": 1280, "height": 720, "fps": 25}}'
+CAMERAS_CONFIG='{"left_cam": {"type": "opencv", "index_or_path": 0, "width": 640, "height": 480, "fps": 30},
+                 "eye_cam": {"type": "opencv", "index_or_path": 2, "width": 1280, "height": 720, "fps": 30},
+                 "right_cam": {"type": "opencv", "index_or_path": 14, "width": 640, "height": 480, "fps": 30}}'
 NUM_EPISODES=50                         # 录制 episode 数量
-EPISODE_TIME_S=30                       # 每个 episode 时长（秒）
+EPISODE_TIME_S=300                      # 每个 episode 时长（秒）
 RESET_TIME_S=0                          # 重置时间（秒），注意实际总重置时间是 重置时间 + (当前 episode 实际使用的时间 + 重置时间)，所以写 0 即可
-TASK_DESCRIPTION="Task description."    # 单任务描述
-DATASET_FPS=25                          # 数据集保存的帧率（默认25，必须与相机帧率一致）
+TASK_DESCRIPTION="The right robotic arm grips the black square, stably stacks it on the center of the upper surface of the brown paper box and returns to its initial position; the left robotic arm grips the green phone holder, stably stacks it on the center of the upper surface of the black square and returns to its initial position, with moderate gripping force and no offset during stacking throughout the process."    # 单任务描述
+DATASET_FPS=30                          # 数据集保存的帧率（默认30，必须与相机帧率一致）
 PUSH_TO_HUB=false                       # 是否上传至 Hugging Face Hub
 RESUME=true                             # 是否从现有数据集继续录制
 DISPLAY_DATA=true                       # 是否启用 rerun.io 实时可视化
@@ -23,6 +57,7 @@ while [[ $# -gt 0 ]]; do
         --follower_right_port) FOLLOWER_RIGHT_PORT="$2"; shift 2 ;;
         --leader_left_port) LEADER_LEFT_PORT="$2"; shift 2 ;;
         --leader_right_port) LEADER_RIGHT_PORT="$2"; shift 2 ;;
+        --joint_velocity_scaling) JOINT_VELOCITY_SCALING="$2"; shift 2 ;;
         --num_episodes) NUM_EPISODES="$2"; shift 2 ;;
         --episode_time_s) EPISODE_TIME_S="$2"; shift 2 ;;
         --reset_time_s) RESET_TIME_S="$2"; shift 2 ;;
@@ -38,7 +73,7 @@ done
 
 # 检查必须参数
 if [[ -z "$REPO_ID" ]]; then
-    echo "错误：必须指定 --repo_id（例如 $USER/dm_my_task）"
+    echo "错误：必须指定 --repo_id（例如 $USER/dm_dual_my_task）"
     exit 1
 fi
 
@@ -105,7 +140,7 @@ ARGS=(
 
 # 添加可选的摄像头配置
 if [ -n "$CAMERAS_CONFIG" ]; then
-    ARGS+=(--robot.cameras_config="$CAMERAS_CONFIG")
+    ARGS+=(--robot.cameras="$CAMERAS_CONFIG")
 fi
 
 # 检测数据集是否已存在

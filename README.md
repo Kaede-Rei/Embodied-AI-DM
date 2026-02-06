@@ -23,15 +23,16 @@ sudo reboot		# 重启
 
 - 移动硬盘：插入移动硬盘<img src="README.assets/image-20260117100307811.png" alt="image-20260117100307811" style="zoom: 15%;" />
 
-- 电源：小电源开 24V 供从臂；大电源开 7-10V(建议8V) 供主臂	<img src="README.assets/image-20251223214229135.png" alt="image-20251223214229135" style="zoom:15%;" />
+- 电源：小电源开 24V 供从臂；开关电源输出 5V 供主臂
+    <img src="README.assets/image-20260206131402796.png" alt="image-20260206131402796" style="zoom:15%;" /><img src="README.assets/image-20260206131430882.png" alt="image-20260206131430882" style="zoom:15%;" />
 
-- 从臂：小电源接转接板连接到底座供电，CAN 口接 USB转CAN模块 再接电脑，一般是 `/dev/ttyACM0` 
+- 从臂：小电源接转接板连接到底座供电，CAN 口接 USB转CAN模块 再接电脑，一般是 `/dev/ttyACM*` 
 
   <img src="README.assets/image-20251223214528974.png" alt="image-20251223214528974" style="zoom:20%;" />
 
-- 主臂：大电源降压后接到转接板连接到底座供电和串口信号，Type-C 口接电脑，一般是 `/dev/ttyUSB0`
+- 主臂：转接板由开关电源供电，输出 5V 和信号，Type-C 口接电脑，一般是 `/dev/ttyUSB*`
 
-  <img src="README.assets/image-20251223214814763.png" alt="image-20251223214814763" style="zoom:20%;" />
+  <img src="README.assets/image-20260206131515263.png" alt="image-20260206131515263" style="zoom:15%;" />
 
 - 相机：录包时必须接相机，相机 USB 直接连接，然后用下面的脚本识别
 
@@ -45,17 +46,11 @@ sudo reboot		# 重启
 . ./activate.sh lerobot
 ```
 
-### 2.2. 用 LeRobot 的 CLI 来识别设备串口
+### 2.2. 确认设备端口
 
-不同设备连接后系统会生成 `/dev/tty*`（Linux）或 `/dev/ttyUSB*` 等串口节点
+对于机械臂端口，在创建固定端口符号链接之前，可以用 `ls -l /dev/ttyACM*` 和 `ls -l /dev/ttyUSB*` 来确认；对于相机端口，进入工作区 `/media/$USER/AgroTech/home/LeRobot-Workspace/custom-hw-sim` 有脚本 `scripts/get_uvc_cam_idx.py` 可用于查询相机端口、索引、分辨率和帧率信息
 
-使用 LeRobot 提供的 CLI 来查找，按提示操作确定对应串口即可：
-
-```bash
-lerobot-find-port
-```
-
-### 2.1. 创建固定端口符号链接（可选）
+### 2.3. 创建固定端口符号链接（可选）
 
 为了避免每次连接设备后端口变化，可以使用脚本 `bash/usb-port-create.sh` 来创建固定的符号链接(即每个实际的 USB 口分配相应的端口名称，如果连接了扩展 USB 则会可延伸)：
 
@@ -81,7 +76,7 @@ sudo ./bash/usb-port-create.sh
 
 ### 3.2. 脚本
 
-在仓库 `/media/$USER/AgroTech/home/LeRobot-Workspace/custom-hw-sim` 的 `scripts` 中有方便使用的脚本：	
+在仓库 `/media/$USER/AgroTech/home/LeRobot-Workspace/custom-hw-sim` 的 `scripts` 中有方便使用的脚本：
 
 | 脚本路径                          | 作用                               | 注意事项                                                 |
 | --------------------------------- | ---------------------------------- | -------------------------------------------------------- |
@@ -90,7 +85,11 @@ sudo ./bash/usb-port-create.sh
 | `scripts/teleop.py`               | 启动单臂遥操作                     | 端口要对应上，可选参数 `--display_data` 启动 LeRobot GUI |
 | `scripts/calibration_follower.py` | 将从臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
 | `scripts/calibration_leader.py`   | 将主臂当前所有角度设为零点         | 注意不稳定的时候别重设零点                               |
-| `scripts/bi_teleop.py`            | 启动双臂遥操作                     | 端口要对应上                                             |
+| `scripts/dual_teleop.py`          | 启动双臂遥操作                     | 端口要对应上                                             |
+| `scripts/reset.py`                | 机械臂复位                         |                                                          |
+| `scripts/process_data.py`         | 对训练集进行平滑+线性插值          |                                                          |
+| `scripts/process_meta.py`         | 更新训练集统计信息                 |                                                          |
+| `scripts/infer_dm.py`             | 纯推理脚本                         |                                                          |
 
 ## 4. 数据采集（record_dm.sh）
 
@@ -126,8 +125,8 @@ sudo ./bash/usb-port-create.sh
 - 在运行命令行或脚本后的录包操作：
 
   - 语音播报内容：
-    - 开始录制 Y 个 episode 中的 第 X 个 episode：`"Recording episode X of Y"`
-    - 重置环境阶段：`"Reset the environment"`
+    - 开始录制第 X 个 episode：`"录制第 X 集"`
+    - 重置环境阶段：`"复位环境"`
 
   - 键盘操作：
     - 右箭头键 `→` ：结束当前 episode 并推进到下一个
@@ -135,17 +134,17 @@ sudo ./bash/usb-port-create.sh
       - `ESC` 键：结束整个录制过程并根据 `push_to_hub` 参数来保存本地 + 上传 Hub
 
 
-- 录包脚本 `bash/record_dm.sh` ：
+- 录包脚本 `bash/record-dm.sh` 和双臂录包脚本 `bash/dual-record-dm.sh` ：
 
-  - 进入虚拟环境后先给脚本权限：`chmod +x bash/record_dm.sh`
-  - 在终端输入 `./bash/record_dm.sh` 来启动录包脚本
+  - 进入虚拟环境后先给脚本权限：`chmod +x bash/record-dm.sh`
+  - 在终端输入 `./bash/record-dm.sh` 来启动录包脚本
   - 参数 `--repo_id` 必填，为训练集名称；默认开启续录，当训练集不存在时自动创建
-  - 常规使用：`./bash/record_dm.sh --repo_id $USER/name`
+  - 常规使用：`./bash/record-dm.sh --repo_id $USER/name`
   - 目前脚本默认是：`Recording ...` 花了多长时间，则 `Reset ...` 则需要花同等时间
   - 具体参数见脚本注释，主要要按格式填好摄像头配置，然后重置时间 `Reset the environment` 这个注意是重复 `episode` 使用的时间，例如预设的是30s，而实际提前录制完成使用的时间为15s，那 `RESET_TIME_S` 如果设置为10s，那就会再播报 `Reset the environment` 之后会有10s时间来继续遥操作，10s后停止遥操作并给 15s + 10s = 25s 的时间来重置环境；因此 `RESET_TIME_S` 建议设置为0，录制期间就完成动作并复位好机械臂然后按下 `→` 按键进行环境复原，效率会更高
 - 录包期间操作：
-  - 听语音播报：`Recording episode X` 时开始动作（其中 X 表示为在录第 X 个 episode）
-  - 听语音播报：`Reset the environment` 时恢复场景
+  - 听语音播报：`录制第 X 集` 时开始动作（其中 X 表示为在录第 X 个 episode）
+  - 听语音播报：`复位环境` 时恢复场景
   - `←` 按键：重新录制当前 episode
   - `→` 按键：提前录制完成当前 episode ，可以开始场景恢复以准备下一个 episode
   - `ESC` 按键：终止录制，终止后小机械臂可以随便动，达妙机械臂会保持力矩在原位姿
@@ -171,7 +170,7 @@ sudo ./bash/usb-port-create.sh
 
 ### 4.5. 数据处理
 
-找到自己的训练集所在位置，复制 `<repo_id>/data/chunk-xxx/file-xxx.parquet` 到仓库的 `./data` 中，终端输入 `./scripts/data_processer.py` 具体参数配置见脚本注释，查看处理前后的波形，直到突变点极少、波形平滑后再保存，然后将输出的 `file-xxx_new.parquet` 重命名并覆盖训练集的数据
+找到自己的训练集所在位置，复制 `<repo_id>/data/chunk-xxx/file-xxx.parquet` 到仓库的 `./dataset/data` 中，终端输入 `./scripts/process_data.py` 具体参数配置见脚本注释，查看处理前后的波形，直到突变点极少、波形平滑后再保存，然后把 `stats.json` 放到 `./dataset/meta/` 更新下统计信息下，然后将输出的 `file-xxx_new.parquet` 重命名并覆盖训练集的数据
 
 ### 4.6. 官方命令行入口点
 
@@ -231,6 +230,7 @@ sudo ./bash/usb-port-create.sh
 1.   **网址：**[北京超级云计算中心](https://cloud.blsc.cn/)
      -   界面：<img src="README.assets/image-20260201232643080.png" alt="image-20260201232643080" style="zoom: 33%;" />
      -   主要功能：①快传：用于传文件；②SSH：终端（注意连接后就会开始计费，此外就是提交作业到完成期间会计费）
+     
 2.   **快传：**进入 `/data/home/su0101/run/` ，文件都要放这里，`/data/home/su0101/` 及父目录存不了多少，超过就会另外计费
      -   `/data/home/su0101/run/lerobo_robot_multi_robots/` 目录下是双臂的内容
      -   `/data/home/su0101/run/lerobo_robot_multi_robots/hub/` 是训练 `VLA` 模型需要的预训练模型
@@ -239,25 +239,215 @@ sudo ./bash/usb-port-create.sh
      -   `/data/home/su0101/run/lerobo_robot_multi_robots/models/` 是训练好的模型
      -   `/data/home/su0101/run/lerobo_robot_multi_robots/run.sh` 是训练脚本
      -   `/data/home/su0101/run/lerobo_robot_multi_robots/datasets/` 是训练期间的缓存，不用管
-3.   
+     
+3.   **SSH**：连接 `su0101` 超算帐号，先进入指定目录再切环境![image-20260206103058998](README.assets/image-20260206103058998.png)
 
-## 6. 模型评估（eval_dm.sh）
+     -   常用命令：
+         -   `sbatch --gpus=2 ./run.sh`：用当前目录下的 `run.sh` 脚本，启用两张 4090 GPU 进行模型训练
+         -   `squeue` ：查看当前作业情况
+         -   `scancel 作业号` ：取消指定作业
 
-训练好的模型可以运行脚本来评估：
+4.   **IL 模型训练步骤**：
+
+     -   无论是训练 `ACT` 还是 `SmolVLA` 模型，都先将训练集放至 `/data/home/su0101/run/lerobo_robot_multi_robots/lerobot/` 目录下，如 `agro/leaf_v0` 训练集的最终路径就是 `/data/home/su0101/run/lerobo_robot_multi_robots/lerobot/agro/leaf_v0`
+
+     -   如果是训练 `ACT` 模型，则按实际情况修改 `run.sh` 脚本中的以下内容（修改除了用 `vim` ，也可以下载下来在本地修改再覆盖回去）：
+
+         ```bash
+         # 修改相关参数
+         BASE_ID="agro/leaf_v0"                  # 数据集名称
+         POLICY_TYPE="act"                 		# 模型类型：act / smolvla/ pi0 / pi05 等
+         STEPS=40000				# 总训练步数
+         # ACT 专用
+         USE_VAE="true"                          # 是否使用 VAE
+         N_ACTION_STEPS=10
+         CHUNK_SIZE=50
+         ```
+
+     -   修改完毕在 `SSH` 里进入目录，进入环境后输入 `sbatch --gpus=2 ./run.sh` 即可，日志会打印在当前目录下，正常来讲就跟本地训练一样初始化完毕就会显示当前进度相关信息
+
+     -   如果是训练 `SmolVLA` 模型，则先打开 `/data/home/su0101/run/lerobot_robot_multi_robots/hub/models--lerobot--smolvla_base/snapshots/main` 目录，按实际情况修改 `config.json` 文件的以下内容：
+
+         ```json
+             "input_features": {
+                 "observation.state": {
+                     "type": "STATE",
+                     "shape": [
+                         14			# 机械臂总关节数，如果是双臂，每臂6轴+1末端=7，然后7x2=14
+                     ]
+                 },
+                 # 以下三个 VISUAL 就是三个摄像头的信息，包括摄像头名称和参数要对应上训练集
+                 "observation.images.left_cam": {
+                     "type": "VISUAL",
+                     "shape": [
+                         3,			# 通道数，一般 RGB 就是三通道
+                         480,		# 宽
+                         640			# 长
+                     ]
+                 },
+                 "observation.images.eye_cam": {
+                     "type": "VISUAL",
+                     "shape": [
+                         3,
+                         720,
+                         1280
+                     ]
+                 },
+                 "observation.images.right_cam": {
+                     "type": "VISUAL",
+                     "shape": [
+                         3,
+                         480,
+                         1280
+                     ]
+                 }
+             },
+             "output_features": {
+                 "action": {
+                     "type": "ACTION",
+                     "shape": [
+                         14			# 机械臂总关节数，如果是双臂，每臂6轴+1末端=7，然后7x2=14
+                     ]
+                 }
+             },
+         ```
+
+     -   然后同理修改 `run.sh` 脚本，修改完同理新建作业：
+
+         ```bash
+         # 修改相关参数
+         BASE_ID="agro/leaf_v0"                  # 数据集名称
+         POLICY_TYPE="smolvla"                   # 模型类型：act / smolvla/ pi0 / pi05 等
+         STEPS=40000				# 总训练步数
+         ```
+
+     -   参考示意图：
+
+         <img src="README.assets/image-20260206110306878.png" alt="image-20260206110306878" style="zoom:50%;" />
+
+         <img src="README.assets/image-20260206110604498.png" alt="image-20260206110604498" style="zoom:50%;" />
+
+         查看作业是否存活，然后在当前目录打开日志（.out 后缀文件），如果看到进度日志就说明开始训练了：
+         ![](README.assets/image-20260206110751006.png)
+
+5.   **环境配置**：如果是需要用新的虚拟环境训练其他模型，需要自行准备好 `pyprojet.toml` 配置文件，在群里告知工程师需要配置该环境并命名为...，环境创建好后工程师会在群里通知你
+
+     -   <img src="README.assets/image-20260206103648328.png" alt="image-20260206103648328" style="zoom:50%;" />
+
+     -   训练脚本也就是 `run.sh` ，默认是在激活环境后调用你的实际训练脚本：`python xxx.py` ，按实际情况修改，也可以直接在 `run.sh` 里进行配置，以双臂 `IL+RL` 为例：
+
+         ```bash
+         #!/bin/bash
+         
+         # 北京超级云计算中心平台训练 run.sh
+         # 提交作业：sbatch --gpus=卡数 ./run.sh
+         # 查看作业情况：squeue
+         # 结束作业：scancel 作业号（作业号执行squeue即可查看到）
+         # 实时查看输出文件：tail -f 文件名
+         
+         module load miniforge3/24.11
+         source activate lerobot_robot_multi_robots
+         export PYTHONUNBUFFERED=1
+         
+         export HF_HUB_OFFLINE=1
+         export HF_DATASETS_OFFLINE=1
+         export TORCH_HOME=/data/home/su0101/run/lerobot_robot_multi_robots/torch_cache
+         export HF_HOME=/data/home/su0101/run/lerobot_robot_multi_robots
+         
+         # 修改相关参数
+         BASE_ID="agro/leaf_v0"                  # 数据集名称
+         POLICY_TYPE="smolvla"                   # 模型类型：act / smolvla/ pi0 / pi05 等
+         STEPS=40000				# 总训练步数
+         # ACT 专用
+         USE_VAE="true"                          # 是否使用 VAE
+         N_ACTION_STEPS=10
+         CHUNK_SIZE=50
+         # 后续自动变更，此处仅定义
+         GRAD_ACC_STEPS=4			# 梯度累积步数
+         BATCH_SIZE_PER_GPU=8                    # 每张卡的 batch size
+         
+         # 自动推导路径参数
+         DATASET_ID="${BASE_ID}"
+         POLICY_ID="${BASE_ID}_${POLICY_TYPE}"
+         DATASET_ROOT="/data/home/su0101/run/lerobot_robot_multi_robots/lerobot/${BASE_ID}"
+         OUTPUT_DIR="/data/home/su0101/run/lerobot_robot_multi_robots/models/${BASE_ID}_${POLICY_TYPE}"
+         JOB_NAME="${BASE_ID}_${POLICY_TYPE}"
+         
+         # 动态参数
+         POLICY_ARGS=""
+         
+         if [ "$POLICY_TYPE" = "act" ]; then
+             POLICY_ARGS="--policy.type=${POLICY_TYPE} \
+             		 --policy.use_vae=${USE_VAE} \
+                          --policy.n_action_steps=${N_ACTION_STEPS} \
+                          --policy.chunk_size=${CHUNK_SIZE}"
+             # ACT 建议较大 batch
+             BATCH_SIZE_PER_GPU=16
+             GRAD_ACC_STEPS=2
+         
+         elif [ "$POLICY_TYPE" = "smolvla" ]; then
+             POLICY_ARGS="--policy.path=/data/home/su0101/run/lerobot_robot_multi_robots/hub/models--lerobot--smolvla_base/snapshots/main"
+             # VLA 显存需求较高，建议小 batch + 累积
+             BATCH_SIZE_PER_GPU=8
+             GRAD_ACC_STEPS=4
+         # TODO: 具体的预训练模型
+         elif [ "$POLICY_TYPE" = "pi0" ] || [ "$POLICY_TYPE" = "pi05" ]; then
+             POLICY_ARGS="--policy.path=/data/home/su0101/run/lerobot_robot_multi_robots/hub/models--lerobot--smolvla_base/snapshots/main"
+             BATCH_SIZE_PER_GPU=4
+             GRAD_ACC_STEPS=4
+         
+         else
+             echo "错误：不支持的 POLICY_TYPE: ${POLICY_TYPE}"
+             echo "支持类型：act, smolvla, pi0, pi05"
+             exit 1
+         fi
+         
+         # 多卡训练
+         accelerate launch \
+             --multi_gpu \
+             --mixed_precision=bf16 \
+             --num_processes="${SLURM_GPUS:-1}" \
+             --num_machines=1 \
+             --dynamo_backend=no \
+             --gradient_accumulation_steps="${GRAD_ACC_STEPS}" \
+             -m lerobot.scripts.lerobot_train \
+             ${POLICY_ARGS} \
+             --batch_size="${BATCH_SIZE_PER_GPU}" \
+             --steps="${STEPS}" \
+             --dataset.repo_id="${DATASET_ID}" \
+             --dataset.root="${DATASET_ROOT}" \
+             --dataset.video_backend="pyav" \
+             --policy.repo_id="${POLICY_ID}" \
+             --policy.push_to_hub="false" \
+             --policy.device="cuda" \
+             --output_dir="${OUTPUT_DIR}" \
+             --job_name="${JOB_NAME}" \
+         
+         ```
+
+## 6. 模型评估与纯推理脚本（eval_dm.sh 和 infer_dm.py）
+
+### 6.1. 模型评估
+
+​	训练好的模型可以运行脚本来评估：
 
 ```bash
 ./bash/eval_dm.sh --policy_repo_id 模型名称
 ```
 
-注意该评估脚本只能直接运行训练脚本训练出来的模型，如果想运行其他脚本，先上传到 Hub，然后输入：
+​	注意该评估脚本只能直接运行训练脚本训练出来的模型，如果想运行其他脚本，先上传到 Hub，然后输入：
 
 ```bash
 # ./eval_dm.sh --policy_repo_id 模型名称 --from_hub
 ```
 
-评估也相当于一次录制，录制的结果会和训练集存在一起并加上前缀 `eval_`
+​	评估也相当于一次录制，录制的结果会和训练集存在一起并加上前缀 `eval_`
 
-## 7. 双臂操作（dual_teleop.py 和 dual_record_dm.sh）
+### 6.2. 纯推理脚本
+
+​	`scripts/infer_dm.py` 是纯推理脚本，可自定义输出动作处理，加了安全检测、自动平滑归零和多线程采集推理；具体信息参照脚本说明，后续方便改成 `ROS-PY` 节点方便和其他系统对接
+
+## 7. 双臂操作（dual_teleop.py 和 dual-record-dm.sh）
 
 1. **主从遥操作**：
 
@@ -265,7 +455,7 @@ sudo ./bash/usb-port-create.sh
 
 2. **双臂录包**：
 
-   类似单臂的脚本，双臂多加一对机械臂的端口，然后终端输入 `./bash/dual_record_dm.sh --repo_id {repo_name}`
+   类似单臂的脚本，双臂多加一对机械臂的端口，然后终端输入 `./bash/dual-record-dm.sh --repo_id {repo_name}`
 
 ## 8. 自定义硬件
 
