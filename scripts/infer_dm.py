@@ -1,90 +1,92 @@
 #!/usr/bin/env python3
 """
-DM 机械臂实时策略推理与执行脚本（LeRobot + ACTPolicy + Low-Pass Filter）
+DM 机械臂实时策略推理与执行脚本（LeRobot + ACTPolicy / SmolVLAPolicy + Low-Pass Filter）。
+
+支持单臂、双臂模式，支持 ACT 和 SmolVLA 两种策略模型。
 
 功能：
-1. 加载训练好的 ACTPolicy 预训练模型（from_pretrained）
-2. 实时采集机械臂状态 + 相机图像
-3. 预处理为策略网络输入格式（state + images）
-4. 执行前向推理得到关节动作
-5. 低通滤波平滑动作 (降低抖动/尖峰)
-6. 安全检查并发送至机械臂闭环控制
-7. 退出时自动平滑归零 (安全停止,避免急停)
+1. 加载训练好的 ACTPolicy 或 SmolVLAPolicy 预训练模型（from_pretrained）。
+2. 实时采集机械臂状态与相机图像。
+3. 预处理为策略网络输入格式（state + images + task）。
+4. 执行前向推理得到关节动作。
+5. 低通滤波平滑动作（降低抖动与尖峰）。
+6. 安全检查并发送至机械臂闭环控制。
+7. 退出时自动平滑归零（安全停止，避免急停）。
 
-系统依赖:
-- Ubuntu 22.04
-- 串口权限 (/dev/ttyACM*) - 需要 sudo adduser $USER dialout
-- CUDA 11.8+ (可选,用于 GPU 推理)
+系统依赖：
+- Ubuntu 22.04。
+- 串口权限（/dev/ttyACM*），需要 sudo adduser $USER dialout。
+- CUDA 11.8+（可选，用于 GPU 推理）。
 
-Python 依赖:
-- torch >= 2.0
-- numpy
-- lerobot
-- opencv-python
-- DMFollower 相关驱动包
+Python 依赖：
+- torch >= 2.0。
+- numpy。
+- lerobot。
+- opencv-python。
+- DMFollower 相关驱动包。
 
-模型目录结构:
+模型目录结构：
 outputs/
 └── xxx_model/
-    └── checkpoints/
-        └── last/
-            └── pretrained_model/
-                ├── config.json
-                ├── model.safetensors
-                └── train_config.json
+     └── checkpoints/
+          └── last/
+                └── pretrained_model/
+                     ├── config.json
+                     ├── model.safetensors
+                     └── train_config.json
 
-使用示例:
-1. 默认运行 (GPU 自动检测):
-   python infer_dm.py
+使用示例：
+1. 单臂 ACT 模型（默认）：
+    python infer_dm.py --model_path ./outputs/leaf_v0_model/checkpoints/last/pretrained_model
 
-2. 指定模型路径:
-   python infer_dm.py --model_path ./outputs/my_model/checkpoints/last/pretrained_model
+2. 单臂 SmolVLA 模型：
+    python infer_dm.py --model_type smolvla --task "pick up the leaf" --model_path ./outputs/leaf_v0_smolvla/checkpoints/last/pretrained_model
 
-3. 开启混合精度 (推荐 RTX GPU):
-   python infer_dm.py --use_amp
+3. 双臂 ACT 模型：
+    python infer_dm.py --dual_arm --model_path ./outputs/dual_arm_box_act/checkpoints/last/pretrained_model
 
-4. 调整推理频率:
-   python infer_dm.py --freq 60
+4. 双臂 SmolVLA 模型：
+    python infer_dm.py --dual_arm --model_type smolvla --task "pick up the box" --model_path ./outputs/dual_arm_box_smolvla/checkpoints/last/pretrained_model
 
-5. 调整滤波强度:
-   python infer_dm.py --filter_tau 0.3
+5. 不安全模式（用于调试，注意危险）：
+    python infer_dm.py --no_reset --always_action
 
-6. 禁用滤波 (原始输出，不推荐):
-   python infer_dm.py --no_filter
+参数说明：
+--dual_arm                双臂模式。
+--model_type              模型类型：act / smolvla。
+--task                    SmolVLA 任务描述（自然语言）。
+--model_path              模型路径。
+--port                    单臂串口路径。
+--left_port               双臂左臂串口。
+--right_port              双臂右臂串口。
+--device                  cuda / cpu。
+--freq                    控制频率 Hz（建议 30）。
+--use_amp                 混合精度推理。
+--joint_velocity_scaling  关节速度缩放（0-1）。
+--filter_tau              低通滤波时间常数（秒，越大越平滑）。
+--no_filter               禁用滤波。
+--use_async_obs           异步观测采集。
+--obs_freq                观测采集频率 Hz。
+--always_action           即使违规也始终执行动作（不推荐，谨慎使用）。
+--max_velocity            最大关节速度（rad/s）。
+--max_change              单步最大变化（rad）。
+--reset_time              归零时间（秒）。
+--no_reset                退出不归零（危险）。
+--compile                 使用 torch.compile。
 
-7. 退出不归零 (调试用，危险):
-   python infer_dm.py --no_reset
+注意事项：
+    真机测试前请先降低 joint_velocity_scaling（建议 0.05-0.1）。
+    不要在高负载 CPU 下运行高频控制（会导致丢帧与卡顿）。
+    退出时请保持机械臂工作空间安全，避免碰撞。
+    建议开启滤波，否则模型输出可能抖动。
+    首次运行请确保机械臂处于安全位置。
 
-参数说明:
---model_path              模型路径
---port                    串口路径
---device                  cuda / cpu
---freq                    控制频率 Hz (建议 30)
---use_amp                 混合精度推理
---joint_velocity_scaling  关节速度缩放 (0-1)
---filter_tau              低通滤波时间常数 (秒,越大越平滑)
---no_filter               禁用滤波
---use_async_obs           异步观测采集
---obs_freq                观测采集频率 Hz
---max_velocity            最大关节速度 (rad/s)
---max_change              单步最大变化 (rad)
---reset_time              归零时间 (秒)
---no_reset                退出不归零 (危险)
---compile                 使用 torch.compile
-
-注意事项:
-    真机测试前请先降低 joint_velocity_scaling (建议 0.05-0.1)
-    不要在高负载 CPU 下运行高频控制 (会导致丢帧/卡顿)
-    退出时请保持机械臂工作空间安全,避免碰撞
-    建议开启滤波,否则模型输出可能抖动
-    首次运行请确保机械臂处于安全位置
-
-日志前缀说明:
-[INFO] - 一般信息
-[WARN] - 安全警告 (已自动处理)
-[WARN!!!!!] - 严重安全问题 (即将停止)
-[ERROR] - 运行错误
-[RECOVER] - 错误恢复
+日志前缀说明：
+[INFO] - 一般信息。
+[WARN] - 安全警告（已自动处理）。
+[WARN!!!!!] - 严重安全问题（即将停止）。
+[ERROR] - 运行错误。
+[RECOVER] - 错误恢复。
 """
 
 import argparse
@@ -92,61 +94,92 @@ import time
 import queue
 import threading
 import signal
+import numpy as np
+import torch
 from pathlib import Path
 from contextlib import nullcontext
 from typing import Dict, Optional, Tuple
 from collections import deque
 from dataclasses import dataclass
 
-import numpy as np
-import torch
-
-# LeRobot imports
 from lerobot.policies.act.modeling_act import ACTPolicy
+from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
+from lerobot.policies.utils import prepare_observation_for_inference
+from lerobot.processor.pipeline import DataProcessorPipeline
 from lerobot.cameras.opencv import OpenCVCameraConfig
 
-# Local imports
 from lerobot_robot_multi_robots.dm_arm import DMFollower
 from lerobot_robot_multi_robots.config_dm_arm import DMFollowerConfig
+from lerobot_robot_multi_robots.dual_dm_arm import DualDMFollower
+from lerobot_robot_multi_robots.config_dual_dm_arm import DualDMFollowerConfig
 
 # ! ========================= 配 置 区 ========================= ! #
 
+# 默认模型路径
 DEFAULT_MODEL_PATH = (
-    "./outputs/leaf_v0_model/checkpoints/last/pretrained_model"  # 默认模型路径
+    "./outputs/leaf_v0_smolvla/checkpoints/last/pretrained_model"
+    # "./outputs/dual_arm_box_smolvla/checkpoints/last/pretrained_model"
 )
-ARM_PORT = "/dev/ttyACM0"  # 机械臂串口
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"  # 使用 CUDA
-INFER_FREQ = 30.0  # 推理频率
-JOINT_VEL_SCALING = 0.05  # 关节速度缩放(0-1)
-RESET_TIME = 2.0  # 归零时间(秒)
-MAX_JOINT_VEL = 1.57  # 最大关节速度(rad/s)
-MAX_ACTION_CHANGE = 0.1  # 单步最大变化(rad)
-MAX_VIOLATIONS = 50  # 最大违规次数
-WATCHDOG_TIMEOUT = 1.0  # 看门狗超时时间(秒)
+# 模型类型（"act" 或 "smolvla"）
+MODEL_TYPE = "smolvla"
+# 如果是 VLA 模型，则添加语言描述。
+TASK_DESCRIPTION = "The right robotic arm grips the black square, stably stacks it on the center of the upper surface of the brown paper box and returns to its initial position; the left robotic arm grips the green phone holder, stably stacks it on the center of the upper surface of the black square and returns to its initial position, with moderate gripping force and no offset during stacking throughout the process."
 
-# 相机配置
+# 机械臂单臂串口
+ARM_PORT = "/dev/ttyACM0"
+
+# 机械臂双臂串口
+LEFT_ARM_PORT = "/dev/com-1.3-tty"
+RIGHT_ARM_PORT = "/dev/com-1.4-tty"
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"  # 使用 CUDA。
+INFER_FREQ = 30.0  # 推理频率。
+JOINT_VEL_SCALING = 0.05  # 关节速度缩放（0-1）。
+RESET_TIME = 2.0  # 归零时间（秒）。
+MAX_JOINT_VEL = 1.57  # 最大关节速度（rad/s）。
+MAX_ACTION_CHANGE = 0.1  # 单步最大变化（rad）。
+MAX_VIOLATIONS = 50  # 最大违规次数。
+WATCHDOG_TIMEOUT = 1.0  # 看门狗超时时间（秒）。
+
+# 相机配置（单臂）
 CAMERAS_CONFIG = {
     "end": OpenCVCameraConfig(
-        index_or_path="/dev/com-1.2-video",
+        index_or_path=0,
         width=640,
         height=480,
         fps=30,
     ),
     "eye": OpenCVCameraConfig(
-        index_or_path=4,
+        index_or_path=2,
         width=1280,
         height=720,
         fps=30,
     ),
-    # "context": OpenCVCameraConfig(
-    #     index_or_path=4,
-    #     width=1280,
-    #     height=720,
-    #     fps=30,
-    # ),
 }
 
-# 关节名称列表
+# 相机配置（双臂）
+DUAL_CAMERAS_CONFIG = {
+    "left_cam": OpenCVCameraConfig(
+        index_or_path=0,
+        width=640,
+        height=480,
+        fps=30,
+    ),
+    "eye_cam": OpenCVCameraConfig(
+        index_or_path=2,
+        width=1280,
+        height=720,
+        fps=30,
+    ),
+    "right_cam": OpenCVCameraConfig(
+        index_or_path=14,
+        width=640,
+        height=480,
+        fps=30,
+    ),
+}
+
+# 关节名称列表（单臂）
 JOINT_NAMES = [
     "joint_1",
     "joint_2",
@@ -157,15 +190,51 @@ JOINT_NAMES = [
     "gripper",
 ]
 
-# 安全限制
+# 关节名称列表（双臂）
+DUAL_JOINT_NAMES = [
+    "left_joint_1",
+    "left_joint_2",
+    "left_joint_3",
+    "left_joint_4",
+    "left_joint_5",
+    "left_joint_6",
+    "left_gripper",
+    "right_joint_1",
+    "right_joint_2",
+    "right_joint_3",
+    "right_joint_4",
+    "right_joint_5",
+    "right_joint_6",
+    "right_gripper",
+]
+
+# 安全限制（单臂）
 JOINT_LIMITS = {
     "joint_1": (-2.094, 2.094),
-    "joint_2": (0.0, 3.142),
+    "joint_2": (-0.0, 3.142),
     "joint_3": (0.0, 4.712),
     "joint_4": (-1.571, 1.571),
     "joint_5": (-1.571, 1.571),
     "joint_6": (-3.142, 3.142),
     "gripper": (-5.23, 0.0),
+}
+
+# 安全限制（双臂）
+DUAL_JOINT_LIMITS = {
+    "left_joint_1": (-2.094, 2.094),
+    "left_joint_2": (-0.0, 3.142),
+    "left_joint_3": (0.0, 4.712),
+    "left_joint_4": (-1.571, 1.571),
+    "left_joint_5": (-1.571, 1.571),
+    "left_joint_6": (-3.142, 3.142),
+    "left_gripper": (-5.23, 0.0),
+    "right_joint_1": (-2.094, 2.094),
+    "right_joint_2": (-0.0, 3.142),
+    "right_joint_3": (0.0, 4.712),
+    "right_joint_4": (-1.571, 1.571),
+    "right_joint_5": (-1.571, 1.571),
+    "right_joint_6": (-3.142, 3.142),
+    "right_gripper": (-5.23, 0.0),
 }
 
 # ! ========================= 数 据 结 构 ========================= ! #
@@ -174,18 +243,18 @@ JOINT_LIMITS = {
 @dataclass
 class PerformanceStats:
     """
-    性能统计数据类
+    性能统计数据类。
 
-    记录控制循环各个阶段的耗时,用于性能分析和优化
+    记录控制循环各阶段耗时，用于性能分析与瓶颈定位。
 
-    Attributes:
-        obs_time: 观测采集耗时 (ms)
-        proc_time: 观测预处理耗时 (ms)
-        infer_time: 模型推理耗时 (ms)
-        filter_time: 动作滤波耗时 (ms)
-        send_time: 动作发送耗时 (ms)
-        total_time: 总耗时 (ms)
-        queue_size: 观测队列大小
+    Attributes：
+        obs_time：观测采集耗时（ms）
+        proc_time：观测预处理耗时（ms）
+        infer_time：模型推理耗时（ms）
+        filter_time：动作滤波耗时（ms）
+        send_time：动作发送耗时（ms）
+        total_time：总耗时（ms）
+        queue_size：观测队列大小。
     """
 
     obs_time: float = 0.0
@@ -214,31 +283,31 @@ class PerformanceStats:
 
 class LowPassFilter:
     """
-    一阶低通滤波器 (指数移动平均)
+    一阶低通滤波器（指数移动平均）。
 
-    用于平滑机械臂动作,减少模型输出的抖动和尖峰
+    用于平滑机械臂动作，减少模型输出的抖动与尖峰。
 
-    公式: y[n] = alpha * x[n] + (1-alpha) * y[n-1]
+    公式：y[n] = alpha * x[n] + (1-alpha) * y[n-1]
     其中 alpha = dt / (dt + tau)
-    tau 是时间常数,越大越平滑,响应越慢
+    tau 为时间常数，越大越平滑，响应越慢
 
-    Attributes:
-        n_dims: 滤波维度数 (关节数)
-        tau: 时间常数 (秒)
-        y: 当前滤波输出值
-        initialized: 是否已初始化
+    Attributes：
+        n_dims：滤波维度数（关节数）
+        tau：时间常数（秒）
+        y：当前滤波输出值
+        initialized：是否已初始化
     """
 
     def __init__(
         self, n_dims: int, tau: float = 0.1, cutoff_freq: Optional[float] = None
     ):
         """
-        初始化低通滤波器
+        初始化低通滤波器。
 
-        Args:
-            n_dims: 维度数 (关节数)
-            tau: 时间常数 (秒),值越大越平滑，tau=0.1 表示 0.1秒达到 63% 响应
-            cutoff_freq: 截止频率 (Hz),可替代 tau，计算为 tau = 1.0 / (2.0 * np.pi * cutoff_freq)
+        Args：
+            n_dims：维度数（关节数）
+            tau：时间常数（秒），值越大越平滑，tau=0.1 表示 0.1 秒达到 63% 响应
+            cutoff_freq：截止频率（Hz），可替代 tau，计算为 tau = 1.0 / (2.0 * np.pi * cutoff_freq)
         """
         self.n_dims = n_dims
 
@@ -252,24 +321,24 @@ class LowPassFilter:
 
     def reset(self, initial_value: np.ndarray):
         """
-        重置滤波器
+        重置滤波器。
 
-        Args:
-            initial_value: 初始值(n_dims, )
+        Args：
+            initial_value：初始值（n_dims, ）
         """
         self.y = initial_value.copy()
         self.initialized = True
 
     def filter(self, x: np.ndarray, dt: float = 0.033) -> np.ndarray:
         """
-        执行滤波
+        执行滤波。
 
-        Args:
-            x: 输入值(n_dims, )
-            dt: 时间间隔(秒)
+        Args：
+            x：输入值（n_dims, ）
+            dt：时间间隔（秒）
 
-        Returns:
-            滤波后的值(n_dims, )
+        Returns：
+            滤波后的值（n_dims, ）
         """
         if not self.initialized:
             self.reset(x)
@@ -287,43 +356,52 @@ class LowPassFilter:
 
 class SafetyChecker:
     """
-    机械臂安全检查器
+    机械臂安全检查器。
 
-    负责检查和限幅机械臂动作,防止过速、超限位、单步变化过大等危险情况
+    负责检查与限幅机械臂动作，防止过速、超限位、单步变化过大等危险情况。
 
     Attributes:
-        max_vel: 最大关节速度 (rad/s)
-        max_change: 单步最大变化 (rad)
+        max_vel: 最大关节速度(rad/s)
+        max_change: 单步最大变化(rad)
         last_act: 上一次动作
         last_time: 上一次动作时间
         violation_count: 累计违规次数
         max_violations: 最大允许违规次数
+        always_action: 是否始终执行动作
     """
 
     def __init__(
         self,
+        joint_names: list = None,
+        joint_limits: dict = None,
         max_vel: float = MAX_JOINT_VEL,
         max_change: float = MAX_ACTION_CHANGE,
         max_violations: int = MAX_VIOLATIONS,
+        always_action: bool = False,
     ):
         """
-        初始化安全检查器
+        初始化安全检查器。
 
         Args:
-            max_vel: 最大关节速度 (rad/s)
-            max_change: 单步最大变化 (rad)
+            joint_names: 关节名称列表
+            joint_limits: 关节限位字典
+            max_vel: 最大关节速度(rad/s)
+            max_change: 单步最大变化(rad)
             max_violations: 最大允许违规次数
         """
+        self.joint_names = joint_names if joint_names is not None else JOINT_NAMES
+        self.joint_limits = joint_limits if joint_limits is not None else JOINT_LIMITS
         self.max_vel = max_vel
         self.max_change = max_change
         self.last_act = None
         self.last_time = None
         self.violation_count = 0
         self.max_violations = max_violations
+        self.always_action = always_action
 
     def check_limits(self, act_dict: Dict[str, float]) -> Tuple[bool, str]:
         """
-        检查关节限位
+        检查关节限位。
 
         Args:
             act_dict: 动作字典 {joint_name.pos: value}
@@ -331,7 +409,7 @@ class SafetyChecker:
         Returns:
             (是否通过检查, 错误信息)
         """
-        for joint, (min_val, max_val) in JOINT_LIMITS.items():
+        for joint, (min_val, max_val) in self.joint_limits.items():
             key = f"{joint}.pos"
             if key in act_dict:
                 val = act_dict[key]
@@ -344,11 +422,11 @@ class SafetyChecker:
 
     def check_velocity(self, act_dict: Dict[str, float], dt: float) -> Tuple[bool, str]:
         """
-        检查关节速度
+        检查关节速度。
 
         Args:
             act_dict: 动作字典 {joint_name.pos: value}
-            dt: 时间间隔 (秒)
+            dt: 时间间隔(秒)
 
         Returns:
             (是否通过检查, 错误信息)
@@ -356,7 +434,7 @@ class SafetyChecker:
         if self.last_act is None or dt <= 0:
             return True, ""
 
-        for joint in JOINT_NAMES:
+        for joint in self.joint_names:
             key = f"{joint}.pos"
             if key in act_dict and key in self.last_act:
                 dq = abs(act_dict[key] - self.last_act[key])
@@ -369,7 +447,7 @@ class SafetyChecker:
 
     def check_change(self, act_dict: Dict[str, float]) -> Tuple[bool, str]:
         """
-        检查单步变化
+        检查单步变化。
 
         Args:
             act_dict: 动作字典 {joint_name.pos: value}
@@ -380,7 +458,7 @@ class SafetyChecker:
         if self.last_act is None:
             return True, ""
 
-        for joint in JOINT_NAMES:
+        for joint in self.joint_names:
             key = f"{joint}.pos"
             if key in act_dict and key in self.last_act:
                 dq = abs(act_dict[key] - self.last_act[key])
@@ -395,7 +473,7 @@ class SafetyChecker:
 
     def clip_action(self, act_dict: Dict[str, float]) -> Dict[str, float]:
         """
-        限幅动作 (安全核心功能)
+        限幅动作（安全核心功能）。
 
         Args:
             act_dict: 动作字典 {joint_name.pos: value}
@@ -405,13 +483,13 @@ class SafetyChecker:
         """
         clipped = {}
 
-        for joint in JOINT_NAMES:
+        for joint in self.joint_names:
             key = f"{joint}.pos"
             if key in act_dict:
                 value = act_dict[key]
 
                 # 限位
-                min_val, max_val = JOINT_LIMITS[joint]
+                min_val, max_val = self.joint_limits[joint]
                 value = np.clip(value, min_val, max_val)
 
                 # 单步限幅
@@ -428,11 +506,11 @@ class SafetyChecker:
         self, act_dict: Dict[str, float], dt: float
     ) -> Tuple[bool, Dict[str, float], str]:
         """
-        验证并修正动作
+        验证并修正动作。
 
         Args:
             act_dict: 动作字典 {joint_name.pos: value}
-            dt: 时间间隔 (秒)
+            dt: 时间间隔(秒)
 
         Returns:
             (是否安全, 限幅后的动作, 错误信息)
@@ -465,6 +543,15 @@ class SafetyChecker:
         if not is_violation:
             self.violation_count = 0
 
+        # 即使违规也不终止执行，达到最大违规次数仅重置
+        if self.always_action:
+            if self.violation_count >= self.max_violations:
+                print(
+                    f"[WARN!!!!!] 累计违规次数过多 ({self.violation_count})，已达到最大限制，但仍将执行动作（谨慎使用 --always_action）"
+                )
+                # 防止违规计数过大导致溢出，达到一定次数后重置为0（但不清除警告）
+                self.violation_count = 0
+
         # 限幅动作 (始终执行)
         clipped_act = self.clip_action(act_dict)
 
@@ -481,9 +568,9 @@ class SafetyChecker:
 
 class ObservationBuffer:
     """
-    线程安全的观测缓冲区
+    线程安全的观测缓冲区。
 
-    用于在异步观测采集模式下存储和获取最新观测
+    用于异步观测采集模式下存储与获取最新观测。
 
     Attributes:
         queue: 观测队列
@@ -493,7 +580,7 @@ class ObservationBuffer:
 
     def __init__(self, maxsize: int = 2):
         """
-        初始化观测缓冲区
+        初始化观测缓冲区。
 
         Args:
             maxsize: 队列最大大小
@@ -504,7 +591,7 @@ class ObservationBuffer:
 
     def put(self, obs: dict):
         """
-        添加观测 (非阻塞,丢弃旧数据)
+        添加观测（非阻塞，丢弃旧数据）。
 
         Args:
             obs: 观测字典
@@ -522,10 +609,10 @@ class ObservationBuffer:
 
     def get(self, timeout: float = 0.1) -> Optional[dict]:
         """
-        获取观测
+        获取观测。
 
         Args:
-            timeout: 超时时间 (秒)
+            timeout: 超时时间(秒)
 
         Returns:
             观测字典或 None
@@ -537,7 +624,7 @@ class ObservationBuffer:
 
     def get_latest(self) -> Optional[dict]:
         """
-        获取最新观测 (无阻塞)
+        获取最新观测（无阻塞）。
 
         Returns:
             最新观测字典或 None
@@ -548,9 +635,9 @@ class ObservationBuffer:
 
 class ThreadSafeRobot:
     """
-    线程安全的机器人代理
+    线程安全的机器人代理。
 
-    用于解决串口并发访问问题，确保观测采集和动作发送不会冲突
+    用于解决串口并发访问问题，确保观测采集与动作发送不会冲突。
 
     Attributes:
         raw_robot: 原始机器人实例
@@ -559,7 +646,7 @@ class ThreadSafeRobot:
 
     def __init__(self, raw_robot: DMFollower):
         """
-        初始化线程安全机器人代理
+        初始化线程安全机器人代理。
 
         Args:
             raw_robot: 原始机器人实例
@@ -578,12 +665,12 @@ class ThreadSafeRobot:
             return self.raw_robot.disconnect()
 
     def get_observation(self):
-        """获取观测 (线程安全)"""
+        """获取观测(线程安全)"""
         with self.lock:
             return self.raw_robot.get_observation()
 
     def send_action(self, action):
-        """发送动作 (线程安全)"""
+        """发送动作(线程安全)"""
         with self.lock:
             return self.raw_robot.send_action(action)
 
@@ -594,6 +681,7 @@ class ThreadSafeRobot:
 
 def smooth_reset(
     robot: ThreadSafeRobot,
+    is_dual: bool = False,
     control_freq: float = 200.0,
     smooth_time: float = 2.0,
     max_step: float = 0.05,
@@ -602,10 +690,11 @@ def smooth_reset(
     open_gripper: bool = True,
 ):
     """
-    平滑将机械臂归零
+    平滑将机械臂归零（支持单臂或双臂）。
 
     Args:
         robot: 线程安全机械臂实例
+        is_dual: 是否双臂模式
         control_freq: 控制频率 Hz
         smooth_time: 期望归零时间（秒）
         max_step: 单步最大变化量（rad）
@@ -617,7 +706,18 @@ def smooth_reset(
     print("              开始平滑归零...              ")
     print("=========================================")
 
-    joints = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+    if is_dual:
+        # 双臂关节名称拼接
+        joints = [
+            f"{prefix}{j}"
+            for prefix in ("left_", "right_")
+            for j in ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+        ]
+        gripper_keys = ["left_gripper", "right_gripper"]
+    else:
+        # 单臂关节名称列表
+        joints = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+        gripper_keys = ["gripper"]
 
     try:
         current_obs = robot.get_observation()
@@ -634,7 +734,9 @@ def smooth_reset(
         q = start_positions[j]
         print(f"  {j}: {q:+.3f} rad ({q * 180 / np.pi:+.1f}°)")
 
-    gripper_target = 0.0 if open_gripper else current_obs["gripper.pos"]
+    gripper_targets = {}
+    for gk in gripper_keys:
+        gripper_targets[gk] = 0.0 if open_gripper else current_obs[f"{gk}.pos"]
 
     control_period = 1.0 / control_freq
     start_time = time.time()
@@ -681,7 +783,8 @@ def smooth_reset(
             if err > tolerance:
                 all_reached = False
 
-        action["gripper.pos"] = gripper_target
+        for gk, gt in gripper_targets.items():
+            action[f"{gk}.pos"] = gt
 
         try:
             robot.send_action(action)
@@ -718,11 +821,31 @@ def smooth_reset(
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="DM 机械臂推理脚本")
+    parser = argparse.ArgumentParser(
+        description="DM 机械臂推理脚本（支持单臂或双臂，ACT 或 SmolVLA）"
+    )
 
     # 基础参数
+    parser.add_argument(
+        "--dual_arm", action="store_true", default=False, help="是否使用双臂"
+    )
+    parser.add_argument(
+        "--model_type",
+        type=str,
+        default=MODEL_TYPE,
+        choices=["act", "smolvla"],
+        help="模型类型: act (ACTPolicy) 或 smolvla (SmolVLAPolicy)",
+    )
+    parser.add_argument(
+        "--task",
+        type=str,
+        default=TASK_DESCRIPTION,
+        help="SmolVLA 任务描述（自然语言，如 'pick up the box'）",
+    )
     parser.add_argument("--model_path", type=str, default=DEFAULT_MODEL_PATH)
     parser.add_argument("--port", type=str, default=ARM_PORT)
+    parser.add_argument("--left_port", type=str, default=LEFT_ARM_PORT)
+    parser.add_argument("--right_port", type=str, default=RIGHT_ARM_PORT)
     parser.add_argument("--device", type=str, default=DEVICE)
     parser.add_argument("--freq", type=float, default=INFER_FREQ, help="控制频率 Hz")
     parser.add_argument(
@@ -736,7 +859,7 @@ def parse_args():
     parser.add_argument(
         "--filter_tau",
         type=float,
-        default=0.5,
+        default=0.3,
         help="低通滤波时间常数（秒），越大越平滑",
     )
     parser.add_argument(
@@ -752,6 +875,12 @@ def parse_args():
     # 安全参数
     parser.add_argument("--max_velocity", type=float, default=MAX_JOINT_VEL)
     parser.add_argument("--max_change", type=float, default=MAX_ACTION_CHANGE)
+    parser.add_argument(
+        "--always_action",
+        action="store_true",
+        default=False,
+        help="即使违规也始终执行动作",
+    )
 
     # 其他
     parser.add_argument("--reset_time", type=float, default=RESET_TIME)
@@ -760,6 +889,7 @@ def parse_args():
         "--compile", action="store_true", default=True, help="使用 torch.compile"
     )
 
+    # 返回命令行参数
     return parser.parse_args()
 
 
@@ -768,9 +898,9 @@ def parse_args():
 
 class AsyncObserver:
     """
-    异步观测采集线程
+    异步观测采集线程。
 
-    在后台线程中持续采集机械臂观测,避免阻塞主控制循环
+    在后台线程中持续采集机械臂观测，避免阻塞主控制循环。
 
     Attributes:
         robot: 线程安全机器人实例
@@ -785,7 +915,7 @@ class AsyncObserver:
         self, robot: ThreadSafeRobot, buffer: ObservationBuffer, freq: float = 30.0
     ):
         """
-        初始化异步观测采集器
+        初始化异步观测采集器。
 
         Args:
             robot: 线程安全机器人实例
@@ -833,9 +963,9 @@ class AsyncObserver:
 
 class RobotController:
     """
-    机器人控制器 (带安全保护和性能监控)
+    机器人控制器（带安全保护与性能监控）。
 
-    整合观测采集、模型推理、动作滤波、安全检查和性能统计
+    整合观测采集、模型推理、动作滤波、安全检查与性能统计。
 
     Attributes:
         policy: 策略网络
@@ -856,22 +986,37 @@ class RobotController:
 
     def __init__(
         self,
-        policy: ACTPolicy,
+        policy,
         robot: ThreadSafeRobot,
         device: torch.device,
+        preprocessor: DataProcessorPipeline = None,
+        postprocessor: DataProcessorPipeline = None,
         use_amp: bool = False,
+        is_dual: bool = False,
+        joint_names: list = None,
+        joint_limits: dict = None,
+        cameras_config: dict = None,
+        model_type: str = "act",
+        task: str = None,
         filter_tau: float = 0.5,
         use_async_obs: bool = True,
         obs_freq: float = 30.0,
+        always_action: bool = False,
     ):
         """
-        初始化机器人控制器
+        初始化机器人控制器。
 
         Args:
-            policy: 策略网络
+            policy: 策略网络 (ACTPolicy 或 SmolVLAPolicy)
             robot: 线程安全机器人实例
             device: 计算设备
             use_amp: 是否使用混合精度
+            is_dual: 是否双臂模式
+            joint_names: 关节名称列表
+            joint_limits: 关节限位字典
+            cameras_config: 相机配置
+            model_type: 模型类型 ("act" 或 "smolvla")
+            task: SmolVLA 任务描述
             filter_tau: 滤波器时间常数 (秒)
             use_async_obs: 是否使用异步观测
             obs_freq: 观测采集频率 Hz
@@ -879,15 +1024,30 @@ class RobotController:
         self.policy = policy
         self.robot = robot
         self.device = device
+        self.preprocessor = preprocessor
+        self.postprocessor = postprocessor
         self.use_amp = use_amp
-        self.filter = LowPassFilter(n_dims=len(JOINT_NAMES), tau=filter_tau)
-        self.safety_checker = SafetyChecker()
+        self.is_dual = is_dual
+        self.joint_names = joint_names if joint_names is not None else JOINT_NAMES
+        self.joint_limits = joint_limits if joint_limits is not None else JOINT_LIMITS
+        self.cameras_config = (
+            cameras_config if cameras_config is not None else CAMERAS_CONFIG
+        )
+        self.model_type = model_type
+        self.task = task
+        n_dims = len(self.joint_names)
+        self.filter = LowPassFilter(n_dims=n_dims, tau=filter_tau)
+        self.safety_checker = SafetyChecker(
+            joint_names=self.joint_names,
+            joint_limits=self.joint_limits,
+            always_action=always_action,
+        )
         self.use_async_obs = use_async_obs
 
         if use_async_obs:
             self.obs_buffer = ObservationBuffer(maxsize=2)
             self.observer = AsyncObserver(robot, self.obs_buffer, obs_freq)
-            print(f"[INFO] 启用异步观测采集,频率: {obs_freq} Hz")
+            print(f"[INFO] 启用异步观测采集，频率: {obs_freq} Hz")
 
         self.stats = PerformanceStats()
         self.stats_history = deque(maxlen=100)
@@ -932,53 +1092,61 @@ class RobotController:
 
     def preprocess_observation(self, obs_dict: dict) -> dict:
         """
-        预处理观测
+        预处理观测（使用 LeRobot 官方 preprocessor 管线）。
 
-        Args:
-            obs_dict: 原始观测字典
-
-        Returns:
-            处理后的观测字典
+        流程:
+        1. 构建原始观测字典 (state + images)
+        2. prepare_observation_for_inference: numpy→tensor, CHW, /255, unsqueeze, to(device), task
+        3. preprocessor: rename → tokenize → normalize(MEAN_STD) 等
         """
         t0 = time.perf_counter()
 
-        processed = {}
+        # 构建 numpy 格式的原始观测字典
+        raw_obs = {}
 
         # 状态
-        state_keys = [f"{j}.pos" for j in JOINT_NAMES]
+        state_keys = [f"{j}.pos" for j in self.joint_names]
         state = np.array([obs_dict[key] for key in state_keys], dtype=np.float32)
-        processed["observation.state"] = (
-            torch.from_numpy(state).unsqueeze(0).to(self.device, non_blocking=True)
+        raw_obs["observation.state"] = state
+
+        # 图像 (HWC uint8 numpy)
+        for cam_name in self.cameras_config.keys():
+            if cam_name in obs_dict:
+                raw_obs[f"observation.images.{cam_name}"] = obs_dict[cam_name]
+
+        # 转为 tensor + batch 维度 + to(device) + 添加 task
+        task_str = self.task if (self.model_type == "smolvla" and self.task) else None
+        processed = prepare_observation_for_inference(
+            raw_obs, self.device, task=task_str
         )
 
-        # 图像
-        for cam_name in CAMERAS_CONFIG.keys():
-            if cam_name in obs_dict:
-                img = obs_dict[cam_name]
-                img = np.transpose(img, (2, 0, 1)).astype(np.float32) / 255.0
-                processed[f"observation.images.{cam_name}"] = (
-                    torch.from_numpy(img)
-                    .unsqueeze(0)
-                    .to(self.device, non_blocking=True)
-                )
+        # 通过 preprocessor 管线 (归一化 state, tokenize task 等)
+        if self.preprocessor is not None:
+            processed = self.preprocessor(processed)
 
         self.stats.proc_time = (time.perf_counter() - t0) * 1000
         return processed
 
     def infer_action(self, obs: dict) -> np.ndarray:
         """
-        推理动作
+        推理动作（含 postprocessor 反归一化）。
 
         Args:
             obs: 处理后的观测字典
 
         Returns:
-            动作数组 (n_joints,)
+            动作数组 (n_joints,) — 真实关节弧度
         """
         t0 = time.perf_counter()
 
         with torch.inference_mode(), self.amp_context:
             act = self.policy.select_action(obs)
+
+            # 反归一化：将模型输出从归一化空间映射回真实弧度
+            # postprocessor 期望 dict 输入，需要包装与解包
+            if self.postprocessor is not None:
+                act_dict = self.postprocessor({"action": act})
+                act = act_dict["action"]
 
         if self.device.type == "cuda":
             torch.cuda.synchronize()
@@ -990,7 +1158,7 @@ class RobotController:
 
     def filter_action(self, act: np.ndarray, dt: float) -> np.ndarray:
         """
-        滤波动作
+        滤波动作。
 
         Args:
             act: 原始动作数组 (n_joints,)
@@ -1008,7 +1176,7 @@ class RobotController:
 
     def send_action(self, act: np.ndarray, dt: float) -> Tuple[bool, str]:
         """
-        发送动作 (带安全检查)
+        发送动作（带安全检查）。
 
         Args:
             act: 动作数组 (n_joints,)
@@ -1020,7 +1188,7 @@ class RobotController:
         t0 = time.perf_counter()
 
         act_dict = {
-            f"{joint}.pos": float(act[i]) for i, joint in enumerate(JOINT_NAMES)
+            f"{joint}.pos": float(act[i]) for i, joint in enumerate(self.joint_names)
         }
 
         is_safe, clipped_act, err_msg = self.safety_checker.validate(act_dict, dt)
@@ -1047,7 +1215,7 @@ class RobotController:
 
     def check_watchdog(self) -> bool:
         """
-        检查看门狗
+        检查看门狗。
 
         Returns:
             是否正常
@@ -1065,7 +1233,7 @@ class RobotController:
 
     def step(self, dt: float) -> Tuple[bool, str]:
         """
-        执行一步控制
+        执行一步控制。
 
         Args:
             dt: 时间间隔 (秒)
@@ -1112,7 +1280,7 @@ class RobotController:
 
     def get_avg_latency(self) -> float:
         """
-        获取平均延迟
+        获取平均延迟。
 
         Returns:
             平均延迟 (ms)
@@ -1136,6 +1304,20 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
+    # 根据单/双臂选择配置
+    is_dual = args.dual_arm
+    if is_dual:
+        joint_names = DUAL_JOINT_NAMES
+        joint_limits = DUAL_JOINT_LIMITS
+        cameras_config = DUAL_CAMERAS_CONFIG
+    else:
+        joint_names = JOINT_NAMES
+        joint_limits = JOINT_LIMITS
+        cameras_config = CAMERAS_CONFIG
+
+    n_joints = len(joint_names)
+    model_type = args.model_type
+
     # 系统配置
     print("======================================")
     print("          DM 机械臂实时推理系统          ")
@@ -1146,6 +1328,13 @@ def main():
         args.device if torch.cuda.is_available() or args.device == "cpu" else "cpu"
     )
     print(f"  计算设备: {device}")
+    print(f"  运行模式: {'双臂' if is_dual else '单臂'}")
+    print(
+        f"  模型类型: {model_type.upper()} ({'ACTPolicy' if model_type == 'act' else 'SmolVLAPolicy'})"
+    )
+    if model_type == "smolvla":
+        print(f"  任务描述: {args.task}")
+    print(f"  关节数量: {n_joints}")
 
     torch.backends.cudnn.benchmark = True
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -1167,9 +1356,35 @@ def main():
     if not model_path.exists():
         raise FileNotFoundError(f"[ERROR] 模型路径不存在: {model_path}")
 
-    policy = ACTPolicy.from_pretrained(str(model_path))
+    if model_type == "act":
+        policy = ACTPolicy.from_pretrained(str(model_path))
+    elif model_type == "smolvla":
+        policy = SmolVLAPolicy.from_pretrained(str(model_path))
+    else:
+        raise ValueError(f"[ERROR] 不支持的模型类型: {model_type}")
+
     policy.to(device)
     policy.eval()
+    print(f"  策略类型: {type(policy).__name__}")
+
+    # 加载预处理器/后处理器管线 (归一化/反归一化)
+    print("\n【加载预处理/后处理管线】")
+    try:
+        preprocessor = DataProcessorPipeline.from_pretrained(
+            str(model_path),
+            config_filename="policy_preprocessor.json",
+        )
+        postprocessor = DataProcessorPipeline.from_pretrained(
+            str(model_path),
+            config_filename="policy_postprocessor.json",
+        )
+        print("  preprocessor: 已加载 (含 MEAN_STD 归一化)")
+        print("  postprocessor: 已加载 (含 MEAN_STD 反归一化)")
+    except Exception as e:
+        print(f"  [WARN] 加载管线失败: {e}")
+        print("  [WARN] 将不进行归一化/反归一化，模型输出可能不正确！")
+        preprocessor = None
+        postprocessor = None
 
     if args.compile:
         print("  编译模型: 启用 (首次运行会较慢)...")
@@ -1177,20 +1392,28 @@ def main():
     else:
         print("  编译模型: 禁用")
 
-    print(f"  模型配置: chunk_size={policy.config.chunk_size}")
+    if hasattr(policy, "config") and hasattr(policy.config, "chunk_size"):
+        print(f"  模型配置: chunk_size={policy.config.chunk_size}")
 
     # 模型预热
     print("\n【模型预热】")
     warmup_start = time.perf_counter()
 
     try:
-        dummy_obs = {}
-        dummy_obs["observation.state"] = torch.zeros(1, 7).to(device)
-        for cam_name in CAMERAS_CONFIG.keys():
-            cam_config = CAMERAS_CONFIG[cam_name]
-            dummy_obs[f"observation.images.{cam_name}"] = torch.zeros(
-                1, 3, cam_config.height, cam_config.width
-            ).to(device)
+        # 构建 numpy 格式的 dummy 观测
+        dummy_raw = {}
+        dummy_raw["observation.state"] = np.zeros(n_joints, dtype=np.float32)
+
+        for cam_name, cam_config in cameras_config.items():
+            dummy_raw[f"observation.images.{cam_name}"] = np.zeros(
+                (cam_config.height, cam_config.width, 3), dtype=np.uint8
+            )
+
+        # 通过官方管线转换
+        task_str = args.task if model_type == "smolvla" else None
+        dummy_obs = prepare_observation_for_inference(dummy_raw, device, task=task_str)
+        if preprocessor is not None:
+            dummy_obs = preprocessor(dummy_obs)
 
         amp_context = (
             torch.autocast(device_type=device.type, dtype=torch.float16)
@@ -1199,28 +1422,43 @@ def main():
         )
 
         for i in range(5):
+            # 多次前向推理 用于稳定显存与算子调度
             with torch.inference_mode(), amp_context:
-                _ = policy.select_action(dummy_obs)
+                act = policy.select_action(dummy_obs)
+                if postprocessor is not None:
+                    act_dict = postprocessor({"action": act})
+                    act = act_dict["action"]
             if device.type == "cuda":
                 torch.cuda.synchronize()
 
         warmup_time = time.perf_counter() - warmup_start
-        print(f"  预热完成,耗时: {warmup_time:.2f}s")
+        print(f"  预热完成，耗时: {warmup_time:.2f}s")
         print("  推理速度已稳定")
 
     except Exception as e:
         print(f"[WARN] 预热失败: {e}")
-        print("  继续运行,但首次推理可能较慢")
+        print("  继续运行，但首次推理可能较慢")
 
     # 机械臂初始化
     print("\n【机械臂初始化】")
-    robot_config = DMFollowerConfig(
-        port=args.port,
-        cameras=CAMERAS_CONFIG,
-        joint_velocity_scaling=args.joint_velocity_scaling,
-        disable_torque_on_disconnect=True,
-    )
-    robot_raw = DMFollower(robot_config)
+    if is_dual:
+        robot_config = DualDMFollowerConfig(
+            left_port=args.left_port,
+            right_port=args.right_port,
+            cameras=DUAL_CAMERAS_CONFIG,
+            joint_velocity_scaling=args.joint_velocity_scaling,
+            disable_torque_on_disconnect=True,
+        )
+        robot_raw = DualDMFollower(robot_config)
+    else:
+        robot_config = DMFollowerConfig(
+            port=args.port,
+            cameras=CAMERAS_CONFIG,
+            joint_velocity_scaling=args.joint_velocity_scaling,
+            disable_torque_on_disconnect=True,
+        )
+        robot_raw = DMFollower(robot_config)
+
     robot = ThreadSafeRobot(robot_raw)
     robot_connected = False
 
@@ -1243,19 +1481,29 @@ def main():
             policy=policy,
             robot=robot,
             device=device,
+            preprocessor=preprocessor,
+            postprocessor=postprocessor,
             use_amp=args.use_amp,
+            is_dual=is_dual,
+            joint_names=joint_names,
+            joint_limits=joint_limits,
+            cameras_config=cameras_config,
+            model_type=model_type,
+            task=args.task,
             filter_tau=args.filter_tau if not args.no_filter else 0.0,
             use_async_obs=args.use_async_obs,
             obs_freq=args.obs_freq,
+            always_action=args.always_action,
         )
 
         controller.start()
 
         # 主控制循环
         period = 1.0 / args.freq
+        mode_str = f"{'双臂' if is_dual else '单臂'} | {model_type.upper()}"
         print("\n")
         print(f"=======================================================")
-        print(f"              开始控制循环 ({args.freq} Hz)              ")
+        print(f"      开始控制循环 ({args.freq} Hz | {mode_str})      ")
         print(f"=======================================================")
         print("[INFO] 按 Ctrl+C 停止...\n")
 
@@ -1280,7 +1528,7 @@ def main():
                     print(f"[ERROR] 累计错误 {error_count} 次: {err_msg}")
 
                 if error_count >= max_consecutive_errors:
-                    print(f"\n[ERROR] 连续 {error_count} 次错误,停止控制循环")
+                    print(f"\n[ERROR] 连续 {error_count} 次错误，停止控制循环")
                     print("[INFO] 将执行安全归零...")
                     break
 
@@ -1313,7 +1561,7 @@ def main():
         import traceback
 
         traceback.print_exc()
-        print("\n[INFO] 检测到异常,执行安全归零...")
+        print("\n[INFO] 检测到异常，执行安全归零...")
     finally:
         # 安全关闭
         if controller:
@@ -1325,6 +1573,7 @@ def main():
             try:
                 smooth_reset(
                     robot,
+                    is_dual=is_dual,
                     control_freq=200.0,
                     smooth_time=args.reset_time,
                     max_step=0.05,
@@ -1337,7 +1586,7 @@ def main():
                 print("[WARN] 请手动检查机械臂状态！")
         elif robot_connected and args.no_reset:
             print("\n[WARN] 跳过归零 (--no_reset 模式)")
-            print("[WARN] 机械臂可能处于非零位,请注意安全!")
+            print("[WARN] 机械臂可能处于非零位，请注意安全！")
 
         print("\n[INFO] 断开机械臂连接...")
         try:

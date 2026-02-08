@@ -25,21 +25,21 @@
 # 固定摄像头配置（仅在 --display_data 模式下生效）
 # 根据实际硬件修改以下配置（例如摄像头索引、分辨率、FPS 等）
 CAMERAS_CONFIG = {
-    "left": {
+    "left_cam": {
         "type": "opencv",
         "index_or_path": "/dev/com-2.1-video",
         "width": 640,
         "height": 480,
         "fps": 30,
     },
-    "mid": {
+    "eye_cam": {
         "type": "opencv",
         "index_or_path": "/dev/com-2.2-video",
         "width": 1280,
         "height": 720,
         "fps": 30,
     },
-    "right": {
+    "right_cam": {
         "type": "opencv",
         "index_or_path": "/dev/com-2.3-video",
         "width": 1280,

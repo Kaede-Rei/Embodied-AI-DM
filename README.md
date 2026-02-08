@@ -447,6 +447,60 @@ sudo ./bash/usb-port-create.sh
 
 ​	`scripts/infer_dm.py` 是纯推理脚本，可自定义输出动作处理，加了安全检测、自动平滑归零和多线程采集推理；具体信息参照脚本说明，后续方便改成 `ROS-PY` 节点方便和其他系统对接
 
+#### 6.2.1. 使用步骤
+
+-   无论是 `ACT` 还是 `SmolVLA` 模型，都要先把 `output/` 放在工作区且终端在工作区执行脚本 `python ./scripts/infer_dm.py` ，模型目录具体结构参考脚本说明
+
+-   如果是 `ACT` 模型则直接按情况填好配置区后执行
+
+-   如果是 `SmolVLA` 模型则需要先配置预训练模型，首先将预训练模型 `models--HuggingFaceTB--SmolVLM2-500M-Video-Instruct` 下载到任意位置，该预训练模型下载路径：[SmolVLM2-500M-Video-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main)，下载好后修改 `SmolVLA` 模型的配置，如 `./outputs/dual_arm_box_smolvla/checkpoints/last/pretrained_model` 下的 `config.json` 和 `policy_preprocessor.json` 两个配置文件需要修改以下内容：
+
+    ```bash
+    # config.json
+    
+    # 找到 vlm_model_name 键值对，将模型名称改为本地路径
+        "vlm_model_name": "/media/kaede-rei/AgroTech/home/huggingface/hub/models--HuggingFaceTB--SmolVLM2-500M-Video-Instruct",
+    ```
+
+    ```bash
+    # policy_preprocessor.json
+    
+    # 找到 tokenizer_name 键值对，将模型名称改为本地路径
+         "tokenizer_name": "/media/kaede-rei/AgroTech/home/huggingface/hub/models--HuggingFaceTB--SmolVLM2-500M-Video-Instruct"
+    ```
+
+#### 6.2.2. 常用参数
+
+- `--dual_arm`：双臂模式
+- `--model_type`：模型类型，`act` 或 `smolvla`
+- `--task`：SmolVLA 任务描述（自然语言）
+- `--model_path`：模型路径
+- `--port`：单臂串口路径
+- `--left_port`：双臂左臂串口
+- `--right_port`：双臂右臂串口
+- `--device`：`cuda` 或 `cpu`
+- `--freq`：控制频率 Hz（建议 30）
+- `--use_amp`：混合精度推理
+- `--joint_velocity_scaling`：关节速度缩放（0-1）
+- `--filter_tau`：低通滤波时间常数（秒，越大越平滑）
+- `--no_filter`：禁用滤波（不推荐）
+- `--use_async_obs`：异步观测采集
+- `--obs_freq`：观测采集频率 Hz
+- `--always_action`：即使违规也始终执行动作（不推荐，谨慎使用）
+- `--max_velocity`：最大关节速度（rad/s）
+- `--max_change`：单步最大变化（rad）
+- `--reset_time`：归零时间（秒）
+- `--no_reset`：退出不归零（危险）
+- `--compile`：使用 torch.compile
+
+#### 6.2.3. 运行提示
+
+- 真机测试前先降低 `joint_velocity_scaling`（建议 0.05-0.1）
+- 不要在高负载 CPU 下运行高频控制，避免丢帧与卡顿
+- 建议开启滤波，否则模型输出可能抖动
+- 退出时请保持机械臂工作空间安全，避免碰撞
+
+
 ## 7. 双臂操作（dual_teleop.py 和 dual-record-dm.sh）
 
 1. **主从遥操作**：
@@ -902,8 +956,3 @@ usage: lerobot-teleoperate [-h] [--config_path str] [--teleop str]
 # ...
 # ...
 ```
-
-
-
-
-
