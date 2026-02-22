@@ -1,8 +1,0 @@
-prefix=/home/kaerei/ROS_Workspace/dm_ht_arm/devel
-
-Name: dm_arm_controller
-Description: Description of dm_arm_controller
-Version: 0.0.0
-Cflags: -I/home/kaerei/ROS_Workspace/dm_ht_arm/src/dm_arm_controller/include
-Libs: -L${prefix}/lib -ldm_arm_controller
-Requires: actionlib geometry_msgs moveit_core moveit_ros_planning_interface roscpp rospy std_msgs std_srvs tf2_geometry_msgs tf2_ros

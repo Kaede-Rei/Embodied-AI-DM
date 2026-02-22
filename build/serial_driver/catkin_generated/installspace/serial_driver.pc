@@ -1,8 +1,0 @@
-prefix=/home/kaerei/ROS_Workspace/dm_ht_arm/install
-
-Name: serial_driver
-Description: Description of serial_driver
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lserial_driver
-Requires: geometry_msgs roscpp serial std_msgs

@@ -1,2 +1,0 @@
-dm_arm_controller:dm_arm_description:dm_arm_moveit_config:dm_arm_msgs_srvs:dm_arm_service:dm_ht_controller:serial_driver
--DCATKIN_DEVEL_PREFIX=/home/kaerei/ROS_Workspace/dm_ht_arm/devel -DCMAKE_INSTALL_PREFIX=/home/kaerei/ROS_Workspace/dm_ht_arm/install -G Unix Makefiles
