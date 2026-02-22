@@ -1,8 +1,0 @@
-prefix=/home/kaerei/ROS_Workspace/multi_arm/install
-
-Name: pr2_arm_msgs_srvs
-Description: Description of pr2_arm_msgs_srvs
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
